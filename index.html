@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#04070f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="JARVIS" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>JARVIS · Command</title>
+<style>
+  :root{
+    --bg:#04070f; --glass:rgba(16,28,52,.55); --line:rgba(86,140,210,.22);
+    --txt:#e8f1ff; --muted:#8ca4cc; --cyan:#36e0ff; --cyan-dim:#1b86a0;
+    --green:#33e6a0; --red:#ff5d72; --amber:#ffc24b; --amp:0;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%,rgba(40,120,180,.20),transparent 60%),
+      radial-gradient(900px 500px at 100% 110%,rgba(54,224,255,.10),transparent 55%),
+      linear-gradient(180deg,#04070f,#060b18 60%,#04070f);
+    color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    font-size:15px;-webkit-font-smoothing:antialiased;
+    padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 26px);
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(rgba(70,120,190,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(70,120,190,.05) 1px,transparent 1px);
+    background-size:46px 46px;mask:radial-gradient(circle at 50% 30%,#000,transparent 80%)}
+  .shell{position:relative;z-index:1;max-width:1080px;margin:0 auto}
+  a{color:var(--cyan)}
+
+  .top{display:flex;align-items:center;gap:10px;padding:14px 4px 8px;font-size:11px;letter-spacing:.22em;color:var(--cyan-dim);text-transform:uppercase}
+  .top .mk{color:var(--txt);font-weight:700;letter-spacing:.3em}
+  .top .sp{flex:1}
+  .top .fresh{display:flex;align-items:center;gap:6px;color:var(--muted);letter-spacing:.08em;text-transform:none;font-size:10.5px}
+  .livedot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:lp 2s ease-in-out infinite}
+  @keyframes lp{50%{opacity:.35}}
+  .top .clk{color:var(--muted);letter-spacing:.1em}
+
+  /* ---------- reactor orb (glassy sphere) ---------- */
+  .hero{display:flex;flex-direction:column;align-items:center;padding:10px 0 14px;text-align:center}
+  .reactor{--s:150px;width:var(--s);height:var(--s);position:relative;cursor:pointer;display:grid;place-items:center;margin-bottom:14px;
+    filter:drop-shadow(0 0 calc(12px + var(--amp)*42px) rgba(54,224,255,.55))}
+  .halo{position:absolute;inset:-24%;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(54,224,255,calc(.22 + var(--amp)*.45)),transparent 60%);transition:.08s linear}
+  .ring{position:absolute;border-radius:50%;pointer-events:none}
+  .r1{inset:0;border:1px solid rgba(54,224,255,.45);animation:spin 17s linear infinite}
+  .r1::after{content:"";position:absolute;top:-3.5px;left:50%;width:7px;height:7px;border-radius:50%;background:#9af7ff;box-shadow:0 0 12px 2px #36e0ff;transform:translateX(-50%)}
+  .r2{inset:13px;border:1px dashed rgba(54,224,255,.30);animation:spin 12s linear infinite reverse}
+  .r3{inset:27px;border:1px solid rgba(54,224,255,.13)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .core{width:50%;height:50%;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 35% 28%,#ffffff 0%,#c6f5ff 13%,#3fe2ff 40%,#0c6f90 72%,#04232f 100%);
+    box-shadow:0 0 calc(16px + var(--amp)*66px) rgba(54,224,255,calc(.5 + var(--amp)*.5)),
+      inset -5px -7px 16px rgba(0,16,26,.65), inset 5px 6px 15px rgba(255,255,255,.55);
+    transform:scale(calc(1 + var(--amp)*0.22));transition:transform .06s linear;animation:breathe 4.2s ease-in-out infinite}
+  .core::after{content:"";position:absolute;top:15%;left:21%;width:33%;height:23%;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.95),transparent 72%);filter:blur(.5px)}
+  .reactor.speaking .core{animation:none}
+  .reactor.listening .core{background:radial-gradient(circle at 35% 28%,#fff,#cffae0 14%,#33e6a0 42%,#0a6b4e 74%,#042418)}
+  @keyframes breathe{50%{transform:scale(1.045)}}
+  .hello{font-size:12px;letter-spacing:.26em;color:var(--cyan);text-transform:uppercase;font-weight:700}
+
+  /* ---------- ask bar ---------- */
+  .askwrap{width:100%;max-width:540px;margin:14px auto 0}
+  .askbar{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);
+    border-radius:30px;padding:6px 6px 6px 8px;backdrop-filter:blur(14px);box-shadow:0 8px 26px rgba(0,0,0,.35)}
+  .askbar input{flex:1;background:none;border:none;outline:none;color:var(--txt);font-size:14px;padding:8px 4px}
+  .askbar input::placeholder{color:var(--muted)}
+  .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--cyan-dim);background:rgba(54,224,255,.10);
+    color:var(--cyan);font-size:16px;cursor:pointer;flex:none;display:grid;place-items:center}
+  .iconbtn:active{background:var(--cyan);color:#04121a}
+  .iconbtn.live{background:var(--cyan);color:#04121a;animation:lp 1.1s infinite}
+  .answer{max-width:540px;margin:12px auto 0;min-height:0;font-size:14px;line-height:1.55;color:#e8f1ff;
+    background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:14px;padding:0 14px;max-height:0;overflow:hidden;
+    transition:max-height .25s ease,padding .25s ease;opacity:0}
+  .answer.show{padding:13px 14px;max-height:300px;opacity:1}
+  .answer .who{font-size:9.5px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;font-weight:700;margin-bottom:4px}
+  .hint{margin-top:11px;font-size:10.5px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .hint b{color:var(--cyan);cursor:pointer}
+
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:start;margin-top:8px}
+  .masonry{column-gap:12px;margin-top:12px}
+  @media(min-width:660px){.masonry{column-count:2}}
+  @media(min-width:1000px){.masonry{column-count:3}}
+  .masonry>.panel{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 12px;width:100%}
+  .masonry>.panel:hover{transform:none;border-color:rgba(54,224,255,.4)}
+  .panel{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);
+    border-radius:18px;padding:16px;box-shadow:0 10px 34px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .15s,border-color .15s}
+  .panel:hover{transform:translateY(-2px);border-color:rgba(54,224,255,.4)}
+  .ph{font-size:10.5px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .ph::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  .ph .r{margin-left:auto;color:var(--muted);letter-spacing:.06em;font-weight:600}
+
+  .ptot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .ptot .v{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .ptot .pl{font-size:14px;font-weight:700}
+  .psub{font-size:11.5px;color:var(--muted);margin-bottom:4px}
+
+  .hold{display:grid;grid-template-columns:1fr 116px auto;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer}
+  .hold:first-of-type{border-top:none}
+  .hold:hover,.wrow:hover{background:rgba(54,224,255,.04)}
+  .tk{font-weight:700;font-size:13.5px;letter-spacing:.02em}
+  .tk .chev{color:var(--cyan-dim);font-weight:700}
+  .nm{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .spark{width:116px;height:34px;display:block}
+  .vr{text-align:right;white-space:nowrap}
+  .vr .a{font-size:13.5px;font-weight:700}
+  .vr .b{font-size:11.5px;font-weight:700;margin-top:2px}
+  .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--amber)}
+  .est{font-size:8.5px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(255,194,75,.4);border-radius:5px;padding:1px 4px;margin-left:5px;vertical-align:middle}
+  .buyz{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:#04140e;background:var(--green);border-radius:5px;padding:1px 5px;margin-left:6px;box-shadow:0 0 10px rgba(51,230,160,.7);animation:bz 1.5s ease-in-out infinite}
+  @keyframes bz{50%{box-shadow:0 0 18px rgba(51,230,160,.95)}}
+  .buyt{font-size:10px;color:var(--cyan-dim)}
+
+  .wrow{display:grid;grid-template-columns:1fr 90px auto;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+  .wrow:first-of-type{border-top:none}
+  .wrow .spark{width:90px;height:26px}
+
+  .mkt{font-size:12.5px;line-height:1.7;color:#cfe0fb}
+  .mkt span{color:var(--muted)}
+  .movers{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mv h4{margin:0 0 6px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .mv .m{display:flex;justify-content:space-between;gap:6px;padding:4px 0;font-size:12px;font-weight:600}
+  .mv .m .t{color:var(--txt)} .mv .m .n{color:var(--muted);font-weight:500;font-size:10px}
+
+  .fchip{font-size:11.5px;line-height:1.45;color:#d6e4fb;background:rgba(54,224,255,.07);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px}
+  .fchip b{color:var(--cyan);letter-spacing:.1em;font-size:9px;display:block;margin-bottom:3px;text-transform:uppercase}
+  .li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;align-items:flex-start}
+  .li:first-child{border-top:none}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none;margin-top:5px;background:var(--cyan)}
+  .dot.warn{background:var(--amber)} .dot.muted{background:#3a4a66}
+  .li .meta{font-size:10.5px;color:var(--muted);display:block;margin-top:1px}
+  .empty{font-size:12px;color:var(--muted);font-style:italic}
+  .sec-lbl{font-size:10px;letter-spacing:.16em;color:var(--muted);margin:12px 0 4px;text-transform:uppercase}
+  .sec-lbl:first-child{margin-top:0}
+  .briefing{font-size:13px;line-height:1.62;color:#cdddf6}
+  footer{text-align:center;font-size:10px;color:#48597c;margin-top:18px;letter-spacing:.04em;line-height:1.6}
+  .alerts{display:flex;flex-direction:column;gap:8px;margin:4px 0 2px}
+  .alert{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#eef6ff;background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.34);border-radius:12px;padding:10px 13px}
+  .alert .ai{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--amber);white-space:nowrap}
+  .alert.buy{background:rgba(51,230,160,.10);border-color:rgba(51,230,160,.4)}
+  .alert.buy .ai{color:var(--green)}
+  .hl a{display:block;padding:10px 0;border-top:1px solid var(--line);font-size:13px;color:#dbe8fc;text-decoration:none}
+  .hl a:first-child{border-top:none}
+  .hl a:hover{color:var(--cyan)}
+  .hl a .src{display:block;font-size:10.5px;color:var(--cyan-dim);margin-top:3px;letter-spacing:.04em}
+  .crow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .crow:first-child{border-top:none}
+  .crow img{width:22px;height:22px;border-radius:50%}
+  .crow .cn{font-size:13px;font-weight:700}.crow .cs{font-size:10px;color:var(--muted);text-transform:uppercase}
+  .crow .cp{text-align:right;font-size:13px;font-weight:700}.crow .cc{font-size:11.5px;font-weight:700;margin-top:2px}
+  .mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+  .mrow:first-child{border-top:none}
+  .mrow .cn{font-size:13px;font-weight:700}.mrow .cs{font-size:10.5px;color:var(--muted);margin-top:1px}
+  .mrow .mp{font-size:13px;font-weight:700;text-align:right}
+
+  .modal{position:fixed;inset:0;z-index:70;background:rgba(2,6,14,.72);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+  .modal.open{display:flex}
+  .sheet{background:linear-gradient(180deg,#0b1426,#070d1a);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:88vh;overflow:auto;padding:18px 18px calc(env(safe-area-inset-bottom) + 22px);box-shadow:0 -10px 40px rgba(0,0,0,.6)}
+  @media(min-width:620px){ .modal{align-items:center} .sheet{border-radius:20px} }
+  .shx{display:flex;align-items:center;gap:10px}
+  .shx .tt{font-size:18px;font-weight:800}
+  .shx .nm2{font-size:11px;color:var(--muted);margin-top:2px}
+  .shx .x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--muted);border-radius:9px;width:34px;height:34px;font-size:16px;cursor:pointer}
+  .bigchart{width:100%;height:140px;margin:12px 0 6px;display:block}
+  .mstat{display:flex;gap:20px;flex-wrap:wrap;margin:2px 0 10px}
+  .mstat div{font-size:11px;color:var(--muted)}
+  .mstat b{display:block;font-size:16px;color:var(--txt);font-weight:800;margin-top:3px}
+  .blurb{font-size:12.5px;line-height:1.55;color:#cdddf6;margin:4px 0 12px}
+  .news-lbl{font-size:10px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;font-weight:700;margin:6px 0 2px}
+  .news a{display:block;padding:10px 0;border-top:1px solid var(--line);font-size:13px;color:#dbe8fc;text-decoration:none}
+  .news a .src{display:block;font-size:10.5px;color:var(--cyan-dim);margin-top:3px;letter-spacing:.05em}
+  .searchlink{display:inline-block;margin-top:12px;font-size:12px;color:var(--cyan)}
+
+  .lock{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px}
+  .lock .reactor{--s:96px;cursor:default;margin-bottom:4px}
+  .lock h3{margin:0;font-size:12px;letter-spacing:.26em;color:var(--cyan);font-weight:700}
+  .dots{display:flex;gap:13px;margin:2px 0}
+  .dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--cyan-dim);transition:.15s}
+  .dots i.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+  .lockerr{color:var(--red);font-size:12px;height:15px;letter-spacing:.05em}
+  .pad{display:grid;grid-template-columns:repeat(3,68px);gap:13px}
+  .pad button{height:68px;border-radius:50%;border:1px solid var(--line);background:var(--glass);color:var(--txt);font-size:24px;font-weight:600;backdrop-filter:blur(8px)}
+  .pad button:active{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
+  .pad .blank{visibility:hidden;pointer-events:none}
+  @media(max-width:560px){ .ptot .v{font-size:26px} .reactor{--s:128px} }
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="reactor"><div class="halo"></div><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div></div>
+  <h3>JARVIS · LOCKED</h3>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+  <div class="lockerr" id="lockerr"></div>
+  <div class="pad">
+    <button onclick="press('1')">1</button><button onclick="press('2')">2</button><button onclick="press('3')">3</button>
+    <button onclick="press('4')">4</button><button onclick="press('5')">5</button><button onclick="press('6')">6</button>
+    <button onclick="press('7')">7</button><button onclick="press('8')">8</button><button onclick="press('9')">9</button>
+    <button class="blank"></button><button onclick="press('0')">0</button><button onclick="del()">⌫</button>
+  </div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeStock()"><div class="sheet" id="sheet"></div></div>
+
+<div class="shell" id="app" style="display:none">
+  <div class="top"><span class="mk">J A R V I S</span><span>· Command</span><span class="sp"></span>
+    <span class="fresh"><span class="livedot"></span><span id="fresh">live</span></span><span class="clk" id="clk"></span></div>
+
+  <div class="hero">
+    <div class="reactor" id="reactor" onclick="playBriefing()" title="Replay briefing">
+      <div class="halo"></div><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div>
+    </div>
+    <div class="hello" id="hello">GOOD MORNING, ZAC</div>
+    <div class="askwrap">
+      <div class="askbar">
+        <input id="askin" placeholder="Type a quick question…" autocomplete="off"
+          onkeydown="if(event.key==='Enter')ask()" />
+        <button class="iconbtn" onclick="ask()" title="Send" aria-label="Send">&#8594;</button>
+      </div>
+      <div class="answer" id="answer"></div>
+    </div>
+    <div class="hint">Tap the orb to replay your briefing · talk to JARVIS with the voice button</div>
+  </div>
+
+  <div class="panel" style="margin-top:8px">
+      <div class="ph">Portfolio <span class="r" id="pstamp"></span></div>
+      <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
+      <div class="psub" id="psub"></div>
+      <div id="nwchart" style="margin:12px 0 6px"></div>
+      <div id="holdings"></div>
+    </div>
+  <div class="masonry">
+    <div class="panel"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
+    <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
+    <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Markets</div><div class="mkt" id="mkt"></div></div>
+    <div class="panel"><div class="ph">Today</div>
+      <div class="fchip" id="fchip" style="display:none"></div>
+      <div class="sec-lbl">Calendar</div><div id="cal"></div>
+      <div class="sec-lbl">Nest tasks</div><div id="tasks"></div>
+      <div class="sec-lbl">Inbox — watch</div><div id="inbox"></div></div>
+    <div class="panel"><div class="ph">Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
+    <div class="panel"><div class="ph">Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
+  </div>
+  <elevenlabs-convai agent-id="agent_4801kvyk534xe83thadveggjjsms"></elevenlabs-convai>
+  <footer id="foot"></footer>
+</div>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+
+<script>
+const FALLBACK = {
+  "generated_at": "2026-06-29T09:42:00+10:00",
+  "as_of_date": "2026-06-29",
+  "tz": "Australia/Melbourne",
+  "fx": {
+    "audusd": 0.6899
+  },
+  "portfolio": {
+    "total_value_aud": 36631.2,
+    "total_cost_aud": 39831.49,
+    "total_pl_aud": -3200.29,
+    "total_pl_pct": -8.03,
+    "holdings": [
+      {
+        "ticker": "WTC.AX",
+        "name": "WiseTech Global",
+        "units": 665,
+        "avg_cost": 39.09,
+        "ccy": "AUD",
+        "price": 33.14,
+        "value_aud": 22038.1,
+        "pl_aud": -3956.75,
+        "pl_pct": -15.22,
+        "buy_below": 30.0,
+        "estimate": false,
+        "note": "",
+        "series": [
+          29.07,
+          30.43,
+          31.55,
+          33.14
+        ],
+        "blurb": "FY26 revenue guided US$1.39–1.44b (79–85% growth). AI-wide efficiency pivot, ~2,000 job cuts and e2open integration weighing on near-term margins.",
+        "news": [
+          {
+            "t": "AI pivot & reaffirmed FY26 guidance reframe execution risk",
+            "s": "Simply Wall St",
+            "u": "https://simplywall.st/stocks/au/software/asx-wtc/wisetech-global-shares/news/is-wisetech-globals-asxwtc-ai-pivot-and-reaffirmed-guidance"
+          },
+          {
+            "t": "Tech sell-off has investors asking what comes next",
+            "s": "Kalkine",
+            "u": "https://kalkine.com.au/news/technology/wisetech-global-asxwtc-the-tech-stock-sell-off-that-has-investors-asking-what-comes-next"
+          }
+        ]
+      },
+      {
+        "ticker": "NOW",
+        "name": "ServiceNow",
+        "units": 73,
+        "avg_cost": 93.61,
+        "ccy": "USD",
+        "price": 99.14,
+        "value_aud": 10490.6,
+        "pl_aud": 585.5,
+        "pl_pct": 5.91,
+        "buy_below": 90.0,
+        "estimate": false,
+        "note": "USD holding",
+        "series": [
+          96.06,
+          89.94,
+          98.75,
+          99.14
+        ],
+        "blurb": "Software rotation back in favour as OpenAI-replacement fears ease; expanded Google + HCLTech partnership. Shares jumped ~10% Friday.",
+        "news": [
+          {
+            "t": "Why ServiceNow stock gained 9.9% on Friday",
+            "s": "Motley Fool",
+            "u": "https://www.fool.com/investing/2026/06/26/why-servicenow-stock-gained-99on-friday/"
+          },
+          {
+            "t": "ServiceNow, Salesforce surge as OpenAI threat weakens",
+            "s": "MarketWatch",
+            "u": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb"
+          },
+          {
+            "t": "The market rotation is on — software tops chips",
+            "s": "Barron's",
+            "u": "https://www.barrons.com/articles/servicenow-applovin-software-chips-on-semiconductor-4496e4be"
+          }
+        ]
+      },
+      {
+        "ticker": "V500",
+        "name": "Vanguard S&P 500",
+        "units": 75,
+        "avg_cost": 52.42,
+        "ccy": "AUD",
+        "price": 54.7,
+        "value_aud": 4102.5,
+        "pl_aud": 170.96,
+        "pl_pct": 4.35,
+        "buy_below": null,
+        "estimate": false,
+        "note": "all-time +$171 · app shows +9.6%",
+        "series": [
+          52.42,
+          54.7
+        ],
+        "blurb": "Dollar-cost average ~A$1,000/month into the US S&P 500. Tracks the index daily move; long-term core.",
+        "news": []
+      }
+    ]
+  },
+  "watchlist": [
+    {
+      "ticker": "CSL.AX",
+      "name": "CSL Limited",
+      "price": 114.87,
+      "pct": -2.36,
+      "spotlight": true,
+      "buy_below": 110.0,
+      "note": "",
+      "series": [
+        100.0,
+        115.27,
+        114.87
+      ],
+      "blurb": "FY26 guidance revised lower on inventory/pricing headwinds; China albumin pricing weak. New CCO Diego Sacristan from 1 July.",
+      "news": [
+        {
+          "t": "Diego Sacristan named CCO of CSL Behring & Vifor (1 Jul)",
+          "s": "CSL IR",
+          "u": "https://investors.csl.com/"
+        },
+        {
+          "t": "Can CSL overcome revenue challenges and return to growth?",
+          "s": "Kalkine",
+          "u": "https://kalkine.com.au/news/healthcare/can-csl-asxcsl-overcome-its-revenue-challenges-and-return-to-growth"
+        }
+      ]
+    },
+    {
+      "ticker": "TLX.AX",
+      "name": "Telix Pharmaceuticals",
+      "price": 15.33,
+      "pct": -2.23,
+      "spotlight": false,
+      "buy_below": 14.0,
+      "note": "",
+      "series": [
+        13.65,
+        13.65,
+        15.33
+      ],
+      "blurb": "Theranostics collaboration with United Imaging; ProstACT Global Phase 3 data at ASCO 2026. In focus on healthcare rotation.",
+      "news": [
+        {
+          "t": "United Imaging collab; ProstACT Phase 3 data at ASCO",
+          "s": "Telix IR",
+          "u": "https://ir.telixpharma.com/filings/asx-announcements"
+        },
+        {
+          "t": "TLX gains spotlight in June healthcare rotation",
+          "s": "Kalkine",
+          "u": "https://kalkine.com.au/news/general-news/telix-pharmaceuticals-asx-tlx-gains-spotlight-in-june-healthcare-sector-rotation"
+        }
+      ]
+    },
+    {
+      "ticker": "WDS.AX",
+      "name": "Woodside Energy",
+      "price": 27.65,
+      "pct": 0.8,
+      "spotlight": false,
+      "buy_below": 26.0,
+      "note": "",
+      "series": [
+        28.24,
+        28.62,
+        27.65
+      ],
+      "blurb": "Scarborough LNG >95% complete, first cargo late 2026; Trion >50% done. Core ASX energy/LNG exposure.",
+      "news": [
+        {
+          "t": "Scarborough >95% complete; first LNG cargo late 2026",
+          "s": "Kalkine",
+          "u": "https://kalkine.com.au/news/energy/why-woodside-energy-asxwds-remains-a-core-asx-energy-giant-in-2026-share-performance-lng-strength-outlook"
+        }
+      ]
+    },
+    {
+      "ticker": "BAP.AX",
+      "name": "Bapcor",
+      "price": 0.41,
+      "pct": -5.75,
+      "spotlight": false,
+      "buy_below": null,
+      "note": "unverified",
+      "series": [
+        0.41,
+        0.41
+      ],
+      "blurb": "Price reading unverified today — confirm before acting.",
+      "news": []
+    },
+    {
+      "ticker": "V500",
+      "name": "Vanguard S&P 500 (VOO)",
+      "price": 670.26,
+      "pct": -0.82,
+      "spotlight": false,
+      "buy_below": null,
+      "note": "USD",
+      "series": [
+        675.71,
+        670.26
+      ],
+      "blurb": "US-listed VOO, the S&P 500 tracker behind your V500 position.",
+      "news": []
+    },
+    {
+      "ticker": "PV1.AX",
+      "name": "Provaris Energy",
+      "price": null,
+      "pct": null,
+      "spotlight": false,
+      "buy_below": null,
+      "note": "unverified",
+      "series": [
+        0.012,
+        0.009
+      ],
+      "blurb": "Micro-cap hydrogen play; price unverified today.",
+      "news": []
+    }
+  ],
+  "spotlight": [
+    "WTC.AX",
+    "NOW",
+    "CSL.AX"
+  ],
+  "market": {
+    "tone": "Mixed into the weekend",
+    "leaders": "Consumer Cyclical, Healthcare, Industrials",
+    "laggards": "Energy, Communication Services",
+    "standout": "Microsoft +5.7%, Apple +3.1%; Micron −6.7%",
+    "movers": {
+      "gainers": [
+        {
+          "ticker": "CABO",
+          "name": "Cable One",
+          "pct": 30.06
+        },
+        {
+          "ticker": "FUBO",
+          "name": "fuboTV",
+          "pct": 22.5
+        },
+        {
+          "ticker": "FCEL",
+          "name": "FuelCell Energy",
+          "pct": 22.14
+        },
+        {
+          "ticker": "DOMO",
+          "name": "Domo",
+          "pct": 20.49
+        },
+        {
+          "ticker": "SPCE",
+          "name": "Virgin Galactic",
+          "pct": 18.0
+        }
+      ],
+      "losers": [
+        {
+          "ticker": "CRMT",
+          "name": "America's Car-Mart",
+          "pct": -31.4
+        },
+        {
+          "ticker": "ON",
+          "name": "ON Semiconductor",
+          "pct": -23.66
+        },
+        {
+          "ticker": "OMER",
+          "name": "Omeros",
+          "pct": -19.12
+        },
+        {
+          "ticker": "XXII",
+          "name": "22nd Century",
+          "pct": -18.97
+        },
+        {
+          "ticker": "BE",
+          "name": "Bloom Energy",
+          "pct": -18.49
+        }
+      ]
+    }
+  },
+  "agenda": {
+    "calendar": [],
+    "tasks": [
+      {
+        "name": "Nomad hostel proposal",
+        "status": "to do",
+        "due": null,
+        "list": "nest possible proposals"
+      }
+    ],
+    "inbox": [
+      {
+        "from": "Supabase",
+        "subject": "day-sheets project may be paused (idle >7d)",
+        "urgent": true
+      },
+      {
+        "from": "GitHub",
+        "subject": "TradieMate CI run failed / PAT expiry",
+        "urgent": false
+      }
+    ],
+    "drive": [
+      {
+        "title": "ZAC ALDERTON CARPENTARY PTY LTD",
+        "type": "Sheet"
+      },
+      {
+        "title": "Job Tracker",
+        "type": "Sheet"
+      }
+    ]
+  },
+  "briefing": {
+    "audio": "briefing.mp3",
+    "voice": "Alistair",
+    "focus": "Push the Nomad hostel proposal forward — the single item that genuinely moves the business.",
+    "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox — mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it — that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close — consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
+  }
+};
+const AUDIO_SRC = "briefing.mp3";
+const LIVE_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/dashboard";
+const CHAT_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-chat";
+const TTS_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-tts";
+const LOOKUP_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-lookup";
+let lastData=null, chatHistory=[];
+
+const money=(n,c="AUD")=>n==null?"—":(c==="USD"?"US$":"A$")+Number(n).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=n=>n==null?"—":(n>=0?"+":"")+Number(n).toFixed(2)+"%";
+const cls=n=>n==null?"flat":(n>0?"up":(n<0?"down":"flat"));
+function ago(iso){ if(!iso) return "live"; const s=(Date.now()-new Date(iso).getTime())/1000;
+  if(s<90) return "updated just now"; if(s<3600) return "updated "+Math.round(s/60)+"m ago";
+  if(s<86400) return "updated "+Math.round(s/3600)+"h ago"; return "updated "+Math.round(s/86400)+"d ago"; }
+
+function buyTag(price,lvl,ccy){ if(lvl==null||price==null) return ""; if(price<=lvl) return '<span class="buyz">● BUY ZONE</span>'; return ' · <span class="buyt">buy ≤ '+money(lvl,ccy)+'</span>'; }
+function spark(series,w,h){
+  if(!series||series.length<2) series=[1,1];
+  const n=series.length,pad=3,min=Math.min(...series),max=Math.max(...series),rng=(max-min)||1;
+  const pts=series.map((v,i)=>[pad+(i/(n-1))*(w-2*pad), h-pad-((v-min)/rng)*(h-2*pad)]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area="M"+pts[0][0].toFixed(1)+" "+(h-pad)+" "+pts.map(p=>"L"+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ")+" L"+pts[n-1][0].toFixed(1)+" "+(h-pad)+" Z";
+  const up=series[n-1]>=series[0],col=up?"var(--green)":"var(--red)";
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${area}" fill="${col}" opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[n-1][0].toFixed(1)}" cy="${pts[n-1][1].toFixed(1)}" r="2.1" fill="${col}"/></svg>`;
+}
+
+function render(d){
+  lastData=d;
+  window.__gen=d.generated_at;
+  document.getElementById("fresh").textContent=ago(d.generated_at);
+  document.getElementById("pstamp").textContent=d.as_of_date||"";
+  const hr=new Date().getHours();
+  document.getElementById("hello").textContent=(hr<12?"GOOD MORNING":hr<18?"GOOD AFTERNOON":"GOOD EVENING")+", ZAC";
+
+  const p=d.portfolio;
+  document.getElementById("pv").textContent=money(p.total_value_aud);
+  const ppl=document.getElementById("ppl");
+  ppl.textContent=(p.total_pl_aud>=0?"+":"")+money(p.total_pl_aud)+"  ("+pct(p.total_pl_pct)+")";
+  ppl.className="pl "+cls(p.total_pl_aud);
+  document.getElementById("psub").textContent="Cost basis "+money(p.total_cost_aud)+" · AUD/USD "+d.fx.audusd;
+  const nw=p.networth||[];
+  document.getElementById("nwchart").innerHTML = nw.length>=2 ? netChart(nw) : "";
+
+  document.getElementById("holdings").innerHTML=p.holdings.map((h,i)=>`
+    <div class="hold" onclick="openStock('h',${i})">
+      <div><div class="tk">${h.ticker}<span class="chev">›</span>${h.estimate?'<span class="est">EST</span>':''}${buyTag(h.price,h.buy_below,h.ccy)}</div>
+        <div class="nm">${h.name} · ${h.units} @ ${money(h.avg_cost,h.ccy)}${h.note?' · '+h.note:''}</div></div>
+      ${spark(h.series,116,34)}
+      <div class="vr"><div class="a">${money(h.value_aud)}</div>
+        <div class="b ${cls(h.pl_aud)}">${(h.pl_aud>=0?"+":"")+money(h.pl_aud)} · ${pct(h.pl_pct)}</div></div>
+    </div>`).join("");
+
+  document.getElementById("watch").innerHTML=d.watchlist.map((w,i)=>{
+    const px=w.price==null?"n/a":(w.ticker==="V500"?"US$":"A$")+Number(w.price).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});
+    return `<div class="wrow" onclick="openStock('w',${i})">
+      <div><div class="tk">${w.ticker}<span class="chev">›</span>${w.spotlight?" ★":""}${buyTag(w.price,w.buy_below,"AUD")}</div>
+        <div class="nm">${w.name}${w.note?" · "+w.note:""}</div></div>
+      ${spark(w.series,90,26)}
+      <div class="vr"><div class="a">${px}</div><div class="b ${cls(w.pct)}">${pct(w.pct)}</div></div></div>`;
+  }).join("");
+
+  const mv=(d.market.movers)||{gainers:[],losers:[]};
+  const row=x=>`<div class="m"><span class="t">${x.ticker} <span class="n">${x.name}</span></span><span class="${cls(x.pct)}">${pct(x.pct)}</span></div>`;
+  document.getElementById("movers").innerHTML=`<div class="mv"><h4>▲ Gainers</h4>${(mv.gainers||[]).map(row).join("")}</div><div class="mv"><h4>▼ Losers</h4>${(mv.losers||[]).map(row).join("")}</div>`;
+
+  const m=d.market;
+  document.getElementById("mkt").innerHTML=`<span>Tone</span> ${m.tone||"—"}<br><span>Leaders</span> ${m.leaders||"—"}<br><span>Laggards</span> ${m.laggards||"—"}<br><span>Big caps</span> ${m.standout||"—"}`;
+
+  const fc=document.getElementById("fchip");
+  if(d.briefing&&d.briefing.focus){ fc.style.display="block"; fc.innerHTML="<b>Today's focus</b>"+d.briefing.focus; } else fc.style.display="none";
+  const cal=d.agenda.calendar||[];
+  document.getElementById("cal").innerHTML=cal.length?cal.map(e=>`<div class="li"><div class="dot"></div><div>${e.title}<span class="meta">${e.time||""}</span></div></div>`).join(""):'<div class="empty">Clear — no events.</div>';
+  const tasks=d.agenda.tasks||[];
+  document.getElementById("tasks").innerHTML=tasks.length?tasks.map(t=>`<div class="li"><div class="dot"></div><div>${t.name}<span class="meta">${t.status}${t.due?" · due "+t.due:" · no due date"}</span></div></div>`).join(""):'<div class="empty">Nothing open.</div>';
+  const inbox=d.agenda.inbox||[];
+  document.getElementById("inbox").innerHTML=inbox.length?inbox.map(i=>`<div class="li"><div class="dot ${i.urgent?"warn":"muted"}"></div><div>${i.subject}<span class="meta">${i.from}</span></div></div>`).join(""):'<div class="empty">Inbox quiet.</div>';
+
+  document.getElementById("briefing").textContent=d.briefing.text||"";
+  document.getElementById("vlabel").textContent=d.briefing.voice||"";
+  window.__briefingText=d.briefing.text;
+  document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed from Supabase · auto-refreshes every 15 min<br>Private dashboard · not financial advice";
+}
+
+/* ---------- conversation (hands-free) ---------- */
+let recog=null, convMode=false, chatBusy=false, speaking=false, sayTimer=null;
+function showAnswer(text){ const a=document.getElementById("answer"); a.innerHTML='<div class="who">JARVIS</div>'+text; a.classList.add("show"); }
+
+function ask(textArg){
+  const inp=document.getElementById("askin");
+  const q=(textArg!=null?textArg:(inp.value||"")).trim(); if(!q) return;
+  inp.value=""; chatBusy=true; stopListen(); showAnswer("…"); setSpeaking(true);
+  fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:chatHistory})})
+    .then(r=>r.json()).then(j=>{ const reply=j.reply||"Sorry, I didn't catch that.";
+      chatHistory.push({role:"user",content:q},{role:"assistant",content:reply}); chatHistory=chatHistory.slice(-8);
+      showAnswer(reply); sayText(reply, ()=>{ chatBusy=false; if(convMode) startListen(); }); })
+    .catch(()=>{ showAnswer("I couldn't reach the network just then."); setSpeaking(false); chatBusy=false; if(convMode) startListen(); });
+}
+
+function startListen(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById("askin").focus(); return; }
+  if(recog||chatBusy||speaking) return;
+  recog=new SR(); recog.lang="en-AU"; recog.interimResults=false; recog.maxAlternatives=1;
+  document.getElementById("micbtn").classList.add("live"); document.getElementById("reactor").classList.add("listening");
+  recog.onresult=e=>{ const t=e.results[0][0].transcript; recog=null; ask(t); };
+  recog.onerror=()=>{};
+  recog.onend=()=>{ document.getElementById("micbtn").classList.remove("live"); document.getElementById("reactor").classList.remove("listening");
+    const had=recog; recog=null; if(convMode && !chatBusy && !speaking && had) setTimeout(startListen,350); };
+  try{ recog.start(); }catch(e){ recog=null; }
+}
+function stopListen(){ if(recog){ try{recog.stop();}catch(e){} recog=null; }
+  var mb=document.getElementById("micbtn"); if(mb) mb.classList.remove("live"); document.getElementById("reactor").classList.remove("listening"); }
+
+/* tap orb or mic = toggle hands-free conversation */
+function askVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById("askin").focus(); showAnswer("On iPhone, tap the text box and use your keyboard's 🎤 dictation button to talk to me — then send. (Apple's Safari blocks in-page voice input.)"); return; }
+  if(convMode){ convMode=false; stopListen(); showAnswer("Conversation paused. Tap the orb to talk again."); return; }
+  convMode=true; showAnswer("Listening… just talk. Tap the orb again to stop."); startListen();
+}
+function orbTap(){ askVoice(); }
+
+/* ---------- speak: Alistair via ElevenLabs (iOS-robust: plain audio + timed pulse) ---------- */
+let voiceAudio=null;
+function getAudio(){ if(!voiceAudio){ voiceAudio=new Audio(); voiceAudio.setAttribute("playsinline","true"); voiceAudio.preload="auto"; } return voiceAudio; }
+function setSpeaking(on){
+  speaking=on; const r=document.getElementById("reactor");
+  if(on){ r&&r.classList.add("speaking"); if(!sayTimer) sayTimer=setInterval(()=>document.documentElement.style.setProperty("--amp",(0.2+Math.random()*0.55).toFixed(2)),110); }
+  else { r&&r.classList.remove("speaking"); document.documentElement.style.setProperty("--amp",0); if(sayTimer){clearInterval(sayTimer);sayTimer=null;} }
+}
+function sayText(text, done){
+  stopSpeak(); if(!text){ if(done)done(); return; }
+  setSpeaking(true);
+  const a=getAudio();
+  a.src=TTS_URL+"?k=zacjarvis2233&text="+encodeURIComponent(text.slice(0,780));
+  a.onended=()=>{ setSpeaking(false); if(done)done(); };
+  a.onerror=()=>{ ttsFallback(text,done); };
+  const pr=a.play();
+  if(pr&&pr.catch) pr.catch(()=>ttsFallback(text,done));
+}
+function ttsFallback(text, done){
+  if(!window.speechSynthesis){ setSpeaking(false); if(done)done(); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.rate=1.06; u.pitch=0.9;
+  const v=speechSynthesis.getVoices().find(x=>/UK|British|Daniel|Arthur|George|Oliver/i.test(x.name)); if(v) u.voice=v;
+  setSpeaking(true);
+  u.onend=()=>{ setSpeaking(false); if(done)done(); };
+  speechSynthesis.speak(u);
+}
+/* "replay briefing" speaks the live dynamic text in Alistair */
+function playBriefing(){ if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); }
+function stopSpeak(){ setSpeaking(false); if(voiceAudio){ try{voiceAudio.pause();}catch(e){} } if(window.speechSynthesis) speechSynthesis.cancel(); }
+
+/* ---------- stock detail modal ---------- */
+function bigChart(series){
+  const w=600,h=140,pad=8; if(!series||series.length<2) series=[1,1];
+  const n=series.length,min=Math.min(...series),max=Math.max(...series),rng=(max-min)||1;
+  const pts=series.map((v,i)=>[pad+(i/(n-1))*(w-2*pad), h-pad-((v-min)/rng)*(h-2*pad-16)-8]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area="M"+pts[0][0].toFixed(1)+" "+(h-pad)+" "+pts.map(p=>"L"+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ")+" L"+pts[n-1][0].toFixed(1)+" "+(h-pad)+" Z";
+  const up=series[n-1]>=series[0],col=up?"var(--green)":"var(--red)";
+  const dots=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${col}"/>`).join("");
+  return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${area}" fill="${col}" opacity=".13"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+}
+function openStock(scope,i){
+  const it=(scope==='h'?lastData.portfolio.holdings:lastData.watchlist)[i];
+  const ccy=it.ccy||(it.ticker==='V500'?'USD':'AUD'); const qbase=it.ticker.replace('.AX','');
+  let html=`<div class="shx"><div><div class="tt">${it.ticker} ${buyTag(it.price,it.buy_below,ccy)}</div><div class="nm2">${it.name}</div></div><button class="x" onclick="closeStock()">✕</button></div>`;
+  html+=bigChart(it.series)+`<div class="mstat"><div>Price<b>${it.price==null?'—':money(it.price,ccy)}</b></div>`;
+  if(scope==='h'){ html+=`<div>Value<b>${money(it.value_aud)}</b></div><div>P/L<b class="${cls(it.pl_aud)}">${(it.pl_aud>=0?'+':'')+money(it.pl_aud)} · ${pct(it.pl_pct)}</b></div>`; }
+  else { html+=`<div>Day<b class="${cls(it.pct)}">${pct(it.pct)}</b></div>`; }
+  if(it.buy_below!=null) html+=`<div>Buy level<b>${money(it.buy_below,ccy)}</b></div>`;
+  html+=`</div>`;
+  if(it.blurb) html+=`<div class="blurb">${it.blurb}</div>`;
+  html+=`<div class="news-lbl">Latest news</div><div class="news">`;
+  if(it.news&&it.news.length) html+=it.news.map(a=>`<a href="${a.u}" target="_blank" rel="noopener">${a.t}<span class="src">${a.s} ↗</span></a>`).join("");
+  else html+=`<div class="empty" style="padding:10px 0">No stored headlines right now.</div>`;
+  html+=`</div><a class="searchlink" href="https://www.google.com/search?q=${encodeURIComponent(qbase+' '+it.name+' stock news')}" target="_blank" rel="noopener">Search the latest ↗</a>`;
+  document.getElementById("sheet").innerHTML=html; document.getElementById("modal").classList.add("open");
+}
+function closeStock(){document.getElementById("modal").classList.remove("open");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeStock();});
+
+setInterval(()=>{const el=document.getElementById("clk");if(el)el.textContent=new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});},1000);
+setInterval(()=>{const f=document.getElementById("fresh");if(f&&window.__gen)f.textContent=ago(window.__gen);},20000);
+
+function netChart(s){
+  const w=600,h=92,pad=6,min=Math.min(...s),max=Math.max(...s),rng=(max-min)||1;
+  const pts=s.map((v,i)=>[pad+(i/(s.length-1))*(w-2*pad), h-16-((v-min)/rng)*(h-26)]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area="M"+pts[0][0].toFixed(1)+" "+(h-6)+" "+pts.map(p=>"L"+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ")+" L"+pts[pts.length-1][0].toFixed(1)+" "+(h-6)+" Z";
+  const up=s[s.length-1]>=s[0],col=up?"var(--green)":"var(--red)",chg=s[s.length-1]-s[0],pc=chg/s[0]*100;
+  return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px"><span>Net worth · last '+s.length+' days</span><span class="'+(up?'up':'down')+'">'+(chg>=0?'+':'')+money(Math.round(chg))+' ('+(pc>=0?'+':'')+pc.toFixed(1)+'%)</span></div>'+
+  '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:80px;display:block"><path d="'+area+'" fill="'+col+'" opacity=".12"/><path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/><circle cx="'+pts[pts.length-1][0].toFixed(1)+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="2.6" fill="'+col+'"/></svg>';
+}
+function loadHeadlines(){
+  fetch(LOOKUP_URL+"?q="+encodeURIComponent("Australian share market ASX stocks today")).then(r=>r.json()).then(j=>{
+    const it=j.items||[]; document.getElementById("headlines").innerHTML = it.length ? it.map(i=>'<a href="'+i.u+'" target="_blank" rel="noopener">'+i.t+'<span class="src">'+i.s+' &#8599;</span></a>').join("") : '<div class="empty">No headlines right now.</div>';
+  }).catch(()=>{document.getElementById("headlines").innerHTML='<div class="empty">Headlines unavailable.</div>';});
+}
+function loadCrypto(){
+  fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=10&page=1&price_change_percentage=24h").then(r=>r.json()).then(rows=>{
+    if(!Array.isArray(rows)) throw 0;
+    document.getElementById("crypto").innerHTML = rows.map(c=>{
+      const ch=c.price_change_percentage_24h, cl=ch>=0?'up':'down';
+      const pr="A$"+Number(c.current_price).toLocaleString("en-AU",{maximumFractionDigits:c.current_price<2?4:2});
+      return '<div class="crow"><img src="'+c.image+'" alt=""><div><div class="cn">'+c.name+'</div><div class="cs">'+c.symbol+'</div></div><div class="cp">'+pr+'<div class="cc '+cl+'">'+(ch==null?'—':(ch>=0?'+':'')+ch.toFixed(2)+'%')+'</div></div></div>';
+    }).join("");
+  }).catch(()=>{document.getElementById("crypto").innerHTML='<div class="empty">Crypto unavailable.</div>';});
+}
+function loadCommodities(){
+  const map={"GC=F":"Gold","SI=F":"Silver","CL=F":"Crude Oil (WTI)","HG=F":"Copper","BZ=F":"Brent Oil"};
+  fetch(LOOKUP_URL+"?tickers=GC=F,SI=F,CL=F,HG=F,BZ=F").then(r=>r.json()).then(j=>{
+    const rows=j.rows||[];
+    document.getElementById("commods").innerHTML = rows.length ? rows.map(r=>{
+      const cl=r.pct>=0?'up':'down';
+      return '<div class="mrow"><div><div class="cn">'+(map[r.sym]||r.sym)+'</div><div class="cs">US$'+Number(r.price).toLocaleString("en-AU")+'</div></div><div class="mp '+cl+'">'+(r.pct==null?'—':(r.pct>=0?'+':'')+r.pct+'%')+'</div></div>';
+    }).join("") : '<div class="empty">Unavailable.</div>';
+  }).catch(()=>{document.getElementById("commods").innerHTML='<div class="empty">Unavailable.</div>';});
+}
+function loadProperty(){
+  fetch(LOOKUP_URL+"?q="+encodeURIComponent("Melbourne Victoria property market house prices median")).then(r=>r.json()).then(j=>{
+    const it=j.items||[]; document.getElementById("property").innerHTML = it.length ? it.slice(0,5).map(i=>'<a href="'+i.u+'" target="_blank" rel="noopener">'+i.t+'<span class="src">'+i.s+' &#8599;</span></a>').join("") : '<div class="empty">No property news.</div>';
+  }).catch(()=>{document.getElementById("property").innerHTML='<div class="empty">Unavailable.</div>';});
+}
+const ASX=["BHP.AX","CBA.AX","CSL.AX","NAB.AX","WBC.AX","ANZ.AX","WES.AX","MQG.AX","FMG.AX","WOW.AX","TLS.AX","RIO.AX","GMG.AX","WTC.AX","XRO.AX","WDS.AX","STO.AX","QAN.AX","COL.AX","ALL.AX","REA.AX","S32.AX","NEM.AX","PLS.AX","TLX.AX","PME.AX","CPU.AX","TCL.AX","JBH.AX","ORG.AX"];
+function loadAsxMovers(){
+  fetch(LOOKUP_URL+"?tickers="+ASX.join(",")).then(r=>r.json()).then(j=>{
+    const rows=(j.rows||[]).filter(r=>r.pct!=null).sort((a,b)=>b.pct-a.pct);
+    if(rows.length<2){document.getElementById("asxmovers").innerHTML='<div class="empty">Unavailable.</div>';return;}
+    const g=rows.slice(0,5),l=rows.slice(-5).reverse();
+    const row=x=>'<div class="m"><span class="t">'+x.sym.replace(".AX","")+'</span><span class="'+(x.pct>=0?'up':'down')+'">'+(x.pct>=0?'+':'')+x.pct+'%</span></div>';
+    document.getElementById("asxmovers").innerHTML='<div class="mv"><h4>▲ Gainers</h4>'+g.map(row).join("")+'</div><div class="mv"><h4>▼ Losers</h4>'+l.map(row).join("")+'</div>';
+  }).catch(()=>{document.getElementById("asxmovers").innerHTML='<div class="empty">Unavailable.</div>';});
+}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); }
+function fetchData(){
+  return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
+    .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
+    .catch(()=>fetch("data.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(render).catch(()=>{ if(FALLBACK) render(FALLBACK); }));
+}
+setInterval(fetchData, 5*60*1000);
+setInterval(loadExtras, 10*60*1000);
+
+/* ---------- PIN ---------- */
+const PIN="2233"; let entry="";
+function drawDots(){document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<entry.length));}
+function press(n){document.getElementById('lockerr').textContent="";if(entry.length>=4)return;entry+=n;drawDots();
+  if(entry.length===4){ if(entry===PIN) unlock(true); else {document.getElementById('lockerr').textContent="Wrong PIN";entry="";setTimeout(drawDots,160);} }}
+function del(){entry=entry.slice(0,-1);document.getElementById('lockerr').textContent="";drawDots();}
+function unlock(viaGesture){ try{sessionStorage.setItem('jv_ok','1');}catch(e){}
+  document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
+  fetchData(); loadExtras(); if(viaGesture) playBriefing(); }
+let ok=false;try{ok=sessionStorage.getItem('jv_ok')==='1';}catch(e){}
+if(ok) unlock(false);
+</script>
+</body>
+</html>
