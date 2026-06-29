@@ -205,6 +205,11 @@
   .bztag.play{background:rgba(54,224,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
   .bztag.whale{background:rgba(51,230,160,.14);color:var(--green);border:1px solid rgba(51,230,160,.4)}
   .bztag.own{background:rgba(255,194,75,.12);color:var(--amber)}
+  /* panel info buttons */
+  .infobtn{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--cyan-dim);color:var(--cyan-dim);font-size:9px;font-weight:700;margin-left:7px;cursor:pointer;vertical-align:middle;flex:none}
+  .infobtn:hover{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
+  .pinfo{max-height:0;overflow:hidden;transition:max-height .22s ease;font-size:11px;line-height:1.5;color:var(--muted)}
+  .pinfo.open{max-height:220px;margin:-4px 0 11px}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -1069,7 +1074,7 @@ function loadCryptoSignals(){fetch(CSIG_URL).then(function(r){return r.json();})
 const WHALE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/whale-stocks";
 const TRACK_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-track";
 function loadWhale(){fetch(WHALE_URL).then(function(r){return r.json();}).then(function(j){var rows=j.rows||[];window.WHALESET={};rows.forEach(function(x){window.WHALESET[x.ticker.replace(".AX","")]=1;});var el=document.getElementById("whale");if(!el)return;if(!rows.length){el.innerHTML='<div class="empty">No unusual volume right now.</div>';return;}el.innerHTML=rows.slice(0,12).map(function(x){var sym=x.ticker.replace(".AX","");var tag=x.accumulation?'<span class="oppflag">accum</span>':(x.distribution?'<span class="distflag">distrib</span>':"");var cl=x.dayPct>=0?"up":"down";return '<div class="wrow2"><span class="wsym">'+sym+'</span><span class="wspike">'+x.volSpike+'x</span>'+tag+'<span class="wgap"></span><span class="wday '+cl+'">'+(x.dayPct>=0?"+":"")+x.dayPct+'%</span><span class="wvol">'+x.dollarVolFmt+'</span></div>';}).join("");}).catch(function(){});}
-function loadCryptoWhale(){fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return c.turnover!=null;}).sort(function(a,b){return (b.turnover||0)-(a.turnover||0);});var el=document.getElementById("cwhale");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}el.innerHTML=coins.slice(0,10).map(function(c){var hot=c.turnover>=12?'<span class="oppflag">hot</span>':"";return '<div class="wrow2"><img class="wimg" src="'+c.image+'" alt=""><span class="wsym">'+c.sym+'</span>'+hot+'<span class="wspike">'+c.turnover+'%</span><span class="wgap"></span><span class="wvol">'+c.volFmt+'</span></div>';}).join("");}).catch(function(){});}
+function loadCryptoWhale(){fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return c.turnover!=null&&["USDT","USDC","DAI","BUSD","TUSD","USDE","FDUSD"].indexOf(c.sym)<0;}).sort(function(a,b){return (b.vol24||0)-(a.vol24||0);});var el=document.getElementById("cwhale");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}el.innerHTML=coins.slice(0,10).map(function(c){var hot=c.turnover>=12?'<span class="oppflag">hot</span>':"";return '<div class="wrow2"><img class="wimg" src="'+c.image+'" alt=""><span class="wsym">'+c.sym+'</span>'+hot+'<span class="wspike">'+c.turnover+'%</span><span class="wgap"></span><span class="wvol">'+c.volFmt+'</span></div>';}).join("");}).catch(function(){});}
 function loadDefi(){fetch("https://api.llama.fi/v2/chains").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;rows.sort(function(a,b){return (b.tvl||0)-(a.tvl||0);});var tot=rows.reduce(function(a,r){return a+(r.tvl||0);},0);var el=document.getElementById("defi");if(!el)return;el.innerHTML='<div class="defitot">US$'+(tot/1e9).toFixed(1)+'B<span class="defisub">total value locked</span></div>'+rows.slice(0,6).map(function(c){return '<div class="wrow2"><span class="wsym">'+c.name+'</span><span class="wgap"></span><span class="wvol">US$'+((c.tvl||0)/1e9).toFixed(1)+'B</span></div>';}).join("");}).catch(function(){});}
 function trGrp(label,gp){if(!gp||!gp.n)return"";return '<div class="trsig"><span>'+label+' ('+gp.n+')</span><span class="trwin">'+(gp.winPct==null?"—":gp.winPct+"% win")+' · '+((gp.avg||0)>=0?"+":"")+(gp.avg||0)+'%</span></div>';}
 function loadTrack(){fetch(TRACK_URL).then(function(r){return r.json();}).then(function(j){var s=j.stats||{};window.TRACKSTATS={matured:s.matured,baseWin:s.baseWin,signalStats:s.signalStats};if(typeof renderPlays==="function")renderPlays();var el=document.getElementById("track");if(!el)return;
@@ -1111,11 +1116,41 @@ function applySession(j,viaGesture){
   document.body.classList.toggle('guest',!CURRENT.owner);
   if(!document.body.getAttribute('data-tab'))document.body.setAttribute('data-tab','stocks');
   document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
-  loadExtras();
+  loadExtras(); addInfoButtons();
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
 function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});}
+var INFO={
+"Portfolio":"Your live holdings, total value and profit/loss versus what you paid — priced off real market data.",
+"Sector map":"The AI & tech investment landscape grouped by sector. Tap a sector to see its stocks with live prices; the % shows each sector's average move.",
+"Possible Plays":"A screener that flags beaten-down stocks showing rebound signals — technical (oversold, holding above the 200-day average) plus fundamentals (quality, cheap valuation, low debt, insider buying). Tap a pick for the full read. Not financial advice.",
+"Track record":"The screener grading itself: it logs every pick and tracks how each performs over time, learning which signals actually work. Win-rate and best signals sharpen as data builds.",
+"Social buzz":"Stocks trending on Reddit right now — with how fast the chatter is rising (velocity), NEW and surging flags, and cross-links to your plays, holdings and unusual-volume names. Tap a name for the news.",
+"Unusual volume":"Stocks trading above their 20-day average volume — a proxy for big money moving. 'Accum' = heavy volume with price up; 'distrib' = heavy volume with price down. 1.5x+ is flagged unusual.",
+"Crypto signals":"RSI, trend and opportunity flags across the top coins from 7-day price action. 'Opportunity' = oversold and falling.",
+"Whale watch":"Coins with the biggest 24-hour trading volume and turnover (volume vs market cap) — where the big money is churning.",
+"Crypto market":"Total crypto market cap, 24-hour change, and Bitcoin / Ethereum dominance.",
+"Fear & Greed":"Crypto market sentiment from 0 (extreme fear) to 100 (extreme greed). Deep fear is often where bottoms form.",
+"Crypto movers":"Biggest 24-hour gainers and losers across the top 250 coins.",
+"Trending coins":"The most-searched coins on CoinGecko over the last 24 hours.",
+"DeFi TVL":"Total value locked across decentralised finance, plus the top blockchains by TVL.",
+"Crypto heatmap":"Top coins as tiles sized by market cap and coloured by 24-hour move — green up, red down.",
+"Crypto buzz":"Coins trending on Reddit right now.",
+"RBA cash rate":"The Reserve Bank of Australia's official cash rate — drives mortgage rates and borrowing power. Pulled straight from the RBA.",
+"Mortgage repayment":"Estimate monthly repayments from a loan amount, interest rate and term.",
+"Rental yield":"Gross rental yield from weekly rent and property value.",
+"US Market Movers":"Biggest US gainers and losers today.",
+"Aussie Market Movers":"Biggest ASX gainers and losers today.",
+"Commodities":"Live prices for gold, silver, oil and copper.",
+"Markets":"Overall market tone, leading and lagging sectors, and the major index moves.",
+"Market headlines":"Latest market news.",
+"VIC property watch":"Victorian property market news.",
+"Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
+"Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
+"Today":"Your calendar, tasks and inbox highlights."
+};
+function addInfoButtons(){var keys=Object.keys(INFO);document.querySelectorAll('.panel .ph').forEach(function(ph){if(ph._info)return;var t=(ph.textContent||"").trim();var key=null;for(var i=0;i<keys.length;i++){if(t.indexOf(keys[i])===0){key=keys[i];break;}}if(!key)return;ph._info=1;var b=document.createElement('span');b.className='infobtn';b.textContent='?';b.title='What is this?';b.onclick=function(e){e.stopPropagation();var d=ph.parentNode.querySelector('.pinfo');if(d)d.classList.toggle('open');};ph.appendChild(b);var d=document.createElement('div');d.className='pinfo';d.textContent=INFO[key];ph.parentNode.insertBefore(d,ph.nextSibling);});}
 function renderGuest(d){
   var hold=d.holdings||[]; var tk=hold.map(function(h){return h.ticker;}).join(",");
   fetch(LOOKUP_URL+"?tickers="+tk).then(function(r){return r.json();}).then(function(px){
@@ -1137,5 +1172,6 @@ function renderGuest(d){
 var ok=false,savedPin=null;try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin');}catch(e){}
 if(ok&&savedPin) submitPin(savedPin,false);
 </script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body>
 </html>
