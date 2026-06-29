@@ -115,6 +115,38 @@
   body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
+  /* crypto extras */
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .stat .sl{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+  .stat .sv{font-family:"Space Grotesk",sans-serif;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+  .fnggauge{text-align:center;padding:6px 0}
+  .fngval{font-family:"Space Grotesk",sans-serif;font-size:46px;font-weight:700;line-height:1}
+  .fnglabel{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:4px 0 12px}
+  .fngbar{height:8px;border-radius:6px;background:rgba(86,140,210,.18);overflow:hidden}
+  .fngfill{height:100%;border-radius:6px;transition:width .4s}
+  .trow{display:flex;align-items:center;gap:9px;padding:6px 1px;border-bottom:1px solid rgba(86,140,210,.10)}
+  .trow img{width:22px;height:22px;border-radius:50%}
+  .trow .trk{font-family:"Space Grotesk",sans-serif;font-weight:700;color:var(--cyan-dim);font-size:12px;min-width:24px}
+  .trow .tnm{flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trow .tsy{font-size:11px;color:var(--muted);font-weight:700}
+  /* property extras */
+  .rbaval{font-family:"Space Grotesk",sans-serif;font-size:42px;font-weight:700;line-height:1}
+  .rbasub{font-size:11px;color:var(--muted);margin:4px 0 10px}
+  .calc label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:9px 0 3px}
+  .calc input{width:100%;background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--txt);font-family:inherit;font-size:14px;font-variant-numeric:tabular-nums}
+  .calc input:focus{outline:none;border-color:var(--cyan-dim)}
+  .calcout{margin-top:12px;font-size:14px;color:var(--muted)}
+  .calcout b{font-family:"Space Grotesk",sans-serif;font-size:24px;color:var(--cyan);font-variant-numeric:tabular-nums}
+  /* plays score bars */
+  .qvbars{margin:2px 0 8px}
+  .qv{display:flex;align-items:center;gap:8px;margin:4px 0}
+  .qv .qvl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:64px}
+  .qv .qvt{flex:1;height:6px;border-radius:4px;background:rgba(86,140,210,.18);overflow:hidden}
+  .qv .qvf{height:100%;background:var(--cyan);border-radius:4px}
+  .qv .qvn{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;min-width:24px;text-align:right;color:var(--txt)}
+  .sigchips{display:flex;flex-wrap:wrap;gap:5px}
+  .sigchip{font-size:9.5px;color:var(--cyan-dim);background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:10px;padding:2px 7px}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -306,8 +338,15 @@
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Crypto market <span class="r">live</span></div><div id="cglobal"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Fear &amp; Greed <span class="r">sentiment</span></div><div id="fng"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Crypto movers <span class="r">24h</span></div><div class="movers" id="cmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Trending coins <span class="r">most searched</span></div><div id="ctrend"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property"><div class="ph">RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property"><div class="ph">Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
+    <div class="panel sec-property"><div class="ph">Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
     <div class="panel sec-property"><div class="ph">VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Markets</div><div class="mkt" id="mkt"></div></div>
     <div class="panel owneronly"><div class="ph">Today</div>
@@ -928,11 +967,27 @@ var PLAYS={bounce:[],value:[]},playsCur="bounce";
 function loadPlays(){fetch(PLAYS_URL).then(function(r){return r.json();}).then(function(j){PLAYS={bounce:j.bounce||[],value:j.value||[]};renderPlays();}).catch(function(){var e=document.getElementById("plays");if(e)e.innerHTML='<div class="empty">Unavailable.</div>';});}
 function playsTab(t){playsCur=t;var a=document.getElementById("ptab-bounce"),b=document.getElementById("ptab-value");if(a)a.classList.toggle("on",t==="bounce");if(b)b.classList.toggle("on",t==="value");renderPlays();}
 function togglePlay(el){var s=el.nextElementSibling;if(s)s.classList.toggle("open");}
+function plBar(label,val){var w=val==null?0:Math.max(0,Math.min(100,val));return '<div class="qv"><span class="qvl">'+label+'</span><div class="qvt"><div class="qvf" style="width:'+w+'%"></div></div><span class="qvn">'+(val==null?"—":val)+'</span></div>';}
 function renderPlays(){var el=document.getElementById("plays");if(!el)return;var arr=PLAYS[playsCur]||[];if(!arr.length){el.innerHTML='<div class="empty">No plays flagged right now.</div>';return;}
-  el.innerHTML=arr.slice(0,12).map(function(x){var sc=playsCur==="bounce"?x.tscore:(x.fscore||0);var cl=x.pctFromHigh<=0?"down":"up";var sym=x.ticker.replace(".AX","");var fund=(x.quality!=null?"Quality "+x.quality:"");if(x.value!=null)fund+=(fund?" · ":"")+"Value "+x.value;
-    return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span></div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+(fund?'<b>'+fund+'</b><br>':'')+(x.signals||[]).join(" · ")+'</div>';
+  el.innerHTML=arr.slice(0,12).map(function(x){var sc=playsCur==="bounce"?x.tscore:(x.fscore||0);var cl=x.pctFromHigh<=0?"down":"up";var sym=x.ticker.replace(".AX","");
+    var bars='<div class="qvbars">'+plBar("Technical",x.tscore)+plBar("Quality",x.quality)+plBar("Value",x.value)+'</div>';
+    var chips='<div class="sigchips">'+(x.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div>';
+    return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span></div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+bars+chips+'</div>';
   }).join("");}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); if(!window._secInit){window._secInit=1;loadSectors();} }
+/* ---------- crypto + property extras ---------- */
+const MACRO_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/macro";
+function fmtBig(n){n=+n;if(n>=1e12)return (n/1e12).toFixed(2)+"T";if(n>=1e9)return (n/1e9).toFixed(1)+"B";if(n>=1e6)return (n/1e6).toFixed(1)+"M";return Math.round(n).toLocaleString("en-AU");}
+function cstat(l,v,cls){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv '+(cls||"")+'">'+v+'</div></div>';}
+function loadCryptoGlobal(){fetch("https://api.coingecko.com/api/v3/global").then(function(r){return r.json();}).then(function(j){var d=j.data;if(!d)return;var chg=d.market_cap_change_percentage_24h_usd;var el=document.getElementById("cglobal");if(!el)return;el.innerHTML='<div class="statgrid">'+cstat("Total mkt cap","A$"+fmtBig(d.total_market_cap.aud))+cstat("24h change",(chg>=0?"+":"")+chg.toFixed(2)+"%",chg>=0?"up":"down")+cstat("BTC dominance",d.market_cap_percentage.btc.toFixed(1)+"%")+cstat("ETH dominance",d.market_cap_percentage.eth.toFixed(1)+"%")+"</div>";}).catch(function(){});}
+function loadFng(){fetch("https://api.alternative.me/fng/?limit=1").then(function(r){return r.json();}).then(function(j){var a=j.data||[];if(!a.length)return;var v=+a[0].value;var col=v<25?"var(--red)":v<45?"#ff9a2e":v<55?"var(--amber)":v<75?"#9ad36a":"var(--green)";var el=document.getElementById("fng");if(!el)return;el.innerHTML='<div class="fnggauge"><div class="fngval" style="color:'+col+'">'+v+'</div><div class="fnglabel">'+a[0].value_classification+'</div><div class="fngbar"><div class="fngfill" style="width:'+v+'%;background:'+col+'"></div></div></div>';}).catch(function(){});}
+function loadCryptoMovers(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=250&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;rows=rows.filter(function(c){return c.price_change_percentage_24h!=null;}).sort(function(a,b){return b.price_change_percentage_24h-a.price_change_percentage_24h;});var g=rows.slice(0,5),l=rows.slice(-5).reverse();var row=function(x){return '<div class="m"><span class="t">'+x.symbol.toUpperCase()+'</span><span class="'+(x.price_change_percentage_24h>=0?"up":"down")+'">'+(x.price_change_percentage_24h>=0?"+":"")+x.price_change_percentage_24h.toFixed(1)+'%</span></div>';};var el=document.getElementById("cmovers");if(!el)return;el.innerHTML='<div class="mv"><h4>▲ Gainers</h4>'+g.map(row).join("")+'</div><div class="mv"><h4>▼ Losers</h4>'+l.map(row).join("")+'</div>';}).catch(function(){});}
+function loadTrending(){fetch("https://api.coingecko.com/api/v3/search/trending").then(function(r){return r.json();}).then(function(j){var c=(j.coins||[]).slice(0,7);var el=document.getElementById("ctrend");if(!el)return;el.innerHTML=c.map(function(x,i){var it=x.item;return '<div class="trow"><span class="trk">#'+(i+1)+'</span><img src="'+it.thumb+'" alt=""><span class="tnm">'+it.name+'</span><span class="tsy">'+it.symbol.toUpperCase()+'</span></div>';}).join("");}).catch(function(){});}
+function loadRba(){fetch(MACRO_URL).then(function(r){return r.json();}).then(function(j){if(j.cash_rate==null)return;var el=document.getElementById("rba");if(!el)return;el.innerHTML='<div class="rbaval">'+j.cash_rate.toFixed(2)+'%</div><div class="rbasub">Cash rate target · '+j.as_of+'</div>'+(j.series&&j.series.length>=2?spark(j.series,260,46):"");}).catch(function(){});}
+function cv(id){var e=document.getElementById(id);return e?parseFloat(e.value)||0:0;}
+function calcM(){var P=cv("m_amt"),r=cv("m_rate")/100/12,n=cv("m_term")*12;var pay=n>0?(r>0?P*r/(1-Math.pow(1+r,-n)):P/n):0;var o=document.getElementById("m_out");if(o)o.innerHTML='<b>A$'+Math.round(pay).toLocaleString("en-AU")+'</b> / month';}
+function calcY(){var rent=cv("y_rent"),val=cv("y_val");var gy=val>0?rent*52/val*100:0;var o=document.getElementById("y_out");if(o)o.innerHTML='<b>'+gy.toFixed(2)+'%</b> gross yield';}
+function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1;m.innerHTML='<label>Loan amount A$</label><input id="m_amt" type="number" value="600000"><label>Interest rate % p.a.</label><input id="m_rate" type="number" step="0.01" value="6.10"><label>Term (years)</label><input id="m_term" type="number" value="30"><div class="calcout" id="m_out">—</div>';["m_amt","m_rate","m_term"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcM);});calcM();}var y=document.getElementById("ycalc");if(y&&!y._b){y._b=1;y.innerHTML='<label>Weekly rent A$</label><input id="y_rent" type="number" value="550"><label>Property value A$</label><input id="y_val" type="number" value="750000"><div class="calcout" id="y_out">—</div>';["y_rent","y_val"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcY);});calcY();}}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
