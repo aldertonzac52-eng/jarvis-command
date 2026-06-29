@@ -165,6 +165,28 @@
   .cshead .csrsi{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:auto;color:var(--muted)}
   .cshead .cs7{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:64px;text-align:right}
   .oppflag{font-size:9px;letter-spacing:.04em;color:#04121a;background:var(--green);border-radius:8px;padding:1px 6px;font-weight:700}
+  .distflag{font-size:9px;letter-spacing:.04em;color:#04121a;background:var(--red);border-radius:8px;padding:1px 6px;font-weight:700}
+  /* whale / volume / defi rows */
+  .wrow2{display:flex;align-items:center;gap:8px;padding:7px 1px;border-bottom:1px solid rgba(86,140,210,.10)}
+  .wrow2 .wimg{width:20px;height:20px;border-radius:50%}
+  .wrow2 .wsym{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:13px}
+  .wrow2 .wspike{font-size:11px;color:var(--cyan-dim);font-weight:700;font-variant-numeric:tabular-nums}
+  .wrow2 .wgap{flex:1}
+  .wrow2 .wday{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .wrow2 .wvol{font-size:11px;color:var(--muted);min-width:62px;text-align:right;font-variant-numeric:tabular-nums}
+  .defitot{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:700;margin-bottom:10px}
+  .defitot .defisub{display:block;font-family:"Inter",sans-serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-top:2px}
+  /* track record */
+  .trkstat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+  .trkstat .ts{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
+  .trkstat .tsl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .trkstat .tsv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;margin-top:2px}
+  .trsig{display:flex;justify-content:space-between;font-size:11px;padding:4px 1px;color:var(--muted);border-bottom:1px solid rgba(86,140,210,.08)}
+  .trsig .trwin{color:var(--cyan);font-weight:700;font-variant-numeric:tabular-nums}
+  .trrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 1px;border-bottom:1px solid rgba(86,140,210,.08);font-variant-numeric:tabular-nums}
+  .trrow .trk2{font-family:"Space Grotesk",sans-serif;font-weight:700;min-width:54px}
+  .trrow .trt{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:58px}
+  .trrow .trd{margin-left:auto;color:var(--muted);font-size:10.5px}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -352,11 +374,15 @@
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
       <div class="playsdis">Informational only — not financial advice. Tap a name for why it flagged.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-plays"><div class="ph">Track record <span class="r">self-learning</span></div><div id="track"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Social buzz <span class="r">Reddit · live</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Unusual volume <span class="r">big money · live</span></div><div id="whale"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Whale watch <span class="r">volume · turnover</span></div><div id="cwhale"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">DeFi TVL <span class="r">live</span></div><div id="defi"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto market <span class="r">live</span></div><div id="cglobal"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Fear &amp; Greed <span class="r">sentiment</span></div><div id="fng"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto movers <span class="r">24h</span></div><div class="movers" id="cmovers"><div class="empty">Loading…</div></div></div>
@@ -1013,7 +1039,13 @@ function calcY(){var rent=cv("y_rent"),val=cv("y_val");var gy=val>0?rent*52/val*
 function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1;m.innerHTML='<label>Loan amount A$</label><input id="m_amt" type="number" value="600000"><label>Interest rate % p.a.</label><input id="m_rate" type="number" step="0.01" value="6.10"><label>Term (years)</label><input id="m_term" type="number" value="30"><div class="calcout" id="m_out">—</div>';["m_amt","m_rate","m_term"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcM);});calcM();}var y=document.getElementById("ycalc");if(y&&!y._b){y._b=1;y.innerHTML='<label>Weekly rent A$</label><input id="y_rent" type="number" value="550"><label>Property value A$</label><input id="y_val" type="number" value="750000"><div class="calcout" id="y_out">—</div>';["y_rent","y_val"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcY);});calcY();}}
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
 function loadCryptoSignals(){fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return ["USDT","USDC","DAI","BUSD","TUSD","USDE","FDUSD"].indexOf(c.sym)<0;});var el=document.getElementById("csignals");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}coins.sort(function(a,b){return (b.opportunity?1:0)-(a.opportunity?1:0);});el.innerHTML=coins.slice(0,14).map(function(c){var rcl=c.rsi==null?"":(c.rsi<35?"down":c.rsi>70?"up":"");var arrow=c.trend==="up"?'<span class="up">&#9650;</span>':'<span class="down">&#9660;</span>';var opp=c.opportunity?'<span class="oppflag">opportunity</span>':"";var s7=c.pct7d==null?"":'<span class="'+(c.pct7d>=0?"up":"down")+'">'+(c.pct7d>=0?"+":"")+c.pct7d+'% 7d</span>';return '<div class="csrow" onclick="togglePlay(this)"><div class="cshead"><img src="'+c.image+'" alt=""><span class="csym">'+c.sym+'</span>'+arrow+opp+'<span class="csrsi '+rcl+'">RSI '+(c.rsi==null?"—":c.rsi)+'</span><span class="cs7">'+s7+'</span></div></div><div class="pl-sig">'+(c.series?spark(c.series,260,40):"")+'<div class="sigchips">'+(c.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div></div>';}).join("");}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
+const WHALE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/whale-stocks";
+const TRACK_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-track";
+function loadWhale(){fetch(WHALE_URL).then(function(r){return r.json();}).then(function(j){var rows=j.rows||[];var el=document.getElementById("whale");if(!el)return;if(!rows.length){el.innerHTML='<div class="empty">No unusual volume right now.</div>';return;}el.innerHTML=rows.slice(0,12).map(function(x){var sym=x.ticker.replace(".AX","");var tag=x.accumulation?'<span class="oppflag">accum</span>':(x.distribution?'<span class="distflag">distrib</span>':"");var cl=x.dayPct>=0?"up":"down";return '<div class="wrow2"><span class="wsym">'+sym+'</span><span class="wspike">'+x.volSpike+'x</span>'+tag+'<span class="wgap"></span><span class="wday '+cl+'">'+(x.dayPct>=0?"+":"")+x.dayPct+'%</span><span class="wvol">'+x.dollarVolFmt+'</span></div>';}).join("");}).catch(function(){});}
+function loadCryptoWhale(){fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return c.turnover!=null;}).sort(function(a,b){return (b.turnover||0)-(a.turnover||0);});var el=document.getElementById("cwhale");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}el.innerHTML=coins.slice(0,10).map(function(c){var hot=c.turnover>=12?'<span class="oppflag">hot</span>':"";return '<div class="wrow2"><img class="wimg" src="'+c.image+'" alt=""><span class="wsym">'+c.sym+'</span>'+hot+'<span class="wspike">'+c.turnover+'%</span><span class="wgap"></span><span class="wvol">'+c.volFmt+'</span></div>';}).join("");}).catch(function(){});}
+function loadDefi(){fetch("https://api.llama.fi/v2/chains").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;rows.sort(function(a,b){return (b.tvl||0)-(a.tvl||0);});var tot=rows.reduce(function(a,r){return a+(r.tvl||0);},0);var el=document.getElementById("defi");if(!el)return;el.innerHTML='<div class="defitot">US$'+(tot/1e9).toFixed(1)+'B<span class="defisub">total value locked</span></div>'+rows.slice(0,6).map(function(c){return '<div class="wrow2"><span class="wsym">'+c.name+'</span><span class="wgap"></span><span class="wvol">US$'+((c.tvl||0)/1e9).toFixed(1)+'B</span></div>';}).join("");}).catch(function(){});}
+function loadTrack(){fetch(TRACK_URL).then(function(r){return r.json();}).then(function(j){var s=j.stats||{};var el=document.getElementById("track");if(!el)return;var head='<div class="trkstat"><div class="ts"><div class="tsl">Tracked</div><div class="tsv">'+(s.total||0)+'</div></div><div class="ts"><div class="tsl">Win rate</div><div class="tsv">'+(s.winPct==null?"—":s.winPct+"%")+'</div></div><div class="ts"><div class="tsl">Avg return</div><div class="tsv '+((s.avgRet||0)>=0?"up":"down")+'">'+((s.avgRet||0)>=0?"+":"")+(s.avgRet||0)+'%</div></div></div>';var sigs=(s.perSignal&&s.perSignal.length)?'<div class="sec-lbl">Best signals by hit-rate</div>'+s.perSignal.map(function(p){return '<div class="trsig"><span>'+p.signal+'</span><span class="trwin">'+p.winPct+'% · n'+p.n+'</span></div>';}).join(""):"";var rec=(j.recent&&j.recent.length)?'<div class="sec-lbl">Recent picks</div>'+j.recent.map(function(r){var cl=r.ret_pct>=0?"up":"down";return '<div class="trrow"><span class="trk2">'+r.ticker.replace(".AX","")+'</span><span class="trt">'+r.tier+'</span><span class="'+cl+'">'+(r.ret_pct>=0?"+":"")+r.ret_pct+'%</span><span class="trd">'+r.days+'d</span></div>';}).join(""):"";el.innerHTML=head+sigs+rec+'<div class="playsdis">Self-tracked, marked-to-market — grows more accurate as data builds. Not advice.</div>';}).catch(function(){});}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadWhale(); loadTrack(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
