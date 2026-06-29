@@ -102,7 +102,7 @@
   .pl-meta{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
   .pl-score{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:17px;color:var(--cyan);font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
   .pl-sig{font-size:10.5px;color:var(--muted);line-height:1.55;max-height:0;overflow:hidden;transition:max-height .22s ease}
-  .pl-sig.open{max-height:180px;padding:3px 1px 9px}
+  .pl-sig.open{max-height:640px;padding:3px 1px 9px}
   .pl-sig b{color:var(--cyan-dim);font-weight:700}
   /* guest (shared-link) view hides owner-only panels + chat */
   body.guest .owneronly,body.guest .askwrap,body.guest elevenlabs-convai{display:none!important}
@@ -147,6 +147,24 @@
   .qv .qvn{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;min-width:24px;text-align:right;color:var(--txt)}
   .sigchips{display:flex;flex-wrap:wrap;gap:5px}
   .sigchip{font-size:9.5px;color:var(--cyan-dim);background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:10px;padding:2px 7px}
+  /* plays detail card */
+  .psum{font-size:11.5px;line-height:1.55;color:#cfe0f7;margin:2px 0 9px}
+  .pmet{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:9px 0}
+  .pm{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:9px;padding:7px 8px;text-align:center}
+  .pm .pml{display:block;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pm .pmv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .rng{margin:8px 0}
+  .rngbar{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));position:relative}
+  .rngdot{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #04070f;transform:translate(-50%,-50%)}
+  .rnglbl{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+  /* crypto signals */
+  .csrow{cursor:pointer;border-bottom:1px solid rgba(86,140,210,.10);padding:8px 1px}
+  .cshead{display:flex;align-items:center;gap:8px}
+  .cshead img{width:22px;height:22px;border-radius:50%}
+  .cshead .csym{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:13px;min-width:46px}
+  .cshead .csrsi{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:auto;color:var(--muted)}
+  .cshead .cs7{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:64px;text-align:right}
+  .oppflag{font-size:9px;letter-spacing:.04em;color:#04121a;background:var(--green);border-radius:8px;padding:1px 6px;font-weight:700}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -338,6 +356,7 @@
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto market <span class="r">live</span></div><div id="cglobal"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Fear &amp; Greed <span class="r">sentiment</span></div><div id="fng"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph">Crypto movers <span class="r">24h</span></div><div class="movers" id="cmovers"><div class="empty">Loading…</div></div></div>
@@ -968,11 +987,16 @@ function loadPlays(){fetch(PLAYS_URL).then(function(r){return r.json();}).then(f
 function playsTab(t){playsCur=t;var a=document.getElementById("ptab-bounce"),b=document.getElementById("ptab-value");if(a)a.classList.toggle("on",t==="bounce");if(b)b.classList.toggle("on",t==="value");renderPlays();}
 function togglePlay(el){var s=el.nextElementSibling;if(s)s.classList.toggle("open");}
 function plBar(label,val){var w=val==null?0:Math.max(0,Math.min(100,val));return '<div class="qv"><span class="qvl">'+label+'</span><div class="qvt"><div class="qvf" style="width:'+w+'%"></div></div><span class="qvn">'+(val==null?"—":val)+'</span></div>';}
+function mcell(l,v){return '<div class="pm"><span class="pml">'+l+'</span><span class="pmv">'+(v==null?"—":v)+'</span></div>';}
 function renderPlays(){var el=document.getElementById("plays");if(!el)return;var arr=PLAYS[playsCur]||[];if(!arr.length){el.innerHTML='<div class="empty">No plays flagged right now.</div>';return;}
   el.innerHTML=arr.slice(0,12).map(function(x){var sc=playsCur==="bounce"?x.tscore:(x.fscore||0);var cl=x.pctFromHigh<=0?"down":"up";var sym=x.ticker.replace(".AX","");
+    var sumHtml=x.summary?'<div class="psum">'+x.summary+'</div>':"";
+    var sparkle=x.series?spark(x.series,260,46):"";
+    var rng=x.rangePos==null?"":'<div class="rng"><div class="rngbar"><div class="rngdot" style="left:'+x.rangePos+'%"></div></div><div class="rnglbl"><span>52w low</span><span>'+x.rangePos+'% of range</span><span>high</span></div></div>';
+    var metrics='<div class="pmet">'+mcell("P/E",x.pe)+mcell("EV/EBITDA",x.evEbitda)+mcell("Debt/Eq",x.de)+mcell("ROA %",x.roa)+mcell("RSI",x.rsi14)+mcell("vs 200d %",x.distSma200)+'</div>';
     var bars='<div class="qvbars">'+plBar("Technical",x.tscore)+plBar("Quality",x.quality)+plBar("Value",x.value)+'</div>';
     var chips='<div class="sigchips">'+(x.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div>';
-    return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span></div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+bars+chips+'</div>';
+    return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span></div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+sumHtml+sparkle+rng+metrics+bars+chips+'</div>';
   }).join("");}
 /* ---------- crypto + property extras ---------- */
 const MACRO_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/macro";
@@ -987,7 +1011,9 @@ function cv(id){var e=document.getElementById(id);return e?parseFloat(e.value)||
 function calcM(){var P=cv("m_amt"),r=cv("m_rate")/100/12,n=cv("m_term")*12;var pay=n>0?(r>0?P*r/(1-Math.pow(1+r,-n)):P/n):0;var o=document.getElementById("m_out");if(o)o.innerHTML='<b>A$'+Math.round(pay).toLocaleString("en-AU")+'</b> / month';}
 function calcY(){var rent=cv("y_rent"),val=cv("y_val");var gy=val>0?rent*52/val*100:0;var o=document.getElementById("y_out");if(o)o.innerHTML='<b>'+gy.toFixed(2)+'%</b> gross yield';}
 function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1;m.innerHTML='<label>Loan amount A$</label><input id="m_amt" type="number" value="600000"><label>Interest rate % p.a.</label><input id="m_rate" type="number" step="0.01" value="6.10"><label>Term (years)</label><input id="m_term" type="number" value="30"><div class="calcout" id="m_out">—</div>';["m_amt","m_rate","m_term"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcM);});calcM();}var y=document.getElementById("ycalc");if(y&&!y._b){y._b=1;y.innerHTML='<label>Weekly rent A$</label><input id="y_rent" type="number" value="550"><label>Property value A$</label><input id="y_val" type="number" value="750000"><div class="calcout" id="y_out">—</div>';["y_rent","y_val"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcY);});calcY();}}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
+const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
+function loadCryptoSignals(){fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return ["USDT","USDC","DAI","BUSD","TUSD","USDE","FDUSD"].indexOf(c.sym)<0;});var el=document.getElementById("csignals");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}coins.sort(function(a,b){return (b.opportunity?1:0)-(a.opportunity?1:0);});el.innerHTML=coins.slice(0,14).map(function(c){var rcl=c.rsi==null?"":(c.rsi<35?"down":c.rsi>70?"up":"");var arrow=c.trend==="up"?'<span class="up">&#9650;</span>':'<span class="down">&#9660;</span>';var opp=c.opportunity?'<span class="oppflag">opportunity</span>':"";var s7=c.pct7d==null?"":'<span class="'+(c.pct7d>=0?"up":"down")+'">'+(c.pct7d>=0?"+":"")+c.pct7d+'% 7d</span>';return '<div class="csrow" onclick="togglePlay(this)"><div class="cshead"><img src="'+c.image+'" alt=""><span class="csym">'+c.sym+'</span>'+arrow+opp+'<span class="csrsi '+rcl+'">RSI '+(c.rsi==null?"—":c.rsi)+'</span><span class="cs7">'+s7+'</span></div></div><div class="pl-sig">'+(c.series?spark(c.series,260,40):"")+'<div class="sigchips">'+(c.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div></div>';}).join("");}).catch(function(){});}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
