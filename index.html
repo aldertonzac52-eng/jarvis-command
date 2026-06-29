@@ -963,7 +963,7 @@ function applySession(j,viaGesture){
   if(!document.body.getAttribute('data-tab'))document.body.setAttribute('data-tab','stocks');
   document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
   loadExtras();
-  if(j.owner){ render(j.data); if(viaGesture) playBriefing(); }
+  if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
 function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});}
