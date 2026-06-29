@@ -8,11 +8,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="JARVIS" />
 <link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <title>JARVIS · Command</title>
 <style>
   :root{
     --bg:#04070f; --glass:rgba(16,28,52,.55); --line:rgba(86,140,210,.22);
-    --txt:#e8f1ff; --muted:#8ca4cc; --cyan:#36e0ff; --cyan-dim:#1b86a0;
+    --txt:#eaf2ff; --muted:#9eb4d8; --cyan:#36e0ff; --cyan-dim:#2a93b3;
     --green:#33e6a0; --red:#ff5d72; --amber:#ffc24b; --amp:0;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,8 +25,8 @@
       radial-gradient(1200px 600px at 50% -10%,rgba(40,120,180,.20),transparent 60%),
       radial-gradient(900px 500px at 100% 110%,rgba(54,224,255,.10),transparent 55%),
       linear-gradient(180deg,#04070f,#060b18 60%,#04070f);
-    color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-    font-size:15px;-webkit-font-smoothing:antialiased;
+    color:var(--txt);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:15px;-webkit-font-smoothing:antialiased;letter-spacing:-.006em;
     padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 26px);
   }
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -34,7 +37,7 @@
   a{color:var(--cyan)}
 
   .top{display:flex;align-items:center;gap:10px;padding:14px 4px 8px;font-size:11px;letter-spacing:.22em;color:var(--cyan-dim);text-transform:uppercase}
-  .top .mk{color:var(--txt);font-weight:700;letter-spacing:.3em}
+  .top .mk{color:var(--txt);font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:.3em}
   .top .sp{flex:1}
   .top .fresh{display:flex;align-items:center;gap:6px;color:var(--muted);letter-spacing:.08em;text-transform:none;font-size:10.5px}
   .livedot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:lp 2s ease-in-out infinite}
@@ -63,7 +66,32 @@
   .reactor.speaking .core{animation:none}
   .reactor.listening .core{background:radial-gradient(circle at 35% 28%,#fff,#cffae0 14%,#33e6a0 42%,#0a6b4e 74%,#042418)}
   @keyframes breathe{50%{transform:scale(1.045)}}
-  .hello{font-size:12px;letter-spacing:.26em;color:var(--cyan);text-transform:uppercase;font-weight:700}
+  .hello{font-family:"Space Grotesk",sans-serif;font-size:13px;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase;font-weight:600}
+
+  /* ---------- sector map ---------- */
+  .secmap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .secchip{font-family:inherit;font-size:11px;letter-spacing:.03em;color:var(--muted);background:rgba(54,224,255,.06);
+    border:1px solid var(--line);border-radius:20px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .secchip:hover{border-color:var(--cyan-dim);color:var(--txt)}
+  .secchip.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
+  .secdetail{margin-top:4px}
+  .secgrp{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-dim);font-weight:700;margin:13px 0 3px}
+  .secrow{display:flex;align-items:center;gap:8px;padding:6px 1px;border-bottom:1px solid rgba(86,140,210,.10)}
+  .secrow .st{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:13px;min-width:52px;letter-spacing:.02em}
+  .secrow .sn{flex:1;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .secrow .sp{font-variant-numeric:tabular-nums;font-size:12.5px;min-width:62px;text-align:right;color:var(--txt)}
+  .secrow .sc{font-variant-numeric:tabular-nums;font-size:12px;font-weight:700;min-width:56px;text-align:right}
+  .secchip b{font-variant-numeric:tabular-nums;font-weight:700;margin-left:3px}
+  .sectrend{display:flex;flex-wrap:wrap;gap:7px;font-size:10.5px;letter-spacing:.03em;margin:0 0 9px}
+  .sectrend span{background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:13px;padding:3px 9px;font-weight:700;font-variant-numeric:tabular-nums}
+  .sectrend .watch{color:var(--amber);border-color:rgba(255,194,75,.4)}
+  /* ---------- social buzz ---------- */
+  .bzrow{display:flex;align-items:center;gap:8px;padding:7px 1px;border-bottom:1px solid rgba(86,140,210,.10)}
+  .bzrow .bzt{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:13px;min-width:50px}
+  .bzrow .bzn{flex:1;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bzrow .bzm{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .bzrow .fire{color:#ff9a2e}
+  .owntag{color:var(--cyan);font-size:9px;letter-spacing:.03em;border:1px solid var(--cyan-dim);border-radius:8px;padding:1px 5px;margin-left:4px}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -97,7 +125,7 @@
   .ph .r{margin-left:auto;color:var(--muted);letter-spacing:.06em;font-weight:600}
 
   .ptot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
-  .ptot .v{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .ptot .v{font-family:"Space Grotesk",sans-serif;font-size:34px;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums}
   .ptot .pl{font-size:14px;font-weight:700}
   .psub{font-size:11.5px;color:var(--muted);margin-bottom:4px}
 
@@ -112,6 +140,7 @@
   .vr .a{font-size:13.5px;font-weight:700}
   .vr .b{font-size:11.5px;font-weight:700;margin-top:2px}
   .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--amber)}
+  .ptot .pl,.vr .a,.vr .b,.mp,.crow .cp,.mv .m,.psub,.clk{font-variant-numeric:tabular-nums}
   .est{font-size:8.5px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(255,194,75,.4);border-radius:5px;padding:1px 4px;margin-left:5px;vertical-align:middle}
   .buyz{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:#04140e;background:var(--green);border-radius:5px;padding:1px 5px;margin-left:6px;box-shadow:0 0 10px rgba(51,230,160,.7);animation:bz 1.5s ease-in-out infinite}
   @keyframes bz{50%{box-shadow:0 0 18px rgba(51,230,160,.95)}}
@@ -236,6 +265,11 @@
       <div id="holdings"></div>
     </div>
   <div class="masonry">
+    <div class="panel"><div class="ph">Sector map <span class="r">tap a sector · live</span></div>
+      <div class="sectrend" id="sectrend"></div>
+      <div class="secmap" id="secmap"></div>
+      <div class="secdetail" id="secdetail"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Social buzz <span class="r">Reddit · live</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
@@ -827,7 +861,31 @@ function loadAsxMovers(){
     document.getElementById("asxmovers").innerHTML='<div class="mv"><h4>▲ Gainers</h4>'+g.map(row).join("")+'</div><div class="mv"><h4>▼ Losers</h4>'+l.map(row).join("")+'</div>';
   }).catch(()=>{document.getElementById("asxmovers").innerHTML='<div class="empty">Unavailable.</div>';});
 }
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); }
+/* ---------- sector map ---------- */
+const SECTORS={
+  "Semiconductors":{"Memory":["MU"],"CPUs":["AMD","INTC","NVDA"],"GPUs & ASICs":["AVGO","MRVL","NVDA","GOOGL","AMZN","META","MSFT"]},
+  "IT Infrastructure":{"Servers":["DELL","SMCI","HPE"],"Networking":["AVGO","MRVL","CSCO","NVDA","ANET"],"Storage":["DELL","PSTG","NTAP","HPE"]},
+  "Compute":{"Hyperscalers":["MSFT","AMZN","GOOGL","ORCL"],"AI Clouds":["CRWV","NBIS","APLD"]},
+  "Data Centers":{"Operators":["MSFT","GOOGL","AMZN","META","ORCL","CRWV"],"REITs":["DLR","EQIX","DBRG"]},
+  "Industrial":{"Electrical":["ETN","GEV"],"Cooling":["VRT"]},
+  "Energy":{"Renewables":["GEV","FSLR","ENPH","NEE"],"Nuclear":["SMR","OKLO","NNE","BWXT"],"Oil & Gas":["XOM","CVX"]}
+};
+const SNAME={MU:"Micron",AMD:"AMD",INTC:"Intel",NVDA:"Nvidia",AVGO:"Broadcom",MRVL:"Marvell",GOOGL:"Alphabet",AMZN:"Amazon",META:"Meta",MSFT:"Microsoft",DELL:"Dell",SMCI:"Super Micro",HPE:"HP Enterprise",CSCO:"Cisco",ANET:"Arista",PSTG:"Pure Storage",NTAP:"NetApp",ORCL:"Oracle",CRWV:"CoreWeave",NBIS:"Nebius",APLD:"Applied Digital",ETN:"Eaton",GEV:"GE Vernova",VRT:"Vertiv",DLR:"Digital Realty",EQIX:"Equinix",DBRG:"DigitalBridge",FSLR:"First Solar",ENPH:"Enphase",NEE:"NextEra",SMR:"NuScale Power",OKLO:"Oklo",NNE:"Nano Nuclear",BWXT:"BWX Technologies",XOM:"Exxon Mobil",CVX:"Chevron"};
+let SECPRICE={},curSec=null,BUZZP={};
+const BUZZ_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-buzz";
+const PORT_TICK=((FALLBACK.portfolio&&FALLBACK.portfolio.holdings)||[]).map(function(h){return h.ticker.replace(".AX","");}).concat(((FALLBACK.watchlist)||[]).map(function(w){return w.ticker.replace(".AX","");}));
+function secKeys(){return Object.keys(SECTORS);}
+function secAllTickers(){var s={},o=[];secKeys().forEach(function(n){var g=SECTORS[n];Object.keys(g).forEach(function(k){g[k].forEach(function(t){if(!s[t]){s[t]=1;o.push(t);}});});});return o;}
+function secAvg(name){var g=SECTORS[name],seen={},ps=[];Object.keys(g).forEach(function(k){g[k].forEach(function(t){if(seen[t])return;seen[t]=1;var p=SECPRICE[t];if(p&&p.pct!=null)ps.push(p.pct);});});if(!ps.length)return null;return ps.reduce(function(a,b){return a+b;},0)/ps.length;}
+function renderSecMap(){var el=document.getElementById("secmap");if(!el)return;el.innerHTML=secKeys().map(function(s,i){var a=secAvg(s),tag=a==null?"":' <b class="'+(a>=0?'up':'down')+'">'+(a>=0?'+':'')+a.toFixed(1)+'%</b>';return '<button class="secchip'+(i===curSec?' on':'')+'" onclick="openSector('+i+')">'+s+tag+'</button>';}).join("");}
+function renderTrend(){var el=document.getElementById("sectrend");if(!el)return;var arr=secKeys().map(function(n){return {n:n,a:secAvg(n)};}).filter(function(x){return x.a!=null;});if(!arr.length){el.innerHTML="";return;}arr.sort(function(x,y){return y.a-x.a;});var t=arr[0],b=arr[arr.length-1];var h='<span class="up">&#9650; '+t.n+' '+(t.a>=0?'+':'')+t.a.toFixed(1)+'%</span><span class="down">&#9660; '+b.n+' '+b.a.toFixed(1)+'%</span>';if(b.a<-3)h+='<span class="watch">'+b.n+' oversold</span>';el.innerHTML=h;}
+function secRow(t){var p=SECPRICE[t];var cl=p&&p.pct>0?'up':(p&&p.pct<0?'down':'');var pr=p&&p.price!=null?'$'+Number(p.price).toLocaleString("en-US",{maximumFractionDigits:2}):'';var pc=p&&p.pct!=null?((p.pct>=0?'+':'')+p.pct+'%'):'…';return '<div class="secrow"><span class="st">'+t+'</span><span class="sn">'+(SNAME[t]||'')+'</span><span class="sp">'+pr+'</span><span class="sc '+cl+'">'+pc+'</span></div>';}
+function renderDetail(){if(curSec==null)return;var name=secKeys()[curSec],groups=SECTORS[name];document.getElementById("secdetail").innerHTML=Object.keys(groups).map(function(g){return '<div class="secgrp">'+g+'</div>'+groups[g].map(secRow).join("");}).join("");}
+function openSector(i){curSec=i;renderSecMap();renderDetail();var groups=SECTORS[secKeys()[i]];var need=[];Object.keys(groups).forEach(function(g){groups[g].forEach(function(t){if(!(t in SECPRICE)&&need.indexOf(t)<0)need.push(t);});});if(need.length){fetch(LOOKUP_URL+"?tickers="+need.join(",")).then(function(r){return r.json();}).then(function(j){(j.rows||[]).forEach(function(r){SECPRICE[r.sym]={price:r.price,pct:r.pct};});renderSecMap();renderTrend();renderDetail();}).catch(function(){});}}
+function loadSectors(){if(curSec==null)curSec=0;renderSecMap();renderDetail();var all=secAllTickers(),batches=[];for(var i=0;i<all.length;i+=35)batches.push(all.slice(i,i+35));Promise.all(batches.map(function(b){return fetch(LOOKUP_URL+"?tickers="+b.join(",")).then(function(r){return r.json();}).then(function(j){(j.rows||[]).forEach(function(r){SECPRICE[r.sym]={price:r.price,pct:r.pct};});}).catch(function(){});})).then(function(){renderSecMap();renderTrend();renderDetail();});}
+function buzzRow(x){var surging=(x.prev&&x.prev-x.rank>=5)||(x.m24&&x.mentions>=x.m24*2);var p=BUZZP[x.ticker];var pc=p&&p.pct!=null?' <span class="'+(p.pct>=0?'up':'down')+'">'+(p.pct>=0?'+':'')+p.pct+'%</span>':'';var own=PORT_TICK.indexOf(x.ticker)>=0?'<span class="owntag">your book</span>':'';return '<div class="bzrow"><span class="bzt">'+x.ticker+'</span><span class="bzn">'+x.name+own+'</span><span class="bzm">'+x.mentions+' mentions'+(surging?' <b class="fire">surging</b>':'')+pc+'</span></div>';}
+function loadBuzz(){var el=document.getElementById("buzz");if(!el)return;fetch(BUZZ_URL).then(function(r){return r.json();}).then(function(j){var rows=(j.rows||[]).filter(function(x){return /^[A-Z]{1,5}$/.test(x.ticker);}).slice(0,12);if(!rows.length){el.innerHTML='<div class="empty">No buzz right now.</div>';return;}fetch(LOOKUP_URL+"?tickers="+rows.map(function(r){return r.ticker;}).join(",")).then(function(r){return r.json();}).then(function(pj){(pj.rows||[]).forEach(function(r){BUZZP[r.sym]={price:r.price,pct:r.pct};});el.innerHTML=rows.map(buzzRow).join("");}).catch(function(){el.innerHTML=rows.map(buzzRow).join("");});}).catch(function(){el.innerHTML='<div class="empty">Buzz unavailable.</div>';});}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
