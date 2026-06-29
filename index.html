@@ -106,6 +106,15 @@
   .pl-sig b{color:var(--cyan-dim);font-weight:700}
   /* guest (shared-link) view hides owner-only panels + chat */
   body.guest .owneronly,body.guest .askwrap,body.guest elevenlabs-convai{display:none!important}
+  /* section tabs */
+  .tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px auto 2px;max-width:1080px;padding:0 4px}
+  .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
+  .tb:hover{border-color:var(--cyan-dim);color:var(--txt)}
+  .tb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
+  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property{display:none}
+  body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
+  body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
+  body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -278,12 +287,18 @@
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
+  <div class="tabbar">
+    <button class="tb on" id="tb-stocks" onclick="setTab('stocks')">Stocks</button>
+    <button class="tb" id="tb-plays" onclick="setTab('plays')">Possible Plays</button>
+    <button class="tb" id="tb-crypto" onclick="setTab('crypto')">Crypto</button>
+    <button class="tb" id="tb-property" onclick="setTab('property')">Property</button>
+  </div>
   <div class="masonry">
     <div class="panel"><div class="ph">Sector map <span class="r">tap a sector · live</span></div>
       <div class="sectrend" id="sectrend"></div>
       <div class="secmap" id="secmap"></div>
       <div class="secdetail" id="secdetail"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Possible Plays <span class="r">screen · not advice</span></div>
+    <div class="panel sec-plays"><div class="ph">Possible Plays <span class="r">screen · not advice</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
       <div class="playsdis">Informational only — not financial advice. Tap a name for why it flagged.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
@@ -291,9 +306,9 @@
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph">Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property"><div class="ph">VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Markets</div><div class="mkt" id="mkt"></div></div>
     <div class="panel owneronly"><div class="ph">Today</div>
       <div class="fchip" id="fchip" style="display:none"></div>
@@ -923,59 +938,55 @@ function fetchData(){
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
     .catch(()=>fetch("data.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(render).catch(()=>{ if(FALLBACK) render(FALLBACK); }));
 }
-function refreshPortfolio(){ if(window.CURRENT&&!CURRENT.owner) loadGuest(); else fetchData(); }
+function refreshPortfolio(){ var pin=null; try{pin=sessionStorage.getItem('jv_pin');}catch(e){} if(!pin)return;
+  fetch(SESSION_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(j){ if(j&&j.owner)render(j.data); else if(j)renderGuest(j.data); }).catch(function(){}); }
 setInterval(refreshPortfolio, 5*60*1000);
 setInterval(loadExtras, 10*60*1000);
 
-/* ---------- PIN / profiles ---------- */
-const PROFILES={
-  "2233":{name:"Zac",owner:true},
-  "3322":{name:"Cooper",owner:false,holdings:[
-    {ticker:"GGUS.AX",name:"Betashares Geared US Equities",units:42,avg_cost:59.18,ccy:"AUD"},
-    {ticker:"NXT.AX",name:"NEXTDC",units:191,avg_cost:15.66,ccy:"AUD"},
-    {ticker:"WTC.AX",name:"WiseTech Global",units:48,avg_cost:46.00,ccy:"AUD"},
-    {ticker:"NVX.AX",name:"Novonix",units:2175,avg_cost:0.46,ccy:"AUD"},
-    {ticker:"SOFI",name:"SoFi Technologies",units:81,avg_cost:18.16,ccy:"USD"},
-    {ticker:"MRVL",name:"Marvell Technology",units:3,avg_cost:303.53,ccy:"USD"},
-    {ticker:"LAC",name:"Lithium Americas",units:178,avg_cost:5.84,ccy:"USD"}
-  ]}
-};
+/* ---------- PIN (server-gated, no secrets in page) ---------- */
+const SESSION_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/session";
 let entry="",CURRENT=null;
 function drawDots(){document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<entry.length));}
 function press(n){document.getElementById('lockerr').textContent="";if(entry.length>=4)return;entry+=n;drawDots();
-  if(entry.length===4){ if(PROFILES[entry]){ unlock(true,entry); } else {document.getElementById('lockerr').textContent="Wrong PIN";entry="";setTimeout(drawDots,160);} }}
+  if(entry.length===4){ submitPin(entry,true); }}
 function del(){entry=entry.slice(0,-1);document.getElementById('lockerr').textContent="";drawDots();}
-function unlock(viaGesture,pin){ CURRENT=PROFILES[pin]||PROFILES["2233"]; window.CURRENT=CURRENT; entry="";
-  try{sessionStorage.setItem('jv_ok','1');sessionStorage.setItem('jv_pin',pin);}catch(e){}
-  document.body.classList.toggle('guest',!CURRENT.owner);
-  document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
-  if(CURRENT.owner){ fetchData(); loadExtras(); if(viaGesture) playBriefing(); }
-  else { loadGuest(); loadExtras(); }
+function submitPin(pin,viaGesture){
+  document.getElementById('lockerr').textContent="…";
+  fetch(SESSION_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})})
+    .then(function(r){return r.ok?r.json():Promise.reject(r.status);})
+    .then(function(j){ entry=""; try{sessionStorage.setItem('jv_ok','1');sessionStorage.setItem('jv_pin',pin);}catch(e){} applySession(j,viaGesture); })
+    .catch(function(){ document.getElementById('lockerr').textContent="Wrong PIN"; entry=""; setTimeout(drawDots,160); });
 }
-function loadGuest(){
-  var tk=CURRENT.holdings.map(function(h){return h.ticker;}).join(",");
-  Promise.all([
-    fetch(LIVE_URL,{cache:"no-store"}).then(function(r){return r.json();}).catch(function(){return JSON.parse(JSON.stringify(FALLBACK));}),
-    fetch(LOOKUP_URL+"?tickers="+tk).then(function(r){return r.json();}).catch(function(){return {rows:[]};})
-  ]).then(function(a){
-    var d=a[0]||{},px=a[1]||{rows:[]},prices={};
-    (px.rows||[]).forEach(function(r){prices[r.sym]={price:r.price,pct:r.pct};});
-    var fx=(d.fx&&d.fx.audusd)||0.6849,hold=[],tv=0,tc=0;
-    CURRENT.holdings.forEach(function(h){
+function applySession(j,viaGesture){
+  CURRENT={name:j.name,owner:j.owner}; window.CURRENT=CURRENT;
+  document.body.classList.toggle('guest',!CURRENT.owner);
+  if(!document.body.getAttribute('data-tab'))document.body.setAttribute('data-tab','stocks');
+  document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
+  loadExtras();
+  if(j.owner){ render(j.data); if(viaGesture) playBriefing(); }
+  else { renderGuest(j.data); }
+}
+function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});}
+function renderGuest(d){
+  var hold=d.holdings||[]; var tk=hold.map(function(h){return h.ticker;}).join(",");
+  fetch(LOOKUP_URL+"?tickers="+tk).then(function(r){return r.json();}).then(function(px){
+    var prices={}; (px.rows||[]).forEach(function(r){prices[r.sym]={price:r.price,pct:r.pct};});
+    var fx=(d.fx&&d.fx.audusd)||0.6849,out=[],tv=0,tc=0;
+    hold.forEach(function(h){
       var p=prices[h.ticker],price=p&&p.price!=null?p.price:h.avg_cost;
       var cost=h.ccy==="USD"?h.units*h.avg_cost/fx:h.units*h.avg_cost;
       var val=h.ccy==="USD"?h.units*price/fx:h.units*price;
       tv+=val;tc+=cost;
-      hold.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:false,note:h.ccy==="USD"?"USD holding":"",series:[h.avg_cost,price],blurb:"",news:[]});
+      out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:false,note:h.ccy==="USD"?"USD holding":"",series:[h.avg_cost,price],blurb:"",news:[]});
     });
-    if(!d.fx)d.fx={audusd:fx}; if(!d.market)d.market={movers:{gainers:[],losers:[]}};
-    d.portfolio={total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:hold,networth:[]};
-    d.watchlist=[];d.agenda={calendar:[],tasks:[],inbox:[],drive:[]};d.briefing={text:"",voice:"",focus:""};
-    render(d);
+    var dd={generated_at:d.generated_at,as_of_date:d.as_of_date,tz:d.tz,fx:d.fx||{audusd:fx},market:d.market||{movers:{gainers:[],losers:[]}},
+      portfolio:{total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:out,networth:[]},
+      watchlist:[],agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:"",voice:"",focus:""},alerts:[]};
+    render(dd);
   }).catch(function(){});
 }
-let ok=false,savedPin="2233";try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin')||"2233";}catch(e){}
-if(ok) unlock(false,savedPin);
+var ok=false,savedPin=null;try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin');}catch(e){}
+if(ok&&savedPin) submitPin(savedPin,false);
 </script>
 </body>
 </html>
