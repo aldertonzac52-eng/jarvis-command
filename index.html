@@ -92,6 +92,18 @@
   .bzrow .bzm{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
   .bzrow .fire{color:#ff9a2e}
   .owntag{color:var(--cyan);font-size:9px;letter-spacing:.03em;border:1px solid var(--cyan-dim);border-radius:8px;padding:1px 5px;margin-left:4px}
+  /* ---------- possible plays ---------- */
+  .ptabs{display:flex;gap:6px;margin-bottom:7px}
+  .ptab{font-family:inherit;font-size:11px;letter-spacing:.03em;color:var(--muted);background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:14px;padding:5px 13px;cursor:pointer;transition:.15s}
+  .ptab.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
+  .playsdis{font-size:9.5px;color:var(--muted);letter-spacing:.03em;margin-bottom:9px;opacity:.85}
+  .playrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 1px;cursor:pointer;border-bottom:1px solid rgba(86,140,210,.10)}
+  .pl-t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:14px;margin-right:9px}
+  .pl-meta{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pl-score{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:17px;color:var(--cyan);font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+  .pl-sig{font-size:10.5px;color:var(--muted);line-height:1.55;max-height:0;overflow:hidden;transition:max-height .22s ease}
+  .pl-sig.open{max-height:180px;padding:3px 1px 9px}
+  .pl-sig b{color:var(--cyan-dim);font-weight:700}
 
   /* ---------- ask bar ---------- */
   .askwrap{width:100%;max-width:540px;margin:14px auto 0}
@@ -269,6 +281,10 @@
       <div class="sectrend" id="sectrend"></div>
       <div class="secmap" id="secmap"></div>
       <div class="secdetail" id="secdetail"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph">Possible Plays <span class="r">screen · not advice</span></div>
+      <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
+      <div class="playsdis">Informational only — not financial advice. Tap a name for why it flagged.</div>
+      <div id="plays"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Social buzz <span class="r">Reddit · live</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
@@ -889,7 +905,17 @@ function loadSectors(){if(curSec==null)curSec=0;renderSecMap();renderDetail();
   Promise.all(batches.map(function(b){return fetch(LOOKUP_URL+"?tickers="+b.join(",")).then(function(r){return r.json();}).then(function(j){(j.rows||[]).forEach(function(r){SECPRICE[r.sym]={price:r.price,pct:r.pct};});}).catch(function(){});})).then(function(){renderSecMap();renderTrend();renderDetail();});}
 function buzzRow(x){var surging=(x.prev&&x.prev-x.rank>=5)||(x.m24&&x.mentions>=x.m24*2);var p=BUZZP[x.ticker];var pc=p&&p.pct!=null?' <span class="'+(p.pct>=0?'up':'down')+'">'+(p.pct>=0?'+':'')+p.pct+'%</span>':'';var own=PORT_TICK.indexOf(x.ticker)>=0?'<span class="owntag">your book</span>':'';return '<div class="bzrow"><span class="bzt">'+x.ticker+'</span><span class="bzn">'+x.name+own+'</span><span class="bzm">'+x.mentions+' mentions'+(surging?' <b class="fire">surging</b>':'')+pc+'</span></div>';}
 function loadBuzz(){var el=document.getElementById("buzz");if(!el)return;fetch(BUZZ_URL).then(function(r){return r.json();}).then(function(j){var rows=(j.rows||[]).filter(function(x){return /^[A-Z]{1,5}$/.test(x.ticker);}).slice(0,12);if(!rows.length){el.innerHTML='<div class="empty">No buzz right now.</div>';return;}fetch(LOOKUP_URL+"?tickers="+rows.map(function(r){return r.ticker;}).join(",")).then(function(r){return r.json();}).then(function(pj){(pj.rows||[]).forEach(function(r){BUZZP[r.sym]={price:r.price,pct:r.pct};});el.innerHTML=rows.map(buzzRow).join("");}).catch(function(){el.innerHTML=rows.map(buzzRow).join("");});}).catch(function(){el.innerHTML='<div class="empty">Buzz unavailable.</div>';});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); if(!window._secInit){window._secInit=1;loadSectors();} }
+/* ---------- possible plays ---------- */
+const PLAYS_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/possible-plays";
+var PLAYS={bounce:[],value:[]},playsCur="bounce";
+function loadPlays(){fetch(PLAYS_URL).then(function(r){return r.json();}).then(function(j){PLAYS={bounce:j.bounce||[],value:j.value||[]};renderPlays();}).catch(function(){var e=document.getElementById("plays");if(e)e.innerHTML='<div class="empty">Unavailable.</div>';});}
+function playsTab(t){playsCur=t;var a=document.getElementById("ptab-bounce"),b=document.getElementById("ptab-value");if(a)a.classList.toggle("on",t==="bounce");if(b)b.classList.toggle("on",t==="value");renderPlays();}
+function togglePlay(el){var s=el.nextElementSibling;if(s)s.classList.toggle("open");}
+function renderPlays(){var el=document.getElementById("plays");if(!el)return;var arr=PLAYS[playsCur]||[];if(!arr.length){el.innerHTML='<div class="empty">No plays flagged right now.</div>';return;}
+  el.innerHTML=arr.slice(0,12).map(function(x){var sc=playsCur==="bounce"?x.tscore:(x.fscore||0);var cl=x.pctFromHigh<=0?"down":"up";var sym=x.ticker.replace(".AX","");var fund=(x.quality!=null?"Quality "+x.quality:"");if(x.value!=null)fund+=(fund?" · ":"")+"Value "+x.value;
+    return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span></div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+(fund?'<b>'+fund+'</b><br>':'')+(x.signals||[]).join(" · ")+'</div>';
+  }).join("");}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
