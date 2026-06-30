@@ -836,6 +836,28 @@ function spark(series,w,h){
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${area}" fill="${col}" opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[n-1][0].toFixed(1)}" cy="${pts[n-1][1].toFixed(1)}" r="2.1" fill="${col}"/></svg>`;
 }
 
+function makeOpening(d){
+  try{
+    var hr=new Date().getHours();
+    var tod=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";
+    var nm=(window.CURRENT&&CURRENT.name)?CURRENT.name:"Zac";
+    var p=d.portfolio||{}, dod=(d.briefing&&d.briefing.dod)||null, c=[];
+    c.push(tod+", "+nm+". JARVIS here — what are we looking at?");
+    c.push(tod+", sir. Standing by; where shall we start?");
+    c.push("JARVIS online. "+tod+", "+nm+". What's first?");
+    c.push(tod+", "+nm+". Good to have you back. What's on your mind?");
+    if(dod&&dod.pct!=null&&p.total_value_aud!=null){
+      var amt=Math.abs(Math.round(dod.amt)).toLocaleString();
+      c.push(tod+", sir. Overnight the book "+(dod.amt>=0?"recovered":"slipped")+" "+Math.abs(dod.pct)+"% — A$"+amt+" — to A$"+Math.round(p.total_value_aud).toLocaleString()+". Want the detail?");
+      c.push(tod+", "+nm+". You're "+(dod.amt>=0?"up":"down")+" A$"+amt+" since yesterday. Shall I run through it?");
+    }
+    if(d.market&&d.market.standout) c.push(tod+", "+nm+". Overnight: "+d.market.standout+". Want the rundown?");
+    var hn=null;(p.holdings||[]).forEach(function(h){if(!hn&&h.news&&h.news.length)hn={t:h.ticker,n:h.news[0].t};});
+    if(hn) c.push(tod+", "+nm+". "+hn.t+" is back in the headlines — "+hn.n+". Want me to dig in?");
+    if(d.briefing&&d.briefing.focus) c.push(tod+", "+nm+". Today's focus: "+d.briefing.focus+" Where shall we start?");
+    return c[Math.floor(Math.random()*c.length)];
+  }catch(e){ return "JARVIS here, Zac. What are we looking at?"; }
+}
 function render(d){
   lastData=d;
   window.__gen=d.generated_at;
@@ -892,6 +914,7 @@ function render(d){
   window.__briefingText=d.briefing.text;
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
+  try{ var cw=document.querySelector("elevenlabs-convai"); if(cw) cw.setAttribute("dynamic-variables", JSON.stringify({opening: makeOpening(d)})); }catch(e){}
 }
 
 /* ---------- conversation (hands-free) ---------- */
