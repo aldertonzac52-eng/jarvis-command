@@ -111,10 +111,21 @@
   .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
   .tb:hover{border-color:var(--cyan-dim);color:var(--txt)}
   .tb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
-  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property{display:none}
+  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab{display:none}
   body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
+  body[data-tab="lab"] .masonry>.panel:not(.sec-lab){display:none}
+  /* strategy lab */
+  .labrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(54,224,255,.06)}
+  .labrk{width:18px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
+  .labmid{flex:1;min-width:0}
+  .labn{font-size:12.5px;font-weight:600}
+  .labsub{font-size:10px;color:var(--muted);margin-top:1px}
+  .labvr{text-align:right;min-width:70px}
+  .labv{font-size:13px;font-weight:800;font-family:"Space Grotesk",sans-serif}
+  .labp{font-size:11px}
+  .labsuper{background:rgba(54,224,255,.05);border:1px solid var(--cyan-dim);border-radius:10px;padding:4px 6px;margin:4px 0}
   /* crypto extras */
   .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .stat{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -423,6 +434,7 @@
     <button class="tb" id="tb-plays" onclick="setTab('plays')">Possible Plays</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')">Crypto</button>
     <button class="tb" id="tb-property" onclick="setTab('property')">Property</button>
+    <button class="tb" id="tb-lab" onclick="setTab('lab')">Strategy Lab</button>
   </div>
   <div class="masonry">
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
@@ -468,6 +480,8 @@
       <div class="sec-lbl">Inbox — watch</div><div id="inbox"></div></div>
     <div class="panel owneronly"><div class="ph">Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
     <div class="panel"><div class="ph">Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
+    <div class="panel sec-lab"><div class="ph">Live $10k sims <span class="r">forward · paper money</span></div><div id="sim"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-lab"><div class="ph">Strategy backtest <span class="r">2-year history</span></div><div id="lab"><div class="empty">Loading…</div></div></div>
   </div>
   <footer id="foot"></footer>
 </div>
@@ -1136,6 +1150,10 @@ const TRACK_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-tra
 const SBOARD_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sector-leaderboard";
 function fmtm(v){return v==null?"—":(v>=0?"+":"")+v+"%";}
 function loadSectorBoard(){fetch(SBOARD_URL).then(function(r){return r.json();}).then(function(j){var s=j.sectors||[];var el=document.getElementById("sboard");if(!el)return;if(!s.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}el.innerHTML=s.map(function(x,i){var lead=i<3?'<span class="oppflag">leading</span>':"";var fcl=(x.future||0)>=0?"up":"down";var picks=(x.pickData||[]).map(function(p){var pc=p.pct==null?"":' <span class="'+(p.pct>=0?"up":"down")+'">'+(p.pct>=0?"+":"")+p.pct+'%</span>';return '<span class="sbpick">'+p.sym+pc+'</span>';}).join("");return '<div class="sbrow" onclick="togglePlay(this)"><span class="sbrk">#'+x.rank+'</span><span class="sbn">'+x.name+'</span>'+lead+'<span class="wgap"></span><span class="sbm '+fcl+'">'+(x.future>=0?"+":"")+x.future+'%</span></div><div class="pl-sig"><div class="psum">'+x.theme+'</div><div class="sbmoms">1mo '+fmtm(x.mom1)+' · 3mo '+fmtm(x.mom3)+' · 6mo '+fmtm(x.mom6)+'</div><div class="sec-lbl">Sector picks</div>'+picks+'</div>';}).join("");}).catch(function(){});}
+const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
+function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'</div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div>';}).join("");}).catch(function(){});}
+const LAB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/strategy-lab";
+function loadLab(){fetch(LAB_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("lab");if(!el)return;var st=j.strategies||[];if(!st.length){el.innerHTML='<div class="empty">No backtest yet.</div>';return;}var b=j.benchmark||{};el.innerHTML='<div class="trkstat"><div class="ts"><div class="tsl">Start</div><div class="tsv">$10k</div></div><div class="ts"><div class="tsl">Buy &amp; hold</div><div class="tsv">$'+((b.final||0)).toLocaleString()+'</div></div><div class="ts"><div class="tsl">Period</div><div class="tsv">'+(j.periodYears||2)+'y</div></div></div>'+st.map(function(s,i){var cl=(s.retPct||0)>=0?"up":"down";var beat=b.final&&s.final>b.final;return '<div class="labrow"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+(beat?' <span class="oppflag">beat B&amp;H</span>':'')+'</div><div class="labsub">'+s.trades+' trades · '+(s.winPct==null?"—":s.winPct+"% win")+' · in mkt '+s.exposure+'% · max drop -'+s.maxDD+'%</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((s.final||0)).toLocaleString()+'</div><div class="labp '+cl+'">'+((s.retPct||0)>=0?"+":"")+s.retPct+'%</div></div></div>';}).join("")+'<div class="playsdis">Backtest on 2y adjusted history · frictionless · prone to overfitting — a shortlist, not a prediction. Not advice.</div>';}).catch(function(){});}
 const PERF_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/portfolio-perf";
 function fmtSign(n,d){if(n==null||isNaN(n))return "—";return (n>=0?"+":"")+Number(n).toFixed(d==null?1:d)+"%";}
 function loadPortfolioExtras(p){
@@ -1239,13 +1257,15 @@ function applySession(j,viaGesture){
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
-function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});}
+function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}}
 var INFO={
 "Portfolio":"Your live holdings, total value and profit/loss versus what you paid — priced off real market data.",
 "Sector map":"The AI & tech investment landscape grouped by sector. Tap a sector to see its stocks with live prices; the % shows each sector's average move.",
 "Sector leaderboard":"All 11 market sectors ranked by momentum (1, 3 and 6-month trend). 'Future lean' weights the longer trends as a momentum proxy for which sectors are structurally leading — not a forecast. Tap a sector for its theme and stock picks. Not advice.",
 "Possible Plays":"A screener that flags beaten-down stocks showing rebound signals — technical (oversold, holding above the 200-day average) plus fundamentals (quality, cheap valuation, low debt, insider buying). Tap a pick for the full read. Not financial advice.",
 "Track record":"The screener grading itself: it logs every pick and tracks how each performs over time, learning which signals actually work. Win-rate and best signals sharpen as data builds.",
+"Live $10k sims":"A real forward paper-trading contest. Each strategy — including a synthesised 'Super strategy' and our live Possible Plays screener — started with a fake A$10,000 and trades the live buy/sell signals every day. Watch each one grow or shrink; it earns an honest track record over time. Not advice.",
+"Strategy backtest":"How each strategy would have done over the last 2 years of real (split/dividend-adjusted) history, starting from $10k, versus simply buying and holding. A shortlist tool only — past performance overfits and does not predict the future. Not advice.",
 "Social buzz":"Stocks trending on Reddit right now — with how fast the chatter is rising (velocity), NEW and surging flags, and cross-links to your plays, holdings and unusual-volume names. Tap a name for the news.",
 "Unusual volume":"Stocks trading above their 20-day average volume — a proxy for big money moving. 'Accum' = heavy volume with price up; 'distrib' = heavy volume with price down. 1.5x+ is flagged unusual.",
 "Congress trades":"What US senators and representatives are buying and selling, from their mandatory public STOCK Act disclosures — including which names Congress is buying most. 'Notable' flags high-profile members and committee chairs. Filings can lag the actual trade by up to 45 days. Informational only — not advice.",
