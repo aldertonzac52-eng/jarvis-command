@@ -1137,7 +1137,7 @@ function renderPerf(j,H){
   function cellrow(label,o){if(!o)return "";var you=o.portfolio,a=o.asx200,s=o.spx;
     return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(you>=0?"up":"down")+'">'+fmtSign(you)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
   var top=null;H.forEach(function(h){if(top==null||Math.abs(h.pl_aud)>Math.abs(top.pl_aud))top=h;});
-  el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+(top?'<div class="perfnote">Biggest mover: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' to your P&amp;L.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
+  el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+(top?'<div class="perfnote">Biggest P&amp;L position: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"-")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' all-time.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
 }
 function renderAlloc(H){
   var el=document.getElementById("alloc");if(!el)return;if(!H.length){el.innerHTML='<div class="empty">No holdings.</div>';return;}
@@ -1148,8 +1148,10 @@ function renderAlloc(H){
   var aud=0,usd=0;H.forEach(function(h){if((h.ccy||"AUD")==="USD")usd+=h.value_aud||0;else aud+=h.value_aud||0;});
   function chip(lbl,v){return '<span class="allchip">'+lbl+' '+Math.round(v/tot*100)+'%</span>';}
   var topPct=(sorted[0].value_aud||0)/tot*100;
-  var flag=topPct>=45?'<div class="allflag">&#9888; '+sorted[0].ticker+' is '+topPct.toFixed(0)+'% of the book — concentrated.</div>':(usd/tot>=0.7?'<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>':"");
-  el.innerHTML=bars+'<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+flag;
+  var flags="";
+  if(topPct>=45)flags+='<div class="allflag">&#9888; '+sorted[0].ticker+' is '+topPct.toFixed(0)+'% of the book — concentrated.</div>';
+  if(usd/tot>=0.6)flags+='<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>';
+  el.innerHTML=bars+'<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+flags;
 }
 function renderAlerts(H,perf){
   var el=document.getElementById("alerts");if(!el)return;var al=[];var pm={};
@@ -1262,13 +1264,13 @@ function renderGuest(d){
   var hold=d.holdings||[]; var tk=hold.map(function(h){return h.ticker;}).join(",");
   fetch(LOOKUP_URL+"?tickers="+tk).then(function(r){return r.json();}).then(function(px){
     var prices={}; (px.rows||[]).forEach(function(r){prices[r.sym]={price:r.price,pct:r.pct};});
-    var fx=(d.fx&&d.fx.audusd)||0.6849,out=[],tv=0,tc=0;
+    var fx=(d.fx&&d.fx.audusd)||0.6899,out=[],tv=0,tc=0;
     hold.forEach(function(h){
-      var p=prices[h.ticker],price=p&&p.price!=null?p.price:h.avg_cost;
+      var p=prices[h.ticker],miss=!(p&&p.price!=null),price=miss?h.avg_cost:p.price;
       var cost=h.ccy==="USD"?h.units*h.avg_cost/fx:h.units*h.avg_cost;
       var val=h.ccy==="USD"?h.units*price/fx:h.units*price;
       tv+=val;tc+=cost;
-      out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:false,note:h.ccy==="USD"?"USD holding":"",series:[h.avg_cost,price],blurb:"",news:[]});
+      out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:miss,note:miss?"price unavailable":(h.ccy==="USD"?"USD holding":""),series:[h.avg_cost,price],blurb:"",news:[]});
     });
     var dd={generated_at:d.generated_at,as_of_date:d.as_of_date,tz:d.tz,fx:d.fx||{audusd:fx},market:d.market||{movers:{gainers:[],losers:[]}},
       portfolio:{total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:out,networth:[]},
