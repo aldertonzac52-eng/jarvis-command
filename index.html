@@ -347,6 +347,31 @@
   .pad button:active{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
   .pad .blank{visibility:hidden;pointer-events:none}
   @media(max-width:560px){ .ptot .v{font-size:26px} .reactor{--s:128px} }
+  /* performance / allocation / alerts */
+  .perfhd{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;font-size:10px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;padding:0 0 4px;border-bottom:1px solid var(--line);margin-bottom:4px}
+  .perfhd span:not(:first-child),.perfrow .perfyou,.perfrow .perfb{text-align:right}
+  .perfrow{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;align-items:center;padding:5px 0;border-bottom:1px solid rgba(54,224,255,.05);font-size:12.5px}
+  .perflbl{color:var(--txt);font-weight:600}
+  .perfyou{font-weight:800;font-family:"Space Grotesk",sans-serif}
+  .perfb{color:var(--muted);font-size:11px}
+  .perfnote{margin-top:8px;font-size:11.5px;color:var(--txt)}
+  .perfnote b{color:var(--cyan)}
+  .perfnote2{margin-top:4px;font-size:10px;color:var(--muted);font-style:italic}
+  .allrow{display:flex;align-items:center;gap:8px;padding:3px 0}
+  .allnm{width:62px;font-size:11.5px;font-weight:700;font-family:"Space Grotesk",sans-serif}
+  .allbarwrap{flex:1;height:9px;background:rgba(54,224,255,.07);border-radius:6px;overflow:hidden}
+  .allbar{height:100%;background:linear-gradient(90deg,var(--cyan),#7af0ff);border-radius:6px}
+  .allpct{width:34px;text-align:right;font-size:11.5px;color:var(--muted)}
+  .allchips{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+  .allchip{font-size:10.5px;background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:9px;padding:2px 8px;font-weight:700}
+  .allflag{margin-top:9px;font-size:11px;color:#ffd166;background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.25);border-radius:8px;padding:5px 8px}
+  .alrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(54,224,255,.05);font-size:12px}
+  .aldot{width:18px;text-align:center;font-size:11px}
+  .aldot.up{color:var(--green)} .aldot.down{color:#ff6b8a}
+  .hnrow{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(54,224,255,.05);text-decoration:none;color:var(--txt)}
+  .hntk{flex:none;font-size:10px;font-weight:800;font-family:"Space Grotesk",sans-serif;color:var(--cyan);background:rgba(54,224,255,.08);border-radius:7px;padding:2px 6px;margin-top:1px}
+  .hnt{font-size:12px;line-height:1.3}
+  .hns{display:block;font-size:10px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -401,6 +426,10 @@
   </div>
   <div class="masonry">
     <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
+    <div class="panel owneronly"><div class="ph">Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph">Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph">Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph">In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph">Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph">Possible Plays <span class="r">screen · not advice</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
@@ -862,6 +891,7 @@ function render(d){
   document.getElementById("vlabel").textContent=d.briefing.voice||"";
   window.__briefingText=d.briefing.text;
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed from Supabase · auto-refreshes every 15 min<br>Private dashboard · not financial advice";
+  try{ loadPortfolioExtras(p); }catch(e){}
 }
 
 /* ---------- conversation (hands-free) ---------- */
@@ -1091,6 +1121,57 @@ const TRACK_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-tra
 const SBOARD_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sector-leaderboard";
 function fmtm(v){return v==null?"—":(v>=0?"+":"")+v+"%";}
 function loadSectorBoard(){fetch(SBOARD_URL).then(function(r){return r.json();}).then(function(j){var s=j.sectors||[];var el=document.getElementById("sboard");if(!el)return;if(!s.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}el.innerHTML=s.map(function(x,i){var lead=i<3?'<span class="oppflag">leading</span>':"";var fcl=(x.future||0)>=0?"up":"down";var picks=(x.pickData||[]).map(function(p){var pc=p.pct==null?"":' <span class="'+(p.pct>=0?"up":"down")+'">'+(p.pct>=0?"+":"")+p.pct+'%</span>';return '<span class="sbpick">'+p.sym+pc+'</span>';}).join("");return '<div class="sbrow" onclick="togglePlay(this)"><span class="sbrk">#'+x.rank+'</span><span class="sbn">'+x.name+'</span>'+lead+'<span class="wgap"></span><span class="sbm '+fcl+'">'+(x.future>=0?"+":"")+x.future+'%</span></div><div class="pl-sig"><div class="psum">'+x.theme+'</div><div class="sbmoms">1mo '+fmtm(x.mom1)+' · 3mo '+fmtm(x.mom3)+' · 6mo '+fmtm(x.mom6)+'</div><div class="sec-lbl">Sector picks</div>'+picks+'</div>';}).join("");}).catch(function(){});}
+const PERF_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/portfolio-perf";
+function fmtSign(n,d){if(n==null||isNaN(n))return "—";return (n>=0?"+":"")+Number(n).toFixed(d==null?1:d)+"%";}
+function loadPortfolioExtras(p){
+  var H=(p&&p.holdings)||[];
+  renderAlloc(H); renderHoldNews(H);
+  if(!H.length){return;}
+  var payload={holdings:H.map(function(h){return {ticker:h.ticker,ccy:h.ccy,value_aud:h.value_aud};})};
+  fetch(PERF_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();}).then(function(j){window.PERF=j;renderPerf(j,H);renderAlerts(H,j);})
+    .catch(function(){var pe=document.getElementById("perf");if(pe)pe.innerHTML='<div class="empty">Unavailable.</div>';renderAlerts(H,null);});
+}
+function renderPerf(j,H){
+  var el=document.getElementById("perf");if(!el)return;var pr=j.periods||{};
+  function cellrow(label,o){if(!o)return "";var you=o.portfolio,a=o.asx200,s=o.spx;
+    return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(you>=0?"up":"down")+'">'+fmtSign(you)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
+  var top=null;H.forEach(function(h){if(top==null||Math.abs(h.pl_aud)>Math.abs(top.pl_aud))top=h;});
+  el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+(top?'<div class="perfnote">Biggest mover: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' to your P&amp;L.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
+}
+function renderAlloc(H){
+  var el=document.getElementById("alloc");if(!el)return;if(!H.length){el.innerHTML='<div class="empty">No holdings.</div>';return;}
+  var tot=H.reduce(function(a,h){return a+(h.value_aud||0);},0)||1;var ETF=/(vanguard|s&p|etf|index|v500|voo|ivv|vas)/i;
+  var sorted=H.slice().sort(function(a,b){return (b.value_aud||0)-(a.value_aud||0);});
+  var bars=sorted.map(function(h){var pc=(h.value_aud||0)/tot*100;return '<div class="allrow"><span class="allnm">'+h.ticker+'</span><div class="allbarwrap"><div class="allbar" style="width:'+pc.toFixed(0)+'%"></div></div><span class="allpct">'+pc.toFixed(0)+'%</span></div>';}).join("");
+  var etfv=0,stockv=0;H.forEach(function(h){if(ETF.test((h.ticker||"")+" "+(h.name||"")))etfv+=h.value_aud||0;else stockv+=h.value_aud||0;});
+  var aud=0,usd=0;H.forEach(function(h){if((h.ccy||"AUD")==="USD")usd+=h.value_aud||0;else aud+=h.value_aud||0;});
+  function chip(lbl,v){return '<span class="allchip">'+lbl+' '+Math.round(v/tot*100)+'%</span>';}
+  var topPct=(sorted[0].value_aud||0)/tot*100;
+  var flag=topPct>=45?'<div class="allflag">&#9888; '+sorted[0].ticker+' is '+topPct.toFixed(0)+'% of the book — concentrated.</div>':(usd/tot>=0.7?'<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>':"");
+  el.innerHTML=bars+'<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+flag;
+}
+function renderAlerts(H,perf){
+  var el=document.getElementById("alerts");if(!el)return;var al=[];var pm={};
+  if(perf&&perf.holdings)perf.holdings.forEach(function(x){pm[(x.ticker||"").toUpperCase()]=x;});
+  H.forEach(function(h){var t=(h.ticker||"").toUpperCase();var pf=pm[t]||{};var ccy=h.ccy==="USD"?"US$":"A$";
+    if(h.buy_below!=null&&h.price!=null&&h.price<=h.buy_below)al.push(['buy',t+' in buy zone — '+ccy+h.price+' at/under target '+ccy+h.buy_below]);
+    if(h.sell_above!=null&&h.price!=null&&h.price>=h.sell_above)al.push(['sell',t+' hit take-profit — '+ccy+h.price+' at/over '+ccy+h.sell_above]);
+    if(pf.pctFromHigh!=null&&pf.pctFromHigh>=-5)al.push(['high',t+' near its 52-week high ('+fmtSign(pf.pctFromHigh)+')']);
+    if(pf.pctFromLow!=null&&pf.pctFromLow<=5)al.push(['low',t+' near its 52-week low ('+fmtSign(pf.pctFromLow)+' off the floor)']);
+    if(h.day!=null&&Math.abs(h.day)>=5)al.push([h.day>=0?'high':'low',t+' big move today '+fmtSign(h.day)]);
+    if(h.news&&h.news.length)al.push(['news',t+' in the news — '+h.news[0].t]);
+  });
+  if(!al.length){el.innerHTML='<div class="empty">No alerts right now — nothing at a target, extreme, or 52-week edge.</div>';return;}
+  el.innerHTML=al.map(function(a){var c=a[0]==='buy'||a[0]==='low'?'up':(a[0]==='sell'||a[0]==='high'?'down':'');var ic=a[0]==='buy'?'&#9660;':a[0]==='sell'?'&#9650;':a[0]==='high'?'&#9650;':a[0]==='low'?'&#9660;':a[0]==='news'?'&#128240;':'&#8226;';return '<div class="alrow"><span class="aldot '+c+'">'+ic+'</span><span>'+a[1]+'</span></div>';}).join("");
+}
+function renderHoldNews(H){
+  var el=document.getElementById("holdnews");if(!el)return;var items=[];
+  H.forEach(function(h){(h.news||[]).slice(0,3).forEach(function(n){items.push({tk:h.ticker,t:n.t,s:n.s,u:n.u});});});
+  if(!items.length){el.innerHTML='<div class="empty">No fresh articles mentioning your holdings.</div>';return;}
+  items=items.slice(0,9);
+  el.innerHTML=items.map(function(i){return '<a class="hnrow" href="'+i.u+'" target="_blank" rel="noopener"><span class="hntk">'+i.tk+'</span><span class="hnt">'+i.t+'<span class="hns">'+i.s+' &#8599;</span></span></a>';}).join("");
+}
 const POL_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/pol-trades";
 function loadPoliticians(){fetch(POL_URL).then(function(r){return r.json();}).then(function(j){var rows=j.trades||[];var el=document.getElementById("poltrades");if(!el)return;if(!rows.length){el.innerHTML='<div class="empty">No recent filings loaded.</div>';return;}var top=(j.topBought||[]).map(function(b){return '<span class="sbpick">'+b.ticker+' <span class="up">'+b.n+'</span></span>';}).join("");el.innerHTML=(top?'<div class="sec-lbl">Most-bought in Congress</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 8px">'+top+'</div>':"")+rows.slice(0,12).map(function(x){var cl=x.type==="Buy"?"up":"down";var star=x.notable?'<span class="oppflag">notable</span>':"";return '<div class="wrow2"><span class="wsym">'+x.ticker+'</span><span class="'+cl+'" style="font-size:11px;font-weight:700;margin-left:6px">'+x.type+'</span>'+star+'<span class="wgap"></span><span style="font-size:11px;opacity:.82">'+x.person+' <span style="opacity:.6">'+(x.chamber==="Senate"?"Sen":"Rep")+'</span></span><span style="font-size:11px;opacity:.6;margin-left:8px">'+x.amount+'</span></div>';}).join("")+'<div style="font-size:10px;opacity:.5;margin-top:8px">Public STOCK Act filings · can lag the trade up to 45 days · not advice</div>';}).catch(function(){});}
 function loadWhale(){fetch(WHALE_URL).then(function(r){return r.json();}).then(function(j){var rows=j.rows||[];window.WHALESET={};rows.forEach(function(x){window.WHALESET[x.ticker.replace(".AX","")]=1;});var el=document.getElementById("whale");if(!el)return;if(!rows.length){el.innerHTML='<div class="empty">No unusual volume right now.</div>';return;}el.innerHTML=rows.slice(0,12).map(function(x){var sym=x.ticker.replace(".AX","");var tag=x.accumulation?'<span class="oppflag">accum</span>':(x.distribution?'<span class="distflag">distrib</span>':"");var cl=x.dayPct>=0?"up":"down";return '<div class="wrow2"><span class="wsym">'+sym+'</span><span class="wspike">'+x.volSpike+'x</span>'+tag+'<span class="wgap"></span><span class="wday '+cl+'">'+(x.dayPct>=0?"+":"")+x.dayPct+'%</span><span class="wvol">'+x.dollarVolFmt+'</span></div>';}).join("");}).catch(function(){});}
@@ -1170,6 +1251,10 @@ var INFO={
 "VIC property watch":"Victorian property market news.",
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
+"Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
+"Performance":"How your portfolio has actually done over 1 week, 1 month and year-to-date — value-weighted — set against the ASX 200 and S&P 500 so you can see if you're beating the market, plus your single biggest dollar mover.",
+"Allocation":"Where your money sits: each holding's share of the book, the split between shares and ETF/index funds, and AUD vs USD exposure. Flags when you're over-concentrated in one name or currency.",
+"In the news":"Any news article mentioning one of your holdings, refreshed through the day — tap to read. JARVIS also picks these up in the morning briefing.",
 "Today":"Your calendar, tasks and inbox highlights."
 };
 function addInfoButtons(){var keys=Object.keys(INFO);document.querySelectorAll('.panel .ph').forEach(function(ph){if(ph._info)return;var t=(ph.textContent||"").trim();var key=null;for(var i=0;i<keys.length;i++){if(t.indexOf(keys[i])===0){key=keys[i];break;}}if(!key)return;ph._info=1;var b=document.createElement('span');b.className='infobtn';b.textContent='?';b.title='What is this?';b.onclick=function(e){e.stopPropagation();var d=ph.parentNode.querySelector('.pinfo');if(d)d.classList.toggle('open');};ph.appendChild(b);var d=document.createElement('div');d.className='pinfo';d.textContent=INFO[key];ph.parentNode.insertBefore(d,ph.nextSibling);});}
