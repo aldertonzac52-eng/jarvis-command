@@ -890,7 +890,7 @@ function render(d){
   document.getElementById("briefing").textContent=d.briefing.text||"";
   document.getElementById("vlabel").textContent=d.briefing.voice||"";
   window.__briefingText=d.briefing.text;
-  document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed from Supabase · auto-refreshes every 15 min<br>Private dashboard · not financial advice";
+  document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
 }
 
