@@ -396,19 +396,19 @@
     <span class="fresh"><span class="livedot"></span><span id="fresh">live</span></span><span class="clk" id="clk"></span></div>
 
   <div class="hero">
-    <div class="reactor" id="reactor" onclick="playBriefing()" title="Replay briefing">
+    <div class="reactor" id="reactor" onclick="orbTap()" title="Tap to talk to JARVIS">
       <div class="halo"></div><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div>
     </div>
     <div class="hello" id="hello">GOOD MORNING, ZAC</div>
     <div class="askwrap">
       <div class="askbar">
-        <input id="askin" placeholder="Type a quick question…" autocomplete="off"
-          onkeydown="if(event.key==='Enter')ask()" />
-        <button class="iconbtn" onclick="ask()" title="Send" aria-label="Send">&#8594;</button>
+        <input id="askin" placeholder="Talk or type to JARVIS…" autocomplete="off"
+          onkeydown="if(event.key==='Enter')sendText()" />
+        <button class="iconbtn" onclick="sendText()" title="Send" aria-label="Send">&#8594;</button>
       </div>
       <div class="answer" id="answer"></div>
     </div>
-    <div class="hint">Tap the orb to replay your briefing · talk to JARVIS with the voice button</div>
+    <div class="hint">Tap the orb to talk to JARVIS, or type above · <a id="replaybtn" onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a></div>
   </div>
 
   <div class="panel" style="margin-top:8px">
@@ -469,10 +469,8 @@
     <div class="panel owneronly"><div class="ph">Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
     <div class="panel"><div class="ph">Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
   </div>
-  <elevenlabs-convai agent-id="agent_4801kvyk534xe83thadveggjjsms"></elevenlabs-convai>
   <footer id="foot"></footer>
 </div>
-<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 
 <script>
 const FALLBACK = {
@@ -914,47 +912,41 @@ function render(d){
   window.__briefingText=d.briefing.text;
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
-  try{ var cw=document.querySelector("elevenlabs-convai"); if(cw) cw.setAttribute("dynamic-variables", JSON.stringify({opening: makeOpening(d)})); }catch(e){}
+  try{ window.__opening = makeOpening(d); }catch(e){}
 }
 
-/* ---------- conversation (hands-free) ---------- */
-let recog=null, convMode=false, chatBusy=false, speaking=false, sayTimer=null;
+/* ---------- one unified conversation: native orb -> ElevenLabs agent ---------- */
+let speaking=false, sayTimer=null;
+const AGENT_ID="agent_4801kvyk534xe83thadveggjjsms";
+let _elp=null; function _EL(){ if(!_elp) _elp=import("https://cdn.jsdelivr.net/npm/@elevenlabs/client/+esm"); return _elp; }
+let convo=null, convoMode=null;
 function showAnswer(text){ const a=document.getElementById("answer"); a.innerHTML='<div class="who">JARVIS</div>'+text; a.classList.add("show"); }
-
-function ask(textArg){
-  const inp=document.getElementById("askin");
-  const q=(textArg!=null?textArg:(inp.value||"")).trim(); if(!q) return;
-  inp.value=""; chatBusy=true; stopListen(); showAnswer("…"); setSpeaking(true);
-  fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:chatHistory})})
-    .then(r=>r.json()).then(j=>{ const reply=j.reply||"Sorry, I didn't catch that.";
-      chatHistory.push({role:"user",content:q},{role:"assistant",content:reply}); chatHistory=chatHistory.slice(-8);
-      showAnswer(reply); sayText(reply, ()=>{ chatBusy=false; if(convMode) startListen(); }); })
-    .catch(()=>{ showAnswer("I couldn't reach the network just then."); setSpeaking(false); chatBusy=false; if(convMode) startListen(); });
+function ampOn(){ if(!sayTimer) sayTimer=setInterval(function(){document.documentElement.style.setProperty("--amp",(0.2+Math.random()*0.55).toFixed(2));},110); }
+function ampOff(){ document.documentElement.style.setProperty("--amp",0); if(sayTimer){clearInterval(sayTimer);sayTimer=null;} }
+function setOrbState(s){ var r=document.getElementById("reactor"); if(!r)return; r.classList.remove("listening","speaking"); if(s==="speaking"){ r.classList.add("speaking"); ampOn(); } else { ampOff(); if(s==="listening"||s==="connecting") r.classList.add("listening"); } }
+async function startSession(mode){
+  if(convo) return convo;
+  setOrbState("connecting"); showAnswer(mode==="voice"?"Connecting… say hello when you're ready.":"…");
+  try{
+    var mod=await _EL(); var Conversation=mod.Conversation;
+    if(mode==="voice"){ await navigator.mediaDevices.getUserMedia({audio:true}); }
+    var opts={ agentId:AGENT_ID, dynamicVariables:{ opening:(window.__opening || (lastData?makeOpening(lastData):"")) },
+      onConnect:function(){ setOrbState("listening"); },
+      onDisconnect:function(){ convo=null; convoMode=null; setOrbState("idle"); },
+      onError:function(m){ showAnswer("Voice link hiccup — "+((m&&m.message)?m.message:"try again.")); },
+      onModeChange:function(m){ setOrbState((m&&m.mode==="speaking")?"speaking":"listening"); },
+      onMessage:function(m){ try{ var src=(m&&(m.source||m.role))||""; var txt=(m&&(m.message||m.text))||""; if(txt&&(src==="ai"||src==="agent")) showAnswer(txt); }catch(e){} } };
+    if(mode==="text") opts.connectionType="websocket";
+    convo=await Conversation.startSession(opts); convoMode=mode;
+  }catch(e){ convo=null; convoMode=null; setOrbState("idle"); showAnswer(mode==="voice"?"I couldn't get the microphone — you can still type to me below.":"Couldn't connect just now — try again."); throw e; }
+  return convo;
 }
-
-function startListen(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ document.getElementById("askin").focus(); return; }
-  if(recog||chatBusy||speaking) return;
-  recog=new SR(); recog.lang="en-AU"; recog.interimResults=false; recog.maxAlternatives=1;
-  document.getElementById("micbtn").classList.add("live"); document.getElementById("reactor").classList.add("listening");
-  recog.onresult=e=>{ const t=e.results[0][0].transcript; recog=null; ask(t); };
-  recog.onerror=()=>{};
-  recog.onend=()=>{ document.getElementById("micbtn").classList.remove("live"); document.getElementById("reactor").classList.remove("listening");
-    const had=recog; recog=null; if(convMode && !chatBusy && !speaking && had) setTimeout(startListen,350); };
-  try{ recog.start(); }catch(e){ recog=null; }
-}
-function stopListen(){ if(recog){ try{recog.stop();}catch(e){} recog=null; }
-  var mb=document.getElementById("micbtn"); if(mb) mb.classList.remove("live"); document.getElementById("reactor").classList.remove("listening"); }
-
-/* tap orb or mic = toggle hands-free conversation */
-function askVoice(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ document.getElementById("askin").focus(); showAnswer("On iPhone, tap the text box and use your keyboard's 🎤 dictation button to talk to me — then send. (Apple's Safari blocks in-page voice input.)"); return; }
-  if(convMode){ convMode=false; stopListen(); showAnswer("Conversation paused. Tap the orb to talk again."); return; }
-  convMode=true; showAnswer("Listening… just talk. Tap the orb again to stop."); startListen();
-}
-function orbTap(){ askVoice(); }
+async function endSession(){ if(convo){ try{ await convo.endSession(); }catch(e){} } convo=null; convoMode=null; setOrbState("idle"); }
+async function orbTap(){ if(window.CURRENT&&CURRENT.owner===false) return; if(convo){ await endSession(); showAnswer("Conversation ended. Tap the orb to talk again."); } else { try{ await startSession("voice"); }catch(e){} } }
+async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
+  try{ if(!convo) await startSession("text"); if(convo&&typeof convo.sendUserMessage==="function"){ convo.sendUserMessage(q); } else { throw new Error("no-send"); } }
+  catch(e){ chatFallback(q); } }
+function chatFallback(q){ fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:[]})}).then(function(r){return r.json();}).then(function(j){ showAnswer(j.reply||"Sorry, I didn't catch that."); }).catch(function(){ showAnswer("I couldn't reach the network just then."); }); }
 
 /* ---------- speak: Alistair via ElevenLabs (iOS-robust: plain audio + timed pulse) ---------- */
 let voiceAudio=null;
