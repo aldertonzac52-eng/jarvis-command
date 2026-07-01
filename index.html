@@ -835,7 +835,7 @@ const TTS_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-tt
 const LOOKUP_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-lookup";
 let lastData=null, chatHistory=[];
 
-const money=(n,c="AUD")=>n==null?"—":(c==="USD"?"US$":"A$")+Number(n).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=(n,c="AUD")=>n==null?"—":(c==="USD"?"US$":"A$")+Number(n).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:(Math.abs(Number(n))<1&&Number(n)!==0?4:2)});
 const pct=n=>n==null?"—":(n>=0?"+":"")+Number(n).toFixed(2)+"%";
 const cls=n=>n==null?"flat":(n>0?"up":(n<0?"down":"flat"));
 function ago(iso){ if(!iso) return "live"; const s=(Date.now()-new Date(iso).getTime())/1000;
@@ -902,7 +902,7 @@ function render(d){
     </div>`).join("");
 
   document.getElementById("watch").innerHTML=d.watchlist.map((w,i)=>{
-    const px=w.price==null?"n/a":(w.ticker==="V500"?"US$":"A$")+Number(w.price).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});
+    const px=w.price==null?"n/a":(w.ticker==="V500"?"US$":"A$")+Number(w.price).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:(Math.abs(Number(w.price))<1?4:2)});
     return `<div class="wrow" onclick="openStock('w',${i})">
       <div><div class="tk">${w.ticker}<span class="chev">›</span>${w.spotlight?" ★":""}${buyTag(w.price,w.buy_below,"AUD")}</div>
         <div class="nm">${w.name}${w.note?" · "+w.note:""}</div></div>
@@ -961,7 +961,8 @@ async function startSession(mode){
   return convo;
 }
 async function endSession(){ if(convo){ try{ await convo.endSession(); }catch(e){} } convo=null; convoMode=null; setOrbState("idle"); }
-async function orbTap(){ if(window.CURRENT&&CURRENT.owner===false) return;
+async function orbTap(){
+  if(window.CURRENT&&CURRENT.owner===false){ if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); return; }
   if(convo||speaking){ try{ if(convo) await endSession(); }catch(e){} stopSpeak(); setOrbState("idle"); showAnswer("Stopped. Tap the orb to talk to JARVIS."); return; }
   try{ stopSpeak(); await startSession("voice"); }catch(e){} }
 async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
@@ -997,7 +998,7 @@ function ttsFallback(text, done){
   speechSynthesis.speak(u);
 }
 /* "replay briefing" speaks the live dynamic text in Alistair */
-function playBriefing(){ if(window.CURRENT&&CURRENT.owner===false) return; try{ if(convo) endSession(); }catch(e){} if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); }
+function playBriefing(){ try{ if(convo) endSession(); }catch(e){} if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); }
 function stopSpeak(){ setSpeaking(false); if(voiceAudio){ try{voiceAudio.pause();}catch(e){} } if(window.speechSynthesis) speechSynthesis.cancel(); }
 
 /* ---------- stock detail modal ---------- */
@@ -1328,10 +1329,19 @@ function renderGuest(d){
       tv+=val;tc+=cost;
       out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:miss,note:miss?"price unavailable":(h.ccy==="USD"?"USD holding":""),series:[h.avg_cost,price],blurb:"",news:[]});
     });
+    var hr2=new Date().getHours(); var tod=hr2<12?"Good morning":hr2<18?"Good afternoon":"Good evening";
+    var gname=(window.CURRENT&&CURRENT.name)?CURRENT.name:"there";
+    var plp=tc?Math.round((tv-tc)/tc*1000)/10:0; var v=Math.round(tv).toLocaleString();
+    var opns=[tod+", "+gname+". JARVIS here — good to see you.",
+      tod+", "+gname+". Your book's at A$"+v+" ("+(plp>=0?"+":"")+plp+"%). Tap the orb any time.",
+      "JARVIS online. "+tod+", "+gname+". "+out.length+" holdings, all live.",
+      tod+", "+gname+". Everything's tracked and up to date — tap the orb whenever you want a recap.",
+      tod+", "+gname+". Portfolio A$"+v+", "+(plp>=0?"up":"down")+" "+Math.abs(plp)+"% on cost. What's up?"];
+    var welcome=opns[Math.floor(Math.random()*opns.length)];
     var dd={generated_at:d.generated_at,as_of_date:d.as_of_date,tz:d.tz,fx:d.fx||{audusd:fx},market:d.market||{movers:{gainers:[],losers:[]}},
       portfolio:{total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:out,networth:[]},
-      watchlist:[],agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:"",voice:"",focus:""},alerts:[]};
-    render(dd);
+      watchlist:[],agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:welcome,voice:"",focus:""},alerts:[]};
+    render(dd); showAnswer(welcome);
   }).catch(function(){});
 }
 var ok=false,savedPin=null;try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin');}catch(e){}
