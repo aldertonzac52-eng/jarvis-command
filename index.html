@@ -1133,23 +1133,32 @@ function loadSparks(){
     buildNetWorth(d,map);
   }).catch(function(){});
 }
+/* smooth chart upsert — updates in place instead of destroy+re-animate */
+function drawChart(hostId,opts){
+  if(typeof ApexCharts==="undefined") return null;
+  var host=document.getElementById(hostId); if(!host) return null;
+  var key="__ch_"+hostId;
+  if(window[key]){ try{ window[key].updateOptions(opts,false,false,false); return window[key]; }catch(e){ try{window[key].destroy();}catch(_e){} window[key]=null; host.innerHTML=""; } }
+  var ch=new ApexCharts(host,opts); window[key]=ch; ch.render(); return ch;
+}
+function destroyChart(hostId){ var key="__ch_"+hostId; if(window[key]){ try{window[key].destroy();}catch(e){} window[key]=null; } }
 function renderNwChart(series){
   var el=document.getElementById("nwchart"); if(!el) return;
-  if(!series||series.length<2){ el.innerHTML=""; return; }
+  if(!series||series.length<2){ destroyChart("nwapex"); el.innerHTML=""; return; }
   var up=series[series.length-1]>=series[0], col=up?"#33e6a0":"#ff5d72";
   var chg=series[series.length-1]-series[0], pc=series[0]?chg/series[0]*100:0;
-  if(typeof ApexCharts==="undefined"){ el.innerHTML=netChart(series); return; }
-  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px"><span>Net worth · last '+series.length+' days</span><span style="color:'+col+';font-weight:700">'+(chg>=0?"+":"")+money(Math.round(chg))+" ("+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span></div><div id="nwapex"></div>';
-  if(window.__nwChart){ try{window.__nwChart.destroy();}catch(e){} }
-  window.__nwChart=new ApexCharts(document.getElementById("nwapex"),{
-    chart:{type:"area",height:104,sparkline:{enabled:true},animations:{enabled:true,easing:"easeinout",speed:750},fontFamily:"Inter,sans-serif"},
+  var head='<span>Net worth · last '+series.length+' days</span><span style="color:'+col+';font-weight:700">'+(chg>=0?"+":"")+money(Math.round(chg))+" ("+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span>';
+  if(typeof ApexCharts==="undefined"){ el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px">'+head+'</div>'+netChart(series); return; }
+  if(!document.getElementById("nwapex")) el.innerHTML='<div id="nwhead" style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px"></div><div id="nwapex"></div>';
+  document.getElementById("nwhead").innerHTML=head;
+  drawChart("nwapex",{
+    chart:{type:"area",height:104,sparkline:{enabled:true},animations:{enabled:true,easing:"easeinout",speed:600,dynamicAnimation:{enabled:true,speed:450}},fontFamily:"Inter,sans-serif"},
     series:[{name:"Net worth",data:series.map(function(v){return Math.round(v);})}],
     stroke:{curve:"smooth",width:2.2},colors:[col],
     fill:{type:"gradient",gradient:{shadeIntensity:1,opacityFrom:.34,opacityTo:0,stops:[0,100]}},
     tooltip:{theme:"dark",x:{show:false},y:{formatter:function(v){return money(v);}},marker:{show:false}},
     grid:{padding:{left:0,right:0,top:2,bottom:0}}
   });
-  window.__nwChart.render();
 }
 function buildNetWorth(d,map){
   try{
@@ -1305,9 +1314,8 @@ function renderEquityChart(cid,strats,bench){
   if(bench&&bench.curve&&bench.curve.length>1) series.push({name:"Buy & hold",data:bench.curve.map(function(v){return Math.round(v);})});
   if(series.length<1)return;
   var colors=series.map(function(s,i){return s.name==="Buy & hold"?"#8aa0c6":pal[i%pal.length];});
-  if(window["__eq_"+cid]){try{window["__eq_"+cid].destroy();}catch(e){}}
-  window["__eq_"+cid]=new ApexCharts(host,{
-    chart:{type:"line",height:214,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:600},zoom:{enabled:false}},
+  drawChart(cid,{
+    chart:{type:"line",height:214,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}},zoom:{enabled:false}},
     series:series, colors:colors,
     stroke:{curve:"smooth",width:2,dashArray:series.map(function(s){return s.name==="Buy & hold"?4:0;})},
     xaxis:{labels:{show:false},axisBorder:{show:false},axisTicks:{show:false},tooltip:{enabled:false}},
@@ -1316,7 +1324,6 @@ function renderEquityChart(cid,strats,bench){
     grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
     tooltip:{theme:"dark",shared:true,intersect:false,x:{show:false},y:{formatter:function(v){return "$"+v.toLocaleString();}}}
   });
-  window["__eq_"+cid].render();
 }
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
 function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
@@ -1343,10 +1350,10 @@ function renderPerf(j,H){
     function cellrow(label,o){if(!o)return "";var y=o.portfolio,a=o.asx200,s=o.spx;return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(y>=0?"up":"down")+'">'+fmtSign(y)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
     el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+note;return;
   }
-  el.innerHTML='<div id="perfapex"></div>'+note;
-  if(window.__perfChart){try{window.__perfChart.destroy();}catch(e){}}
-  window.__perfChart=new ApexCharts(document.getElementById("perfapex"),{
-    chart:{type:"bar",height:200,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:600}},
+  if(!document.getElementById("perfapex")) el.innerHTML='<div id="perfapex"></div><div id="perfnote"></div>';
+  var pn=document.getElementById("perfnote"); if(pn) pn.innerHTML=note;
+  drawChart("perfapex",{
+    chart:{type:"bar",height:200,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}}},
     series:[{name:"You",data:you},{name:"ASX200",data:asx},{name:"S&P500",data:spx}],
     xaxis:{categories:cats,labels:{style:{colors:["#9eb4d8","#9eb4d8","#9eb4d8"]}},axisBorder:{show:false},axisTicks:{show:false}},
     yaxis:{labels:{style:{colors:"#9eb4d8"},formatter:function(v){return v.toFixed(0)+"%";}}},
@@ -1357,7 +1364,6 @@ function renderPerf(j,H){
     grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
     tooltip:{theme:"dark",y:{formatter:function(v){return (v>=0?"+":"")+v.toFixed(2)+"%";}}}
   });
-  window.__perfChart.render();
 }
 function renderAlloc(H){
   var el=document.getElementById("alloc");if(!el)return;if(!H.length){el.innerHTML='<div class="empty">No holdings.</div>';return;}
@@ -1373,11 +1379,11 @@ function renderAlloc(H){
   if(usd/tot>=0.6)flags+='<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>';
   var chips='<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>';
   if(typeof ApexCharts==="undefined"){ el.innerHTML=bars+chips+flags; return; }
-  el.innerHTML='<div id="allocapex"></div>'+chips+flags;
-  if(window.__allocChart){try{window.__allocChart.destroy();}catch(e){}}
+  if(!document.getElementById("allocapex")) el.innerHTML='<div id="allocapex"></div><div id="allocmeta"></div>';
+  var am=document.getElementById("allocmeta"); if(am) am.innerHTML=chips+flags;
   var pal=["#36e0ff","#33e6a0","#ffc24b","#ff5d72","#8b7dff","#4db8ff","#7CFFB2","#ff9a2e","#c589ff","#5ad1c9"];
-  window.__allocChart=new ApexCharts(document.getElementById("allocapex"),{
-    chart:{type:"donut",height:236,fontFamily:"Inter,sans-serif",animations:{speed:600}},
+  drawChart("allocapex",{
+    chart:{type:"donut",height:236,fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}}},
     series:sorted.map(function(h){return Math.round(h.value_aud||0);}),
     labels:sorted.map(function(h){return h.ticker;}),
     colors:pal,
@@ -1387,7 +1393,6 @@ function renderAlloc(H){
     plotOptions:{pie:{donut:{size:"64%",labels:{show:true,value:{color:"#eaf2ff",fontSize:"15px",formatter:function(v){return money(Number(v));}},total:{show:true,label:"Total",color:"#9eb4d8",fontSize:"11px",formatter:function(){return money(tot);}}}}}},
     tooltip:{theme:"dark",y:{formatter:function(v){return money(v)+" ("+Math.round(v/tot*100)+"%)";}}}
   });
-  window.__allocChart.render();
 }
 function renderAlerts(H,perf){
   var el=document.getElementById("alerts");if(!el)return;var al=[];var pm={};
@@ -1460,7 +1465,7 @@ function applySession(j,viaGesture){
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
-function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}}
+function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 var INFO={
 "Portfolio":"Your live holdings, total value and profit/loss versus what you paid — priced off real market data.",
 "Sector map":"The AI & tech investment landscape grouped by sector. Tap a sector to see its stocks with live prices; the % shows each sector's average move.",
