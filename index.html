@@ -949,7 +949,8 @@ async function startSession(mode){
   try{
     var mod=await _EL(); var Conversation=mod.Conversation;
     if(mode==="voice"){ await navigator.mediaDevices.getUserMedia({audio:true}); }
-    var opts={ agentId:AGENT_ID, dynamicVariables:{ opening:(window.__opening || (lastData?makeOpening(lastData):"")) },
+    var _pin=""; try{_pin=sessionStorage.getItem("jv_pin")||"";}catch(e){} var _nm=(window.CURRENT&&CURRENT.name)?CURRENT.name:"there";
+    var opts={ agentId:AGENT_ID, dynamicVariables:{ opening:(window.__opening || (lastData?makeOpening(lastData):"")), user_name:_nm, user_pin:_pin },
       onConnect:function(){ setOrbState("listening"); },
       onDisconnect:function(){ convo=null; convoMode=null; setOrbState("idle"); },
       onError:function(m){ showAnswer("Voice link hiccup — "+((m&&m.message)?m.message:"try again.")); },
@@ -962,7 +963,6 @@ async function startSession(mode){
 }
 async function endSession(){ if(convo){ try{ await convo.endSession(); }catch(e){} } convo=null; convoMode=null; setOrbState("idle"); }
 async function orbTap(){
-  if(window.CURRENT&&CURRENT.owner===false){ if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); return; }
   if(convo||speaking){ try{ if(convo) await endSession(); }catch(e){} stopSpeak(); setOrbState("idle"); showAnswer("Stopped. Tap the orb to talk to JARVIS."); return; }
   try{ stopSpeak(); await startSession("voice"); }catch(e){} }
 async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
