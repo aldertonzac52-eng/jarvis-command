@@ -1,6 +1,6 @@
 // JARVIS service worker — network-first so the app always shows the latest version online,
 // with a cached fallback when offline.
-const CACHE = "jarvis-cache-v3";
+const CACHE = "jarvis-cache-v4";
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.add("./")).then(() => self.skipWaiting()).catch(() => self.skipWaiting()));
 });

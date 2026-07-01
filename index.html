@@ -961,7 +961,9 @@ async function startSession(mode){
   return convo;
 }
 async function endSession(){ if(convo){ try{ await convo.endSession(); }catch(e){} } convo=null; convoMode=null; setOrbState("idle"); }
-async function orbTap(){ if(window.CURRENT&&CURRENT.owner===false) return; if(convo){ await endSession(); showAnswer("Conversation ended. Tap the orb to talk again."); } else { try{ await startSession("voice"); }catch(e){} } }
+async function orbTap(){ if(window.CURRENT&&CURRENT.owner===false) return;
+  if(convo||speaking){ try{ if(convo) await endSession(); }catch(e){} stopSpeak(); setOrbState("idle"); showAnswer("Stopped. Tap the orb to talk to JARVIS."); return; }
+  try{ stopSpeak(); await startSession("voice"); }catch(e){} }
 async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
   try{ if(!convo) await startSession("text"); if(convo&&typeof convo.sendUserMessage==="function"){ convo.sendUserMessage(q); } else { throw new Error("no-send"); } }
   catch(e){ chatFallback(q); } }
@@ -995,7 +997,7 @@ function ttsFallback(text, done){
   speechSynthesis.speak(u);
 }
 /* "replay briefing" speaks the live dynamic text in Alistair */
-function playBriefing(){ if(window.CURRENT&&CURRENT.owner===false) return; if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); }
+function playBriefing(){ if(window.CURRENT&&CURRENT.owner===false) return; try{ if(convo) endSession(); }catch(e){} if(speaking){ stopSpeak(); return; } sayText(window.__briefingText||""); }
 function stopSpeak(){ setSpeaking(false); if(voiceAudio){ try{voiceAudio.pause();}catch(e){} } if(window.speechSynthesis) speechSynthesis.cancel(); }
 
 /* ---------- stock detail modal ---------- */
@@ -1335,6 +1337,6 @@ function renderGuest(d){
 var ok=false,savedPin=null;try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin');}catch(e){}
 if(ok&&savedPin) submitPin(savedPin,false);
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").then(function(reg){if(reg&&reg.update){setInterval(function(){reg.update();},60000);}}).catch(function(){});});var _swReloaded=false;navigator.serviceWorker.addEventListener("controllerchange",function(){if(_swReloaded)return;_swReloaded=true;location.reload();});}</script>
 </body>
 </html>
