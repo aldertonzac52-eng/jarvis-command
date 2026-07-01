@@ -435,7 +435,7 @@
       </div>
       <div class="answer" id="answer"></div>
     </div>
-    <div class="hint">Tap the orb to talk to JARVIS, or type above · <a id="replaybtn" onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a></div>
+    <div class="hint">Tap the orb to talk to JARVIS, or type above · <a id="replaybtn" onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a> · <a id="alertbtn" onclick="enableAlerts()" style="cursor:pointer;text-decoration:underline">enable phone alerts</a></div>
   </div>
 
   <div class="panel" style="margin-top:8px">
@@ -845,6 +845,23 @@ const LIVE_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/dashboar
 const CHAT_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-chat";
 const TTS_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-tts";
 const LOOKUP_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-lookup";
+const PUSH_SAVE_URL = "https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/push-save";
+const VAPID_PUBLIC = "BPawFemESQEeEQD9wlSVatJbsgU7sVBBLUJRFfM2lZfH62QMoubYZqK9iI1UloS2_vvU0eb0KHwLAmh3LBXZ-_g";
+function urlB64ToUint8Array(b64){ var pad="=".repeat((4-b64.length%4)%4); var base=(b64+pad).replace(/-/g,"+").replace(/_/g,"/"); var raw=atob(base); var arr=new Uint8Array(raw.length); for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i); return arr; }
+async function enableAlerts(){
+  try{
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){ showAnswer("This device doesn't support push alerts. On iPhone, add JARVIS to your Home Screen first (Share → Add to Home Screen), open it from there, then try again."); return; }
+    var perm=await Notification.requestPermission();
+    if(perm!=="granted"){ showAnswer("Alerts stay off — you can enable notifications for JARVIS in your browser settings any time."); return; }
+    var reg=await navigator.serviceWorker.ready;
+    var sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC)});
+    var pin=""; try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+    await fetch(PUSH_SAVE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pin:pin, subscription:sub})});
+    showAnswer("Phone alerts are on. I'll ping you when a holding hits its buy zone, makes a big move, or lands in the news.");
+    var b=document.getElementById("alertbtn"); if(b) b.textContent="phone alerts on ✓";
+  }catch(e){ showAnswer("Couldn't turn on alerts just now — "+String(e&&e.message?e.message:e)); }
+}
 let lastData=null, chatHistory=[];
 
 const money=(n,c="AUD")=>n==null?"—":(c==="USD"?"US$":"A$")+Number(n).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:(Math.abs(Number(n))<1&&Number(n)!==0?4:2)});
@@ -938,6 +955,9 @@ function render(d){
   document.getElementById("nwchart").innerHTML = nw.length>=2 ? netChart(nw) : "";
   const pin=document.getElementById("pinsight"); const ins=heroInsight(d);
   if(pin){ if(ins){ pin.innerHTML="<b>JARVIS ·</b> "+ins; pin.style.display="block"; } else pin.style.display="none"; }
+  const ab=document.getElementById("alertbtn");
+  if(ab){ ab.style.display=(window.CURRENT&&CURRENT.owner===false)?"none":"inline";
+    try{ if("Notification" in window && Notification.permission==="granted") ab.textContent="phone alerts on ✓"; }catch(e){} }
 
   document.getElementById("holdings").innerHTML=p.holdings.map((h,i)=>`
     <div class="hold" onclick="openStock('h',${i})">
