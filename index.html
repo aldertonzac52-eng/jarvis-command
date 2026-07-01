@@ -33,7 +33,16 @@
     background-image:linear-gradient(rgba(70,120,190,.05) 1px,transparent 1px),
       linear-gradient(90deg,rgba(70,120,190,.05) 1px,transparent 1px);
     background-size:46px 46px;mask:radial-gradient(circle at 50% 30%,#000,transparent 80%)}
+  /* market-mood ambient tint — shifts warm/cool with the day */
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(1200px 760px at 50% -6%,var(--mood-c,transparent),transparent 62%);
+    transition:background 1.4s ease}
   .shell{position:relative;z-index:1;max-width:1080px;margin:0 auto}
+  .whymove{margin:10px 0 2px;font-size:12.5px;line-height:1.5;color:var(--txt);background:rgba(54,224,255,.06);border:1px solid var(--line);border-left:2px solid var(--cyan);border-radius:10px;padding:9px 12px}
+  .whymove b{color:var(--cyan);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:3px;font-weight:700}
+  .hold,.wrow{transition:transform .12s ease,background .12s ease;border-radius:10px}
+  .hold:hover,.wrow:hover{transform:translateY(-1px);background:rgba(54,224,255,.04)}
+  #pv,#ppl{transition:opacity .2s ease}
   a{color:var(--cyan)}
 
   .top{display:flex;align-items:center;gap:10px;padding:14px 4px 8px;font-size:11px;letter-spacing:.22em;color:var(--cyan-dim);text-transform:uppercase}
@@ -853,6 +862,23 @@ function spark(series,w,h){
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${area}" fill="${col}" opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[n-1][0].toFixed(1)}" cy="${pts[n-1][1].toFixed(1)}" r="2.1" fill="${col}"/></svg>`;
 }
 
+function animNum(el,to,fmt){
+  if(to==null){ el.textContent=fmt(0); return; }
+  var from=parseFloat(el.dataset.val); if(isNaN(from)) from=to*0.965;
+  el.dataset.val=to; var t0=null,dur=760;
+  function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/dur); var e=1-Math.pow(1-k,3); el.textContent=fmt(from+(to-from)*e); if(k<1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
+function setMood(d){
+  try{
+    var arr=(d.watchlist||[]).map(function(w){return w.pct;}).filter(function(x){return typeof x==="number";});
+    var mood=arr.length?arr.reduce(function(a,b){return a+b;},0)/arr.length:0;
+    var mag=Math.max(0,Math.min(1,Math.abs(mood)/2.2));
+    var a=(0.16*mag).toFixed(3);
+    var col=mood>=0?("rgba(51,230,160,"+a+")"):("rgba(255,93,114,"+a+")");
+    document.documentElement.style.setProperty("--mood-c",mag<0.02?"transparent":col);
+  }catch(e){}
+}
 function makeOpening(d){
   try{
     var hr=new Date().getHours();
@@ -884,9 +910,10 @@ function render(d){
   document.getElementById("hello").textContent=(hr<12?"GOOD MORNING":hr<18?"GOOD AFTERNOON":"GOOD EVENING")+", "+((window.CURRENT&&CURRENT.name?CURRENT.name:"Zac").toUpperCase());
 
   const p=d.portfolio;
-  document.getElementById("pv").textContent=money(p.total_value_aud);
+  setMood(d);
+  animNum(document.getElementById("pv"),p.total_value_aud,function(v){return money(v);});
   const ppl=document.getElementById("ppl");
-  ppl.textContent=(p.total_pl_aud>=0?"+":"")+money(p.total_pl_aud)+"  ("+pct(p.total_pl_pct)+")";
+  animNum(ppl,p.total_pl_aud,function(v){return (v>=0?"+":"")+money(v)+"  ("+pct(p.total_pl_pct)+")";});
   ppl.className="pl "+cls(p.total_pl_aud);
   document.getElementById("psub").textContent="Cost basis "+money(p.total_cost_aud)+" · AUD/USD "+d.fx.audusd;
   const nw=p.networth||[];
@@ -1021,6 +1048,8 @@ function openStock(scope,i){
   else { html+=`<div>Day<b class="${cls(it.pct)}">${pct(it.pct)}</b></div>`; }
   if(it.buy_below!=null) html+=`<div>Buy level<b>${money(it.buy_below,ccy)}</b></div>`;
   html+=`</div>`;
+  const _mv=(scope==='w'&&typeof it.pct==='number')?(it.pct>=0?`Up ${pct(it.pct)} today. `:`Down ${pct(it.pct)} today. `):'';
+  if((it.news&&it.news.length)||_mv){ const _wh=_mv+((it.news&&it.news.length)?it.news[0].t:'No fresh headline — likely broader market or sector flow.'); html+=`<div class="whymove"><b>Why it's moving</b>${_wh}</div>`; }
   if(it.blurb) html+=`<div class="blurb">${it.blurb}</div>`;
   html+=`<div class="news-lbl">Latest news</div><div class="news">`;
   if(it.news&&it.news.length) html+=it.news.map(a=>`<a href="${a.u}" target="_blank" rel="noopener">${a.t}<span class="src">${a.s} ↗</span></a>`).join("");
