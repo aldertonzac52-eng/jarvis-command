@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.1/dist/apexcharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.454.0/dist/umd/lucide.min.js"></script>
 <title>JARVIS · Command</title>
 <style>
   :root{
@@ -431,7 +433,7 @@
       <div class="askbar">
         <input id="askin" placeholder="Talk or type to JARVIS…" autocomplete="off"
           onkeydown="if(event.key==='Enter')sendText()" />
-        <button class="iconbtn" onclick="sendText()" title="Send" aria-label="Send">&#8594;</button>
+        <button class="iconbtn" onclick="sendText()" title="Send" aria-label="Send"><i data-lucide="arrow-up" style="width:17px;height:17px"></i></button>
       </div>
       <div class="answer" id="answer"></div>
     </div>
@@ -999,6 +1001,7 @@ function render(d){
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
   try{ loadSparks(); }catch(e){}
+  try{ if(window.lucide) lucide.createIcons(); }catch(e){}
   try{ window.__opening = makeOpening(d); }catch(e){}
 }
 
@@ -1127,6 +1130,24 @@ function loadSparks(){
     buildNetWorth(d,map);
   }).catch(function(){});
 }
+function renderNwChart(series){
+  var el=document.getElementById("nwchart"); if(!el) return;
+  if(!series||series.length<2){ el.innerHTML=""; return; }
+  var up=series[series.length-1]>=series[0], col=up?"#33e6a0":"#ff5d72";
+  var chg=series[series.length-1]-series[0], pc=series[0]?chg/series[0]*100:0;
+  if(typeof ApexCharts==="undefined"){ el.innerHTML=netChart(series); return; }
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px"><span>Net worth · last '+series.length+' days</span><span style="color:'+col+';font-weight:700">'+(chg>=0?"+":"")+money(Math.round(chg))+" ("+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span></div><div id="nwapex"></div>';
+  if(window.__nwChart){ try{window.__nwChart.destroy();}catch(e){} }
+  window.__nwChart=new ApexCharts(document.getElementById("nwapex"),{
+    chart:{type:"area",height:104,sparkline:{enabled:true},animations:{enabled:true,easing:"easeinout",speed:750},fontFamily:"Inter,sans-serif"},
+    series:[{name:"Net worth",data:series.map(function(v){return Math.round(v);})}],
+    stroke:{curve:"smooth",width:2.2},colors:[col],
+    fill:{type:"gradient",gradient:{shadeIntensity:1,opacityFrom:.34,opacityTo:0,stops:[0,100]}},
+    tooltip:{theme:"dark",x:{show:false},y:{formatter:function(v){return money(v);}},marker:{show:false}},
+    grid:{padding:{left:0,right:0,top:2,bottom:0}}
+  });
+  window.__nwChart.render();
+}
 function buildNetWorth(d,map){
   try{
     var fx=(d.fx&&d.fx.audusd)||0.6899;
@@ -1143,7 +1164,7 @@ function buildNetWorth(d,map){
     var tv=d.portfolio.total_value_aud, last=nw[nw.length-1];
     if(tv&&last){ var sc=tv/last; nw=nw.map(function(v){return Math.round(v*sc);}); } else { nw=nw.map(function(v){return Math.round(v);}); }
     d.portfolio.networth=nw;
-    var el=document.getElementById("nwchart"); if(el) el.innerHTML=netChart(nw);
+    renderNwChart(nw);
   }catch(e){}
 }
 function loadHeadlines(){
