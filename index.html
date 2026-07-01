@@ -43,6 +43,8 @@
   .hold,.wrow{transition:transform .12s ease,background .12s ease;border-radius:10px}
   .hold:hover,.wrow:hover{transform:translateY(-1px);background:rgba(54,224,255,.04)}
   #pv,#ppl{transition:opacity .2s ease}
+  .pinsight{margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--txt);background:rgba(54,224,255,.06);border:1px solid var(--line);border-left:2px solid var(--cyan);border-radius:10px;padding:8px 12px}
+  .pinsight b{color:var(--cyan);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
   a{color:var(--cyan)}
 
   .top{display:flex;align-items:center;gap:10px;padding:14px 4px 8px;font-size:11px;letter-spacing:.22em;color:var(--cyan-dim);text-transform:uppercase}
@@ -440,6 +442,7 @@
       <div class="ph">Portfolio <span class="r" id="pstamp"></span></div>
       <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
       <div class="psub" id="psub"></div>
+      <div class="pinsight" id="pinsight" style="display:none"></div>
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
@@ -879,6 +882,21 @@ function setMood(d){
     document.documentElement.style.setProperty("--mood-c",mag<0.02?"transparent":col);
   }catch(e){}
 }
+function heroInsight(d){
+  try{
+    var p=d.portfolio||{}, hold=p.holdings||[], wl=d.watchlist||[];
+    var bz=hold.filter(function(h){return h.buy_below!=null&&h.price!=null&&h.price<=h.buy_below;});
+    if(bz.length) return bz[0].ticker+" is in your buy zone at "+money(bz[0].price,bz[0].ccy)+" (target ≤ "+money(bz[0].buy_below,bz[0].ccy)+"). Worth a look.";
+    var wbz=wl.filter(function(w){return w.buy_below!=null&&w.price!=null&&w.price<=w.buy_below;});
+    if(wbz.length) return wbz[0].ticker+" hit your buy level — "+money(wbz[0].price)+" vs ≤ "+money(wbz[0].buy_below)+".";
+    var mv=wl.filter(function(w){return typeof w.pct==="number";}).sort(function(a,b){return Math.abs(b.pct)-Math.abs(a.pct);})[0];
+    var nn=null; hold.forEach(function(h){if(!nn&&h.news&&h.news.length)nn={t:h.ticker,h:h.news[0].t};});
+    if(mv&&Math.abs(mv.pct)>=3) return mv.ticker+" is the biggest move on your board today, "+(mv.pct>=0?"up":"down")+" "+Math.abs(mv.pct)+"%"+(nn?". Also, "+nn.t+" is back in the news.":".");
+    if(nn) return nn.t+" — "+nn.h+". Tap "+nn.t+" for the detail.";
+    if(mv) return mv.ticker+" leads your board today at "+(mv.pct>=0?"+":"")+mv.pct+"%.";
+    return "";
+  }catch(e){ return ""; }
+}
 function makeOpening(d){
   try{
     var hr=new Date().getHours();
@@ -918,6 +936,8 @@ function render(d){
   document.getElementById("psub").textContent="Cost basis "+money(p.total_cost_aud)+" · AUD/USD "+d.fx.audusd;
   const nw=p.networth||[];
   document.getElementById("nwchart").innerHTML = nw.length>=2 ? netChart(nw) : "";
+  const pin=document.getElementById("pinsight"); const ins=heroInsight(d);
+  if(pin){ if(ins){ pin.innerHTML="<b>JARVIS ·</b> "+ins; pin.style.display="block"; } else pin.style.display="none"; }
 
   document.getElementById("holdings").innerHTML=p.holdings.map((h,i)=>`
     <div class="hold" onclick="openStock('h',${i})">
@@ -1084,7 +1104,27 @@ function loadSparks(){
     (d.watchlist||[]).forEach(function(w){ if(map[w.ticker]) w.series=map[w.ticker]; });
     document.querySelectorAll('#holdings .hold').forEach(function(el,i){ var h=(d.portfolio.holdings||[])[i]; if(h&&map[h.ticker]){ var s=el.querySelector('.spark'); if(s) s.outerHTML=spark(h.series,116,34); } });
     document.querySelectorAll('#watch .wrow').forEach(function(el,i){ var w=(d.watchlist||[])[i]; if(w&&map[w.ticker]){ var s=el.querySelector('.spark'); if(s) s.outerHTML=spark(w.series,90,26); } });
+    buildNetWorth(d,map);
   }).catch(function(){});
+}
+function buildNetWorth(d,map){
+  try{
+    var fx=(d.fx&&d.fx.audusd)||0.6899;
+    var hh=(d.portfolio.holdings||[]).filter(function(h){return map[h.ticker]&&map[h.ticker].length>=3;});
+    if(hh.length<1) return;
+    var L=Math.min(30,Math.min.apply(null,hh.map(function(h){return map[h.ticker].length;})));
+    var nw=[];
+    for(var j=0;j<L;j++){
+      var tot=0;
+      hh.forEach(function(h){ var a=map[h.ticker]; var cl=a[a.length-L+j]; tot+=(h.ccy==="USD")?(h.units*cl/fx):(h.units*cl); });
+      nw.push(tot);
+    }
+    if(nw.length<2) return;
+    var tv=d.portfolio.total_value_aud, last=nw[nw.length-1];
+    if(tv&&last){ var sc=tv/last; nw=nw.map(function(v){return Math.round(v*sc);}); } else { nw=nw.map(function(v){return Math.round(v);}); }
+    d.portfolio.networth=nw;
+    var el=document.getElementById("nwchart"); if(el) el.innerHTML=netChart(nw);
+  }catch(e){}
 }
 function loadHeadlines(){
   fetch(LOOKUP_URL+"?q="+encodeURIComponent("Australian share market ASX stocks today")).then(r=>r.json()).then(j=>{
