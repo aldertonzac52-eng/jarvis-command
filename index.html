@@ -1295,10 +1295,30 @@ var STRAT_DESC={
 function toggleStrat(el){var d=el.nextElementSibling;if(d&&d.classList.contains("labdesc"))d.classList.toggle("open");}
 var SLBL={plays:"Plays",golden:"Golden",momentum:"Momentum",tsmom:"TS-mom",donchian:"Donchian",rsi2:"RSI-2",bounce:"Bounce"};
 function labDesc(key,brain){if(key==='super'&&brain&&brain.weights){var w=brain.weights;var bar=Object.keys(w).sort(function(a,b){return w[b]-w[a];}).map(function(k){return '<span style="font-size:10px;border:1px solid var(--line);border-radius:7px;padding:1px 6px;margin:0 5px 4px 0;display:inline-block;color:var(--txt)">'+(SLBL[k]||k)+' <b style="color:var(--cyan)">'+w[k]+'%</b></span>';}).join('');return '<b>Live allocation — auto-adjusts every day:</b><div style="margin:5px 0 7px">'+bar+'</div>'+(brain.insight||STRAT_DESC.super);}return STRAT_DESC[key]||"";}
+function renderEquityChart(cid,strats,bench){
+  if(typeof ApexCharts==="undefined")return; var host=document.getElementById(cid); if(!host)return;
+  var pal=["#36e0ff","#33e6a0","#ffc24b","#ff5d72","#8b7dff","#4db8ff","#c589ff","#ff9a2e"];
+  var series=(strats||[]).filter(function(s){return s.curve&&s.curve.length>1;}).map(function(s){return {name:s.name,data:s.curve.map(function(v){return Math.round(v);})};});
+  if(bench&&bench.curve&&bench.curve.length>1) series.push({name:"Buy & hold",data:bench.curve.map(function(v){return Math.round(v);})});
+  if(series.length<1)return;
+  var colors=series.map(function(s,i){return s.name==="Buy & hold"?"#8aa0c6":pal[i%pal.length];});
+  if(window["__eq_"+cid]){try{window["__eq_"+cid].destroy();}catch(e){}}
+  window["__eq_"+cid]=new ApexCharts(host,{
+    chart:{type:"line",height:214,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:600},zoom:{enabled:false}},
+    series:series, colors:colors,
+    stroke:{curve:"smooth",width:2,dashArray:series.map(function(s){return s.name==="Buy & hold"?4:0;})},
+    xaxis:{labels:{show:false},axisBorder:{show:false},axisTicks:{show:false},tooltip:{enabled:false}},
+    yaxis:{labels:{style:{colors:"#9eb4d8"},formatter:function(v){return "$"+(v/1000).toFixed(0)+"k";}}},
+    legend:{labels:{colors:"#9eb4d8"},position:"top",fontSize:"10.5px",markers:{width:8,height:8},itemMargin:{horizontal:5,vertical:1}},
+    grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
+    tooltip:{theme:"dark",shared:true,intersect:false,x:{show:false},y:{formatter:function(v){return "$"+v.toLocaleString();}}}
+  });
+  window["__eq_"+cid].render();
+}
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
-function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");}).catch(function(){});}
+function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
 const LAB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/strategy-lab";
-function loadLab(){fetch(LAB_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("lab");if(!el)return;var st=j.strategies||[];if(!st.length){el.innerHTML='<div class="empty">No backtest yet.</div>';return;}var b=j.benchmark||{};el.innerHTML='<div class="trkstat"><div class="ts"><div class="tsl">Start</div><div class="tsv">$10k</div></div><div class="ts"><div class="tsl">Buy &amp; hold</div><div class="tsv">$'+((b.final||0)).toLocaleString()+'</div></div><div class="ts"><div class="tsl">Period</div><div class="tsv">'+(j.periodYears||2)+'y</div></div></div>'+st.map(function(s,i){var cl=(s.retPct||0)>=0?"up":"down";var beat=b.final&&s.final>b.final;return '<div class="labrow" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span>'+(beat?' <span class="oppflag">beat B&amp;H</span>':'')+'</div><div class="labsub">'+s.trades+' trades · '+(s.winPct==null?"—":s.winPct+"% win")+' · in mkt '+s.exposure+'% · max drop -'+s.maxDD+'%</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((s.final||0)).toLocaleString()+'</div><div class="labp '+cl+'">'+((s.retPct||0)>=0?"+":"")+s.retPct+'%</div></div></div><div class="labdesc">'+(STRAT_DESC[s.key]||"")+'</div>';}).join("")+'<div class="playsdis">Backtest on 2y adjusted history · frictionless · prone to overfitting — a shortlist, not a prediction. Not advice.</div>';}).catch(function(){});}
+function loadLab(){fetch(LAB_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("lab");if(!el)return;var st=j.strategies||[];if(!st.length){el.innerHTML='<div class="empty">No backtest yet.</div>';return;}var b=j.benchmark||{};el.innerHTML='<div id="labchart" style="margin:2px 0 12px"></div><div class="trkstat"><div class="ts"><div class="tsl">Start</div><div class="tsv">$10k</div></div><div class="ts"><div class="tsl">Buy &amp; hold</div><div class="tsv">$'+((b.final||0)).toLocaleString()+'</div></div><div class="ts"><div class="tsl">Period</div><div class="tsv">'+(j.periodYears||2)+'y</div></div></div>'+st.map(function(s,i){var cl=(s.retPct||0)>=0?"up":"down";var beat=b.final&&s.final>b.final;return '<div class="labrow" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span>'+(beat?' <span class="oppflag">beat B&amp;H</span>':'')+'</div><div class="labsub">'+s.trades+' trades · '+(s.winPct==null?"—":s.winPct+"% win")+' · in mkt '+s.exposure+'% · max drop -'+s.maxDD+'%</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((s.final||0)).toLocaleString()+'</div><div class="labp '+cl+'">'+((s.retPct||0)>=0?"+":"")+s.retPct+'%</div></div></div><div class="labdesc">'+(STRAT_DESC[s.key]||"")+'</div>';}).join("")+'<div class="playsdis">Backtest on 2y adjusted history · frictionless · prone to overfitting — a shortlist, not a prediction. Not advice.</div>';renderEquityChart('labchart',st,b);}).catch(function(){});}
 const PERF_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/portfolio-perf";
 function fmtSign(n,d){if(n==null||isNaN(n))return "—";return (n>=0?"+":"")+Number(n).toFixed(d==null?1:d)+"%";}
 function loadPortfolioExtras(p){
@@ -1312,10 +1332,29 @@ function loadPortfolioExtras(p){
 }
 function renderPerf(j,H){
   var el=document.getElementById("perf");if(!el)return;var pr=j.periods||{};
-  function cellrow(label,o){if(!o)return "";var you=o.portfolio,a=o.asx200,s=o.spx;
-    return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(you>=0?"up":"down")+'">'+fmtSign(you)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
   var top=null;H.forEach(function(h){if(top==null||Math.abs(h.pl_aud)>Math.abs(top.pl_aud))top=h;});
-  el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+(top?'<div class="perfnote">Biggest P&amp;L position: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"-")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' all-time.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
+  var note=(top?'<div class="perfnote">Biggest P&amp;L position: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"-")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' all-time.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
+  var cats=[],you=[],asx=[],spx=[];
+  [["1 wk","1w"],["1 mo","1m"],["YTD","ytd"]].forEach(function(p){var o=pr[p[1]];if(o){cats.push(p[0]);you.push(Math.round((o.portfolio||0)*100)/100);asx.push(Math.round((o.asx200||0)*100)/100);spx.push(Math.round((o.spx||0)*100)/100);}});
+  if(typeof ApexCharts==="undefined"||!cats.length){
+    function cellrow(label,o){if(!o)return "";var y=o.portfolio,a=o.asx200,s=o.spx;return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(y>=0?"up":"down")+'">'+fmtSign(y)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
+    el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+note;return;
+  }
+  el.innerHTML='<div id="perfapex"></div>'+note;
+  if(window.__perfChart){try{window.__perfChart.destroy();}catch(e){}}
+  window.__perfChart=new ApexCharts(document.getElementById("perfapex"),{
+    chart:{type:"bar",height:200,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:600}},
+    series:[{name:"You",data:you},{name:"ASX200",data:asx},{name:"S&P500",data:spx}],
+    xaxis:{categories:cats,labels:{style:{colors:["#9eb4d8","#9eb4d8","#9eb4d8"]}},axisBorder:{show:false},axisTicks:{show:false}},
+    yaxis:{labels:{style:{colors:"#9eb4d8"},formatter:function(v){return v.toFixed(0)+"%";}}},
+    colors:["#36e0ff","#8aa0c6","#ffc24b"],
+    plotOptions:{bar:{columnWidth:"64%",borderRadius:3}},
+    dataLabels:{enabled:false},
+    legend:{labels:{colors:"#9eb4d8"},position:"top",horizontalAlign:"right",fontSize:"11px",markers:{width:8,height:8}},
+    grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
+    tooltip:{theme:"dark",y:{formatter:function(v){return (v>=0?"+":"")+v.toFixed(2)+"%";}}}
+  });
+  window.__perfChart.render();
 }
 function renderAlloc(H){
   var el=document.getElementById("alloc");if(!el)return;if(!H.length){el.innerHTML='<div class="empty">No holdings.</div>';return;}
@@ -1329,7 +1368,23 @@ function renderAlloc(H){
   var flags="";
   if(topPct>=45)flags+='<div class="allflag">&#9888; '+sorted[0].ticker+' is '+topPct.toFixed(0)+'% of the book — concentrated.</div>';
   if(usd/tot>=0.6)flags+='<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>';
-  el.innerHTML=bars+'<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+flags;
+  var chips='<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>';
+  if(typeof ApexCharts==="undefined"){ el.innerHTML=bars+chips+flags; return; }
+  el.innerHTML='<div id="allocapex"></div>'+chips+flags;
+  if(window.__allocChart){try{window.__allocChart.destroy();}catch(e){}}
+  var pal=["#36e0ff","#33e6a0","#ffc24b","#ff5d72","#8b7dff","#4db8ff","#7CFFB2","#ff9a2e","#c589ff","#5ad1c9"];
+  window.__allocChart=new ApexCharts(document.getElementById("allocapex"),{
+    chart:{type:"donut",height:236,fontFamily:"Inter,sans-serif",animations:{speed:600}},
+    series:sorted.map(function(h){return Math.round(h.value_aud||0);}),
+    labels:sorted.map(function(h){return h.ticker;}),
+    colors:pal,
+    stroke:{width:1,colors:["#04070f"]},
+    legend:{position:"bottom",labels:{colors:"#9eb4d8"},fontSize:"11px",itemMargin:{horizontal:6,vertical:2}},
+    dataLabels:{enabled:true,formatter:function(v){return v>=8?Math.round(v)+"%":"";},style:{fontSize:"10px",fontWeight:600},dropShadow:{enabled:false}},
+    plotOptions:{pie:{donut:{size:"64%",labels:{show:true,value:{color:"#eaf2ff",fontSize:"15px",formatter:function(v){return money(Number(v));}},total:{show:true,label:"Total",color:"#9eb4d8",fontSize:"11px",formatter:function(){return money(tot);}}}}}},
+    tooltip:{theme:"dark",y:{formatter:function(v){return money(v)+" ("+Math.round(v/tot*100)+"%)";}}}
+  });
+  window.__allocChart.render();
 }
 function renderAlerts(H,perf){
   var el=document.getElementById("alerts");if(!el)return;var al=[];var pm={};
