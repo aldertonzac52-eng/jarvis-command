@@ -45,6 +45,9 @@
   .hold,.wrow{transition:transform .12s ease,background .12s ease;border-radius:10px}
   .hold:hover,.wrow:hover{transform:translateY(-1px);background:rgba(54,224,255,.04)}
   #pv,#ppl{transition:opacity .2s ease}
+  .ph svg{width:14px;height:14px;vertical-align:-2px;margin-right:7px;color:var(--cyan-dim);stroke-width:2.2}
+  .tb svg{width:13px;height:13px;vertical-align:-2px;margin-right:6px;stroke-width:2.2}
+  .tb.on svg{color:#04121a}
   .pinsight{margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--txt);background:rgba(54,224,255,.06);border:1px solid var(--line);border-left:2px solid var(--cyan);border-radius:10px;padding:8px 12px}
   .pinsight b{color:var(--cyan);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
   a{color:var(--cyan)}
@@ -441,7 +444,7 @@
   </div>
 
   <div class="panel" style="margin-top:8px">
-      <div class="ph">Portfolio <span class="r" id="pstamp"></span></div>
+      <div class="ph"><i data-lucide="wallet"></i>Portfolio <span class="r" id="pstamp"></span></div>
       <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
       <div class="psub" id="psub"></div>
       <div class="pinsight" id="pinsight" style="display:none"></div>
@@ -449,58 +452,58 @@
       <div id="holdings"></div>
     </div>
   <div class="tabbar">
-    <button class="tb on" id="tb-stocks" onclick="setTab('stocks')">Stocks</button>
-    <button class="tb" id="tb-plays" onclick="setTab('plays')">Possible Plays</button>
-    <button class="tb" id="tb-crypto" onclick="setTab('crypto')">Crypto</button>
-    <button class="tb" id="tb-property" onclick="setTab('property')">Property</button>
-    <button class="tb" id="tb-lab" onclick="setTab('lab')">Strategy Lab</button>
+    <button class="tb on" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
+    <button class="tb" id="tb-plays" onclick="setTab('plays')"><i data-lucide="target"></i>Possible Plays</button>
+    <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
+    <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
+    <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
   </div>
   <div class="masonry">
-    <div class="panel owneronly"><div class="ph">Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
-    <div class="panel owneronly"><div class="ph">Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph">Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph">Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph">In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-plays"><div class="ph">Possible Plays <span class="r">screen · not advice</span></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screen · not advice</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
       <div class="playsdis">Informational only — not financial advice. Tap a name for why it flagged.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-plays"><div class="ph">Track record <span class="r">self-learning</span></div><div id="track"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Sector map <span class="r">tap a sector · live</span></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="activity"></i>Track record <span class="r">self-learning</span></div><div id="track"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="map"></i>Sector map <span class="r">tap a sector · live</span></div>
       <div class="sectrend" id="sectrend"></div>
       <div class="secmap" id="secmap"></div>
       <div class="secdetail" id="secdetail"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Social buzz <span class="r">Reddit · sentiment</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
-    <div class="panel"><div class="ph">Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Unusual volume <span class="r">big money · live</span></div><div id="whale"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Congress trades <span class="r">STOCK Act · filings</span></div><div id="poltrades"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Whale watch <span class="r">volume · turnover</span></div><div id="cwhale"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">DeFi TVL <span class="r">live</span></div><div id="defi"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto heatmap <span class="r">24h · sized by mkt cap</span></div><div id="heat"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto buzz <span class="r">Reddit · trending</span></div><div id="cbuzz"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto market <span class="r">live</span></div><div id="cglobal"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Fear &amp; Greed <span class="r">sentiment</span></div><div id="fng"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto movers <span class="r">24h</span></div><div class="movers" id="cmovers"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Trending coins <span class="r">most searched</span></div><div id="ctrend"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-crypto"><div class="ph">Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property"><div class="ph">RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property"><div class="ph">Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
-    <div class="panel sec-property"><div class="ph">Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
-    <div class="panel sec-property"><div class="ph">VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph">Markets</div><div class="mkt" id="mkt"></div></div>
-    <div class="panel owneronly"><div class="ph">Today</div>
+    <div class="panel"><div class="ph"><i data-lucide="message-circle"></i>Social buzz <span class="r">Reddit · sentiment</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="arrow-up-down"></i>US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="arrow-up-down"></i>Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="zap"></i>Unusual volume <span class="r">big money · live</span></div><div id="whale"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="landmark"></i>Congress trades <span class="r">STOCK Act · filings</span></div><div id="poltrades"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="radio"></i>Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="waves"></i>Whale watch <span class="r">volume · turnover</span></div><div id="cwhale"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="layers"></i>DeFi TVL <span class="r">live</span></div><div id="defi"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="grid-3x3"></i>Crypto heatmap <span class="r">24h · sized by mkt cap</span></div><div id="heat"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="message-circle"></i>Crypto buzz <span class="r">Reddit · trending</span></div><div id="cbuzz"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="bitcoin"></i>Crypto market <span class="r">live</span></div><div id="cglobal"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="gauge"></i>Fear &amp; Greed <span class="r">sentiment</span></div><div id="fng"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="arrow-up-down"></i>Crypto movers <span class="r">24h</span></div><div class="movers" id="cmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="flame"></i>Trending coins <span class="r">most searched</span></div><div id="ctrend"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="coins"></i>Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-crypto"><div class="ph"><i data-lucide="gem"></i>Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property"><div class="ph"><i data-lucide="percent"></i>RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property"><div class="ph"><i data-lucide="home"></i>Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
+    <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
+    <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Today</div>
       <div class="fchip" id="fchip" style="display:none"></div>
       <div class="sec-lbl">Calendar</div><div id="cal"></div>
       <div class="sec-lbl">Nest tasks</div><div id="tasks"></div>
       <div class="sec-lbl">Inbox — watch</div><div id="inbox"></div></div>
-    <div class="panel owneronly"><div class="ph">Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
-    <div class="panel"><div class="ph">Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
-    <div class="panel sec-lab"><div class="ph">Live $10k sims <span class="r">forward · paper money</span></div><div id="sim"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-lab"><div class="ph">Strategy backtest <span class="r">2-year history</span></div><div id="lab"><div class="empty">Loading…</div></div></div>
+    <div class="panel owneronly"><div class="ph"><i data-lucide="volume-2"></i>Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="newspaper"></i>Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
+    <div class="panel sec-lab"><div class="ph"><i data-lucide="flask-conical"></i>Live $10k sims <span class="r">forward · paper money</span></div><div id="sim"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-lab"><div class="ph"><i data-lucide="history"></i>Strategy backtest <span class="r">2-year history</span></div><div id="lab"><div class="empty">Loading…</div></div></div>
   </div>
   <footer id="foot"></footer>
 </div>
