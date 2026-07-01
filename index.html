@@ -958,6 +958,7 @@ function render(d){
   window.__briefingText=d.briefing.text;
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
+  try{ loadSparks(); }catch(e){}
   try{ window.__opening = makeOpening(d); }catch(e){}
 }
 
@@ -1071,6 +1072,19 @@ function netChart(s){
   const up=s[s.length-1]>=s[0],col=up?"var(--green)":"var(--red)",chg=s[s.length-1]-s[0],pc=chg/s[0]*100;
   return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px"><span>Net worth · last '+s.length+' days</span><span class="'+(up?'up':'down')+'">'+(chg>=0?'+':'')+money(Math.round(chg))+' ('+(pc>=0?'+':'')+pc.toFixed(1)+'%)</span></div>'+
   '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:80px;display:block"><path d="'+area+'" fill="'+col+'" opacity=".12"/><path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/><circle cx="'+pts[pts.length-1][0].toFixed(1)+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="2.6" fill="'+col+'"/></svg>';
+}
+function loadSparks(){
+  var d=lastData; if(!d||!d.portfolio) return;
+  var syms=[]; (d.portfolio.holdings||[]).forEach(function(h){syms.push(h.ticker);}); (d.watchlist||[]).forEach(function(w){syms.push(w.ticker);});
+  syms=syms.filter(function(v,i,a){return a.indexOf(v)===i;});
+  if(!syms.length) return;
+  fetch(LOOKUP_URL+"?sparks="+encodeURIComponent(syms.join(","))).then(function(r){return r.json();}).then(function(j){
+    var map={}; (j.rows||[]).forEach(function(x){ if(x.spark&&x.spark.length>=3) map[x.sym]=x.spark; });
+    (d.portfolio.holdings||[]).forEach(function(h){ if(map[h.ticker]) h.series=map[h.ticker]; });
+    (d.watchlist||[]).forEach(function(w){ if(map[w.ticker]) w.series=map[w.ticker]; });
+    document.querySelectorAll('#holdings .hold').forEach(function(el,i){ var h=(d.portfolio.holdings||[])[i]; if(h&&map[h.ticker]){ var s=el.querySelector('.spark'); if(s) s.outerHTML=spark(h.series,116,34); } });
+    document.querySelectorAll('#watch .wrow').forEach(function(el,i){ var w=(d.watchlist||[])[i]; if(w&&map[w.ticker]){ var s=el.querySelector('.spark'); if(s) s.outerHTML=spark(w.series,90,26); } });
+  }).catch(function(){});
 }
 function loadHeadlines(){
   fetch(LOOKUP_URL+"?q="+encodeURIComponent("Australian share market ASX stocks today")).then(r=>r.json()).then(j=>{
