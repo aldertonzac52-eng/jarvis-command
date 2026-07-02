@@ -129,7 +129,8 @@
   .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
   .tb:hover{border-color:var(--cyan-dim);color:var(--txt)}
   .tb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
-  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab,body[data-tab="stocks"] .sec-premkt{display:none}
+  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab,body[data-tab="stocks"] .sec-premkt,body[data-tab="stocks"] .sec-port{display:none}
+  body[data-tab="port"] .masonry>.panel:not(.sec-port){display:none}
   body[data-tab="premkt"] .masonry>.panel:not(.sec-premkt){display:none}
   body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
@@ -521,16 +522,9 @@
     <div class="hint">Tap the orb to talk to JARVIS, or type above · <a id="replaybtn" onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a> · <a id="alertbtn" onclick="enableAlerts()" style="cursor:pointer;text-decoration:underline">enable phone alerts</a></div>
   </div>
 
-  <div class="panel" style="margin-top:8px">
-      <div class="ph"><i data-lucide="wallet"></i>Portfolio <span class="r" id="pstamp"></span></div>
-      <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
-      <div class="psub" id="psub"></div>
-      <div class="pinsight" id="pinsight" style="display:none"></div>
-      <div id="nwchart" style="margin:12px 0 6px"></div>
-      <div id="holdings"></div>
-    </div>
   <div class="tabbar">
-    <button class="tb on" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
+    <button class="tb on" id="tb-port" onclick="setTab('port')"><i data-lucide="wallet"></i>Portfolio</button>
+    <button class="tb" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
     <button class="tb" id="tb-premkt" onclick="setTab('premkt')"><i data-lucide="sunrise"></i>Pre-Market</button>
     <button class="tb" id="tb-plays" onclick="setTab('plays')"><i data-lucide="target"></i>Possible Plays</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
@@ -538,13 +532,21 @@
     <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
   </div>
   <div class="masonry">
+    <div class="panel sec-port pm-wide">
+      <div class="ph"><i data-lucide="wallet"></i>Portfolio <span class="r" id="pstamp"></span></div>
+      <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
+      <div class="psub" id="psub"></div>
+      <div class="pinsight" id="pinsight" style="display:none"></div>
+      <div id="nwchart" style="margin:12px 0 6px"></div>
+      <div id="holdings"></div>
+    </div>
     <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · two brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
-    <div class="panel"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
-    <div class="panel"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
+    <div class="panel sec-port"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-port"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-port"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screen · not advice</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
@@ -576,12 +578,12 @@
     <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Today</div>
+    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Today</div>
       <div class="fchip" id="fchip" style="display:none"></div>
       <div class="sec-lbl">Calendar</div><div id="cal"></div>
       <div class="sec-lbl">Nest tasks</div><div id="tasks"></div>
       <div class="sec-lbl">Inbox — watch</div><div id="inbox"></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="volume-2"></i>Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
+    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="volume-2"></i>Spoken briefing <span class="r" id="vlabel"></span></div><div class="briefing" id="briefing"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="newspaper"></i>Market headlines <span class="r">live</span></div><div class="hl" id="headlines"><div class="empty">Loading headlines…</div></div></div>
     <div class="panel sec-lab"><div class="ph"><i data-lucide="flask-conical"></i>Live $10k sims <span class="r">forward · paper money</span></div><div id="sim"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-lab"><div class="ph"><i data-lucide="history"></i>Strategy backtest <span class="r">2-year history</span></div><div id="lab"><div class="empty">Loading…</div></div></div>
@@ -1613,7 +1615,7 @@ function submitPin(pin,viaGesture){
 function applySession(j,viaGesture){
   CURRENT={name:j.name,owner:j.owner}; window.CURRENT=CURRENT;
   document.body.classList.toggle('guest',!CURRENT.owner);
-  var savedTab='stocks'; try{savedTab=sessionStorage.getItem('jv_tab')||'stocks';}catch(e){}
+  var savedTab='port'; try{savedTab=sessionStorage.getItem('jv_tab')||'port';}catch(e){}
   setTab(savedTab);
   if(!CURRENT.owner){ var _ht=document.querySelector('.hint'); if(_ht)_ht.innerHTML='Tap the orb to talk to JARVIS · <a onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a>'; }
   document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
@@ -1621,7 +1623,7 @@ function applySession(j,viaGesture){
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
-function setTab(t){if(['stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='stocks';document.body.setAttribute('data-tab',t);['stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){if(['port','stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
   f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit)loadPremarket();}catch(e){}});}
