@@ -540,7 +540,7 @@
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
-    <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · two brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · three brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
@@ -1461,7 +1461,7 @@ function loadPremarket(){
   fetch(PM_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})})
     .then(function(r){if(!r.ok)throw r.status;return r.json();})
     .then(function(j){
-      var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · two brains · "+ago(j.updated_at||j.generated_at);
+      var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · three brains · "+ago(j.updated_at||j.generated_at);
       rep.innerHTML=mdToHtml(j.report_md||"");
       if(br){
         var ag=j.agreement||{};
@@ -1678,8 +1678,8 @@ var INFO={
 "Market headlines":"Latest market news.",
 "VIC property watch":"Victorian property market news.",
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
-"Pre-Market Analysis":"A daily report built before the US open by a data scanner plus two independent AI analysts who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = both agree and clean, yellow = agree with caveats, red = they conflict (stand down). Not advice.",
-"Loop memory":"The analyst's brain. It logs every run, tracks where the two brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
+"Pre-Market Analysis":"A daily report built before the US open by a data scanner plus three independent AI analysts (Claude, Gemini, Llama) from three different companies who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = all three agree and clean, yellow = two of three, red = they split (stand down). Not advice.",
+"Loop memory":"The analyst's brain. It logs every run, tracks where the three brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
 "Panel scorecard":"The panel grading itself on real outcomes. Every pick's forward return is tracked, then bucketed: does full 3/3 consensus actually beat a 2/3 majority or a split? And which of the three brains — Claude, Gemini, Llama — is right most often. Fills in as sessions close. Paper only, not advice.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
