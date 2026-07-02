@@ -122,8 +122,9 @@
   .pl-sig{font-size:10.5px;color:var(--muted);line-height:1.55;max-height:0;overflow:hidden;transition:max-height .22s ease}
   .pl-sig.open{max-height:640px;padding:3px 1px 9px}
   .pl-sig b{color:var(--cyan-dim);font-weight:700}
-  /* guest (shared-link) view hides owner-only panels + chat */
-  body.guest .owneronly,body.guest .askwrap,body.guest elevenlabs-convai{display:none!important}
+  /* guests get everything EXCEPT the owner's private data (Zac's calendar/email/nest tasks,
+     his personal watchlist + spoken briefing). They keep JARVIS chat and their own portfolio. */
+  body.guest .owneronly,body.guest elevenlabs-convai{display:none!important}
   /* section tabs */
   .tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px auto 2px;max-width:1080px;padding:0 4px}
   .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
