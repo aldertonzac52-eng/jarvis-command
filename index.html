@@ -542,15 +542,16 @@
     </div>
     <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · two brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screen · not advice</span></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screener + 3-brain panel</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
-      <div class="playsdis">Informational only — not financial advice. Tap a name for why it flagged.</div>
+      <div class="playsdis">The screener flags candidates; three blind cross-vendor brains (Claude · Gemini · Llama) grade each. 🟢 all three would act · 🟡 two · 🔴 they split. Informational only — not advice.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="activity"></i>Track record <span class="r">self-learning</span></div><div id="track"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="map"></i>Sector map <span class="r">tap a sector · live</span></div>
@@ -1353,7 +1354,11 @@ function loadCryptoBuzz(){var el=document.getElementById("cbuzz");if(!el)return;
 /* ---------- possible plays ---------- */
 const PLAYS_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/possible-plays";
 var PLAYS={bounce:[],value:[]},playsCur="bounce";
-function loadPlays(){fetch(PLAYS_URL).then(function(r){return r.json();}).then(function(j){PLAYS={bounce:j.bounce||[],value:j.value||[]};window.PLAYSET={};PLAYS.bounce.concat(PLAYS.value).forEach(function(p){window.PLAYSET[p.ticker.replace(".AX","")]=1;});renderPlays();}).catch(function(){var e=document.getElementById("plays");if(e)e.innerHTML='<div class="empty">Unavailable.</div>';});}
+var PLAYSPANEL={};
+const PLAYSCON_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-consensus";
+function loadPlaysPanel(){return fetch(PLAYSCON_URL).then(function(r){return r.json();}).then(function(j){PLAYSPANEL=(j&&j.consensus)||{};window.PLAYSPANEL_TOP=(j&&j.top)||[];}).catch(function(){PLAYSPANEL={};});}
+function consensusBadge(sym){var c=PLAYSPANEL[sym]||PLAYSPANEL[sym+".AX"];if(!c)return '<span class="wcb cal">panel pending…</span>';var v=c.votes||{};var votes=[v.a,v.b,v.c].filter(Boolean);var buys=votes.filter(function(x){return x==="buy";}).length;var lbl,bg;if(c.tier==="3of3"){lbl="🟢 3/3 buy";bg="var(--green)";}else if(c.tier==="2of3"){lbl="🟡 2/3 buy";bg="var(--amber)";}else if(c.tier==="conflict"){lbl="🔴 split";bg="var(--red)";}else if(c.tier==="watch"){lbl="◔ watch";bg="var(--cyan-dim)";}else{lbl="pass";bg="rgba(86,140,210,.25)";}return '<span class="wcb" style="background:'+bg+';color:#04121a" title="Claude '+(v.a||'?')+' · Gemini '+(v.b||'?')+' · Llama '+(v.c||'?')+'">'+lbl+'</span>';}
+function loadPlays(){Promise.all([fetch(PLAYS_URL).then(function(r){return r.json();}),loadPlaysPanel()]).then(function(res){var j=res[0];PLAYS={bounce:j.bounce||[],value:j.value||[]};window.PLAYSET={};PLAYS.bounce.concat(PLAYS.value).forEach(function(p){window.PLAYSET[p.ticker.replace(".AX","")]=1;});renderPlays();}).catch(function(){var e=document.getElementById("plays");if(e)e.innerHTML='<div class="empty">Unavailable.</div>';});}
 function playsTab(t){playsCur=t;var a=document.getElementById("ptab-bounce"),b=document.getElementById("ptab-value");if(a)a.classList.toggle("on",t==="bounce");if(b)b.classList.toggle("on",t==="value");renderPlays();}
 function togglePlay(el){var s=el.nextElementSibling;if(s)s.classList.toggle("open");}
 function plBar(label,val){var w=val==null?0:Math.max(0,Math.min(100,val));return '<div class="qv"><span class="qvl">'+label+'</span><div class="qvt"><div class="qvf" style="width:'+w+'%"></div></div><span class="qvn">'+(val==null?"—":val)+'</span></div>';}
@@ -1362,7 +1367,7 @@ function normSig(s){return String(s).replace(/\([^)]*\)/g,"").replace(/-?\d+(\.\
 function winChance(signals){var t=window.TRACKSTATS;if(!t||!t.matured||t.matured<8||t.baseWin==null)return null;var ss=t.signalStats||{},num=0,den=0,k=8,base=t.baseWin;(signals||[]).forEach(function(s){var st=ss[normSig(s)];if(st){num+=st.n*st.winPct;den+=st.n;}});return Math.round((num+k*base)/(den+k));}
 function renderPlays(){var el=document.getElementById("plays");if(!el)return;var arr=PLAYS[playsCur]||[];if(!arr.length){el.innerHTML='<div class="empty">No plays flagged right now.</div>';return;}
   el.innerHTML=arr.slice(0,12).map(function(x){var sc=playsCur==="bounce"?x.tscore:(x.fscore||0);var cl=x.pctFromHigh<=0?"down":"up";var sym=x.ticker.replace(".AX","");
-    var wc=winChance(x.signals);var wcb=wc==null?'<span class="wcb cal">win% learning…</span>':'<span class="wcb">~'+wc+'% est. win</span>';
+    var wcb=consensusBadge(sym);
     var sumHtml=x.summary?'<div class="psum">'+x.summary+'</div>':"";
     var sparkle=x.series?spark(x.series,260,46):"";
     var rng=x.rangePos==null?"":'<div class="rng"><div class="rngbar"><div class="rngdot" style="left:'+x.rangePos+'%"></div></div><div class="rnglbl"><span>52w low</span><span>'+x.rangePos+'% of range</span><span>high</span></div></div>';
@@ -1474,6 +1479,19 @@ function loadPremarket(){
       if(br)br.innerHTML='<div class="empty" style="animation:none">—</div>';
     });
 }
+const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-track";
+function scoreCell(o){var w=o.win_pct==null?"—":o.win_pct+"%";var r=o.avg_ret==null?"":(o.avg_ret>=0?"+":"")+o.avg_ret+"%";var cl=o.avg_ret==null?"":(o.avg_ret>=0?"up":"down");return '<div class="tsv '+cl+'">'+w+'</div><div class="labsub" style="text-align:center">'+(o.n||0)+' picks'+(r?' · '+r:'')+'</div>';}
+function loadScorecard(){var el=document.getElementById("pmscore");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
+    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' picks logged — outcomes fill after each US session closes. First scores land tomorrow morning.'):'No picks logged yet. The panel starts tracking from its next run.')+'</div>';return;}
+    var tiers=(j.tiers||[]).filter(function(t){return t.n>0;});
+    var tierHtml='<div class="sec-lbl">Does consensus work? (win rate · avg move)</div><div class="trkstat">'+tiers.map(function(t){var cl=t.avg_ret==null?"":(t.avg_ret>=0?"up":"down");return '<div class="ts"><div class="tsl">'+t.label+'</div><div class="tsv '+cl+'">'+(t.win_pct==null?"—":t.win_pct+"%")+'</div><div class="labsub">'+t.n+' · '+(t.avg_ret>=0?"+":"")+(t.avg_ret==null?"":t.avg_ret+"%")+'</div></div>';}).join("")+'</div>';
+    var brains=(j.brains||[]).filter(function(b){return b.n>0;});
+    var brainHtml=brains.length?'<div class="sec-lbl" style="margin-top:10px">Which brain is right most</div>'+brains.map(function(b){var cl=b.avg_ret>=0?"up":"down";return '<div class="trsig"><span>'+b.brain+' <span style="opacity:.6">'+b.vendor+'</span></span><span class="trwin">'+(b.win_pct==null?"—":b.win_pct+"% right")+' · '+b.n+' calls</span></div>';}).join(""):"";
+    var recent=(j.recent||[]).filter(function(r){return r.ret_pct!=null;}).slice(0,8);
+    var recHtml=recent.length?'<div class="sec-lbl" style="margin-top:10px">Recent outcomes</div>'+recent.map(function(r){var cl=r.ret_pct>=0?"up":"down";return '<div class="trrow"><span class="trk2">'+r.ticker+'</span><span class="trt">'+r.tier+'</span><span class="'+cl+'">'+(r.ret_pct>=0?"+":"")+r.ret_pct+'%</span></div>';}).join(""):"";
+    el.innerHTML=tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' outcomes tracked since '+(j.since||"")+'. Paper only, not advice.</div>';
+  }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Scorecard unavailable right now.")+'</div>';});}
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
 function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
 const LAB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/strategy-lab";
@@ -1623,10 +1641,10 @@ function applySession(j,viaGesture){
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
-function setTab(t){if(['port','stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){if(['port','stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
-  f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit)loadPremarket();}catch(e){}});}
+  f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit){loadPremarket();loadScorecard();}}catch(e){}});}
 var INFO={
 "Portfolio":"Your live holdings, total value and profit/loss versus what you paid — priced off real market data.",
 "Sector map":"The AI & tech investment landscape grouped by sector. Tap a sector to see its stocks with live prices; the % shows each sector's average move.",
@@ -1659,6 +1677,7 @@ var INFO={
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
 "Pre-Market Analysis":"A daily report built before the US open by a data scanner plus two independent AI analysts who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = both agree and clean, yellow = agree with caveats, red = they conflict (stand down). Not advice.",
 "Loop memory":"The analyst's brain. It logs every run, tracks where the two brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
+"Panel scorecard":"The panel grading itself on real outcomes. Every pick's forward return is tracked, then bucketed: does full 3/3 consensus actually beat a 2/3 majority or a split? And which of the three brains — Claude, Gemini, Llama — is right most often. Fills in as sessions close. Paper only, not advice.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
 "Performance":"How your portfolio has actually done over 1 week, 1 month and year-to-date — value-weighted — set against the ASX 200 and S&P 500 so you can see if you're beating the market, plus your single biggest dollar mover.",
