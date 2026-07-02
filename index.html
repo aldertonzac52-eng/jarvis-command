@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="JARVIS" />
 <link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -127,7 +129,8 @@
   .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
   .tb:hover{border-color:var(--cyan-dim);color:var(--txt)}
   .tb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
-  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab{display:none}
+  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab,body[data-tab="stocks"] .sec-premkt{display:none}
+  body[data-tab="premkt"] .masonry>.panel:not(.sec-premkt){display:none}
   body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
@@ -404,6 +407,81 @@
   .hntk{flex:none;font-size:10px;font-weight:800;font-family:"Space Grotesk",sans-serif;color:var(--cyan);background:rgba(54,224,255,.08);border-radius:7px;padding:2px 6px;margin-top:1px}
   .hnt{font-size:12px;line-height:1.3}
   .hns{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+  /* loading pulse for placeholders */
+  @keyframes ldp{50%{opacity:.4}}
+  .empty{animation:ldp 1.7s ease-in-out infinite}
+  /* wrong-PIN shake */
+  @keyframes shakex{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+  .dots.shake{animation:shakex .35s ease}
+  .dots.shake i{border-color:var(--red)}
+  /* tappable freshness stamp */
+  .top .fresh{cursor:pointer}
+  .top .fresh:active{opacity:.6}
+  /* pre-market report rendering */
+  body[data-tab="premkt"] .masonry{column-count:1!important;max-width:860px;margin-left:auto;margin-right:auto}
+  .pmmd{font-size:13px;line-height:1.6;color:#d5e3f8}
+  .pmmd h1{font-size:17px;margin:4px 0 2px;color:var(--txt)}
+  .pmmd h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin:18px 0 6px;padding-top:10px;border-top:1px solid rgba(86,140,210,.14)}
+  .pmmd h3{font-size:11px;color:var(--muted);margin:2px 0;font-weight:600}
+  .pmmd blockquote{margin:8px 0;padding:7px 11px;background:rgba(54,224,255,.06);border-left:2px solid var(--cyan);border-radius:0 9px 9px 0;color:var(--muted);font-size:11.5px}
+  .pmmd table{border-collapse:collapse;width:100%;font-size:11.5px;margin:6px 0}
+  .pmmd th{text-align:left;padding:5px 7px;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan-dim);border-bottom:1px solid var(--line)}
+  .pmmd td{padding:6px 7px;border-bottom:1px solid rgba(86,140,210,.10);vertical-align:top}
+  .pmmd ul{margin:4px 0;padding-left:18px}
+  .pmmd li{margin:3px 0}
+  .pmmd hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+  .pmmd b{color:var(--txt)}
+  .pmlesson{font-size:12px;padding:7px 0;border-bottom:1px solid rgba(86,140,210,.10);line-height:1.5}
+  .pmrun{font-size:11px;color:var(--muted);padding:6px 0;border-bottom:1px solid rgba(86,140,210,.08);line-height:1.5}
+  .pmstat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+
+  /* ==================== COSMETIC LAYER (additive) ==================== */
+  /* panels rise in on load, gently staggered */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .masonry>.panel{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
+  .masonry>.panel:nth-child(1){animation-delay:.02s}
+  .masonry>.panel:nth-child(2){animation-delay:.06s}
+  .masonry>.panel:nth-child(3){animation-delay:.10s}
+  .masonry>.panel:nth-child(4){animation-delay:.14s}
+  .masonry>.panel:nth-child(5){animation-delay:.18s}
+  .masonry>.panel:nth-child(n+6){animation-delay:.22s}
+  @media(prefers-reduced-motion:reduce){.masonry>.panel{animation:none}}
+  /* portfolio total gets a subtle cyan gradient sheen */
+  .ptot .v{background:linear-gradient(180deg,#ffffff 0%,#d7f6ff 55%,#8fe6ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  /* card lift is a touch springier + brighter edge */
+  .panel{transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .22s,box-shadow .22s}
+  .masonry>.panel:hover{transform:translateY(-3px);box-shadow:0 16px 44px rgba(0,0,0,.5),0 0 0 1px rgba(54,224,255,.25),inset 0 1px 0 rgba(255,255,255,.06)}
+  /* tab bar: active pill glows, inactive lifts on hover */
+  .tb{transition:transform .16s cubic-bezier(.22,1,.36,1),background .16s,border-color .16s,color .16s,box-shadow .16s}
+  .tb:hover{transform:translateY(-1px)}
+  .tb.on{box-shadow:0 4px 16px rgba(54,224,255,.35)}
+  /* buy-zone badge: smoother breathing glow */
+  .buyz{animation:bz 2.2s ease-in-out infinite}
+  /* header live-dot ring pulse */
+  .livedot{position:relative}
+  .livedot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--green);opacity:.5;animation:lr 2s ease-out infinite}
+  @keyframes lr{0%{transform:scale(.8);opacity:.6}100%{transform:scale(2.1);opacity:0}}
+  /* holdings/watch rows: crisper hover slide */
+  .hold,.wrow{transition:transform .14s cubic-bezier(.22,1,.36,1),background .14s}
+  .hold:hover,.wrow:hover{transform:translateX(2px);background:rgba(54,224,255,.06)}
+  /* answer bubble slides up when it appears */
+  .answer.show{animation:rise .32s cubic-bezier(.22,1,.36,1) both}
+  /* custom scrollbar */
+  *::-webkit-scrollbar{width:9px;height:9px}
+  *::-webkit-scrollbar-thumb{background:rgba(54,224,255,.22);border-radius:8px}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(54,224,255,.4)}
+  *::-webkit-scrollbar-track{background:transparent}
+  html{scrollbar-color:rgba(54,224,255,.3) transparent;scrollbar-width:thin}
+  /* lock keypad: springier press + hover */
+  .pad button{transition:transform .1s ease,background .12s,border-color .12s}
+  .pad button:hover{border-color:var(--cyan-dim)}
+  .pad button:active{transform:scale(.92)}
+  /* modal sheet slides up smoother */
+  .modal.open .sheet{animation:sheetup .34s cubic-bezier(.22,1,.36,1) both}
+  @keyframes sheetup{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  /* send button pulse on focus of input */
+  .askbar:focus-within{border-color:var(--cyan-dim);box-shadow:0 8px 26px rgba(0,0,0,.35),0 0 0 1px rgba(54,224,255,.25)}
+  .askbar{transition:border-color .2s,box-shadow .2s}
 </style>
 </head>
 <body>
@@ -453,16 +531,19 @@
     </div>
   <div class="tabbar">
     <button class="tb on" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
+    <button class="tb" id="tb-premkt" onclick="setTab('premkt')"><i data-lucide="sunrise"></i>Pre-Market</button>
     <button class="tb" id="tb-plays" onclick="setTab('plays')"><i data-lucide="target"></i>Possible Plays</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
     <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
     <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
   </div>
   <div class="masonry">
+    <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · two brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
-    <div class="panel owneronly"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
     <div class="panel owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screen · not advice</span></div>
@@ -889,10 +970,11 @@ function spark(series,w,h){
 
 function animNum(el,to,fmt){
   if(to==null){ el.textContent=fmt(0); return; }
+  if(el._raf){ cancelAnimationFrame(el._raf); el._raf=null; }
   var from=parseFloat(el.dataset.val); if(isNaN(from)) from=to*0.965;
   el.dataset.val=to; var t0=null,dur=760;
-  function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/dur); var e=1-Math.pow(1-k,3); el.textContent=fmt(from+(to-from)*e); if(k<1) requestAnimationFrame(step); }
-  requestAnimationFrame(step);
+  function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/dur); var e=1-Math.pow(1-k,3); el.textContent=fmt(from+(to-from)*e); if(k<1){ el._raf=requestAnimationFrame(step); } else { el._raf=null; el.textContent=fmt(to); } }
+  el._raf=requestAnimationFrame(step);
 }
 function setMood(d){
   try{
@@ -943,6 +1025,19 @@ function makeOpening(d){
 }
 function render(d){
   lastData=d;
+  /* defensive defaults — one missing field must never blank the whole app */
+  d.fx=d.fx||{audusd:0.69}; if(d.fx.audusd==null)d.fx.audusd=0.69;
+  d.market=d.market||{}; d.agenda=d.agenda||{}; d.briefing=d.briefing||{};
+  d.watchlist=d.watchlist||[]; d.portfolio=d.portfolio||{holdings:[]}; d.portfolio.holdings=d.portfolio.holdings||[];
+  /* keep totals honest: the header always equals the sum of the holdings below it */
+  var _H=d.portfolio.holdings;
+  if(_H.length&&_H.every(function(h){return typeof h.value_aud==="number";})){
+    var _sv=0,_sc=0; _H.forEach(function(h){_sv+=h.value_aud;_sc+=h.value_aud-(typeof h.pl_aud==="number"?h.pl_aud:0);});
+    d.portfolio.total_value_aud=Math.round(_sv*100)/100;
+    d.portfolio.total_cost_aud=Math.round(_sc*100)/100;
+    d.portfolio.total_pl_aud=Math.round((_sv-_sc)*100)/100;
+    d.portfolio.total_pl_pct=_sc?Math.round((_sv-_sc)/_sc*10000)/100:0;
+  }
   window.__gen=d.generated_at;
   document.getElementById("fresh").textContent=ago(d.generated_at);
   document.getElementById("pstamp").textContent=d.as_of_date||"";
@@ -1042,7 +1137,7 @@ async function orbTap(){
 async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
   try{ if(!convo) await startSession("text"); if(convo&&typeof convo.sendUserMessage==="function"){ convo.sendUserMessage(q); } else { throw new Error("no-send"); } }
   catch(e){ chatFallback(q); } }
-function chatFallback(q){ fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:[]})}).then(function(r){return r.json();}).then(function(j){ showAnswer(j.reply||"Sorry, I didn't catch that."); }).catch(function(){ showAnswer("I couldn't reach the network just then."); }); }
+function chatFallback(q){ var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){} fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:[],pin:pin})}).then(function(r){return r.json();}).then(function(j){ showAnswer(j.reply||"Sorry, I didn't catch that."); }).catch(function(){ showAnswer("I couldn't reach the network just then."); }); }
 
 /* ---------- speak: Alistair via ElevenLabs (iOS-robust: plain audio + timed pulse) ---------- */
 let voiceAudio=null;
@@ -1056,7 +1151,7 @@ function sayText(text, done){
   stopSpeak(); if(!text){ if(done)done(); return; }
   setSpeaking(true);
   const a=getAudio();
-  a.src=TTS_URL+"?k=zacjarvis2233&text="+encodeURIComponent(text.slice(0,780));
+  a.src=TTS_URL+"?k=tk_zjv_7Kp3Rq9Xm2Lt6Wd&text="+encodeURIComponent(text.slice(0,780));
   a.onended=()=>{ setSpeaking(false); if(done)done(); };
   a.onerror=()=>{ ttsFallback(text,done); };
   const pr=a.play();
@@ -1325,6 +1420,58 @@ function renderEquityChart(cid,strats,bench){
     tooltip:{theme:"dark",shared:true,intersect:false,x:{show:false},y:{formatter:function(v){return "$"+v.toLocaleString();}}}
   });
 }
+/* ---------- pre-market analysis (daily two-brain report + loop memory) ---------- */
+const PM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/premarket";
+function pmEsc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function pmInline(s){return s.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");}
+function mdToHtml(md){
+  md=md.replace(/<!--[\s\S]*?-->/g,"");
+  var lines=md.split("\n"),out=[],i=0;
+  function tableAt(k){return /^\|.*\|\s*$/.test(lines[k]||"");}
+  while(i<lines.length){
+    var L=lines[i];
+    if(/^\s*$/.test(L)){i++;continue;}
+    if(/^---+\s*$/.test(L)){out.push("<hr>");i++;continue;}
+    if(/^### /.test(L)){out.push("<h3>"+pmInline(pmEsc(L.slice(4)))+"</h3>");i++;continue;}
+    if(/^## /.test(L)){out.push("<h2>"+pmInline(pmEsc(L.slice(3)))+"</h2>");i++;continue;}
+    if(/^# /.test(L)){out.push("<h1>"+pmInline(pmEsc(L.slice(2)))+"</h1>");i++;continue;}
+    if(/^> /.test(L)){var q=[];while(i<lines.length&&/^> /.test(lines[i])){q.push(pmEsc(lines[i].slice(2)));i++;}out.push("<blockquote>"+pmInline(q.join("<br>"))+"</blockquote>");continue;}
+    if(tableAt(i)&&tableAt(i+1)&&/^\|[\s\-|:]+\|\s*$/.test(lines[i+1])){
+      var cells=function(row){return row.replace(/^\||\|\s*$/g,"").split("|").map(function(c){return pmInline(pmEsc(c.trim()));});};
+      var h=cells(lines[i]);i+=2;var rows=[];
+      while(i<lines.length&&tableAt(i)){rows.push(cells(lines[i]));i++;}
+      out.push("<table><thead><tr>"+h.map(function(c){return "<th>"+c+"</th>";}).join("")+"</tr></thead><tbody>"+
+        rows.map(function(r){return "<tr>"+r.map(function(c){return "<td>"+c+"</td>";}).join("")+"</tr>";}).join("")+"</tbody></table>");continue;}
+    if(/^- /.test(L)){var li=[];while(i<lines.length&&/^- /.test(lines[i])){li.push("<li>"+pmInline(pmEsc(lines[i].slice(2)))+"</li>");i++;}out.push("<ul>"+li.join("")+"</ul>");continue;}
+    out.push("<p>"+pmInline(pmEsc(L))+"</p>");i++;
+  }
+  return out.join("\n");
+}
+function loadPremarket(){
+  var rep=document.getElementById("pmreport"),br=document.getElementById("pmbrain");
+  if(!rep)return;
+  var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(PM_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})})
+    .then(function(r){if(!r.ok)throw r.status;return r.json();})
+    .then(function(j){
+      var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · two brains · "+ago(j.updated_at||j.generated_at);
+      rep.innerHTML=mdToHtml(j.report_md||"");
+      if(br){
+        var ag=j.agreement||{};
+        var head='<div class="pmstat">'+
+          '<div class="stat"><div class="sl">Runs</div><div class="sv">'+(j.runs_completed||0)+'</div></div>'+
+          '<div class="stat"><div class="sl">Both HIGH</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
+          '<div class="stat"><div class="sl">Conflicts</div><div class="sv" style="color:var(--amber)">'+((ag.conflict||[]).join(", ")||"—")+'</div></div></div>';
+        var les=(j.lessons&&j.lessons.length)?'<div class="sec-lbl">Lessons in force</div>'+j.lessons.map(function(l){return '<div class="pmlesson">'+pmInline(pmEsc(l))+'</div>';}).join(""):'<div class="sec-lbl">Lessons in force</div><div class="empty" style="animation:none">None yet — lessons are written from real outcomes, and the file grows every reviewed run.</div>';
+        var runs=(j.run_log&&j.run_log.length)?'<div class="sec-lbl" style="margin-top:12px">Run log (the memory)</div>'+j.run_log.slice(-6).reverse().map(function(r){return '<div class="pmrun">'+pmEsc(r)+'</div>';}).join(""):"";
+        br.innerHTML=head+les+runs+'<div class="playsdis" style="margin-top:10px">The loop reads this memory before every run. Traps flagged: '+((ag.traps||[]).join(", ")||"—")+'</div>';
+      }
+    })
+    .catch(function(e){
+      rep.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN to view the report.":(e===404?"No report yet — the analyst runs each weekday before the US open.":"Report unavailable right now — tap the timestamp to retry."))+'</div>';
+      if(br)br.innerHTML='<div class="empty" style="animation:none">—</div>';
+    });
+}
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
 function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
 const LAB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/strategy-lab";
@@ -1440,32 +1587,44 @@ function fetchData(){
 function refreshPortfolio(){ var pin=null; try{pin=sessionStorage.getItem('jv_pin');}catch(e){} if(!pin)return;
   fetch(SESSION_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(j){ if(j&&j.owner)render(j.data); else if(j)renderGuest(j.data); }).catch(function(){}); }
 setInterval(refreshPortfolio, 5*60*1000);
-setInterval(loadExtras, 10*60*1000);
+setInterval(function(){ if(window.CURRENT) loadExtras(); }, 10*60*1000);
 
 /* ---------- PIN (server-gated, no secrets in page) ---------- */
 const SESSION_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/session";
 let entry="",CURRENT=null;
 function drawDots(){document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<entry.length));}
-function press(n){document.getElementById('lockerr').textContent="";if(entry.length>=4)return;entry+=n;drawDots();
+function press(n){try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}document.getElementById('lockerr').textContent="";if(entry.length>=4)return;entry+=n;drawDots();
   if(entry.length===4){ submitPin(entry,true); }}
+/* desktop: type the PIN with the keyboard */
+document.addEventListener("keydown",function(e){
+  var lock=document.getElementById('lock');
+  if(!lock||lock.style.display==="none")return;
+  if(e.key>="0"&&e.key<="9")press(e.key);
+  else if(e.key==="Backspace")del();
+});
 function del(){entry=entry.slice(0,-1);document.getElementById('lockerr').textContent="";drawDots();}
 function submitPin(pin,viaGesture){
   document.getElementById('lockerr').textContent="…";
   fetch(SESSION_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})})
     .then(function(r){return r.ok?r.json():Promise.reject(r.status);})
     .then(function(j){ entry=""; try{sessionStorage.setItem('jv_ok','1');sessionStorage.setItem('jv_pin',pin);}catch(e){} applySession(j,viaGesture); })
-    .catch(function(){ document.getElementById('lockerr').textContent="Wrong PIN"; entry=""; setTimeout(drawDots,160); });
+    .catch(function(status){ var dz=document.getElementById('dots'); if(dz){dz.classList.add('shake');setTimeout(function(){dz.classList.remove('shake');},400);} try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){} document.getElementById('lockerr').textContent=(status===429)?"Too many tries — locked. Wait a few minutes.":"Wrong PIN"; entry=""; setTimeout(drawDots,160); });
 }
 function applySession(j,viaGesture){
   CURRENT={name:j.name,owner:j.owner}; window.CURRENT=CURRENT;
   document.body.classList.toggle('guest',!CURRENT.owner);
-  if(!document.body.getAttribute('data-tab'))document.body.setAttribute('data-tab','stocks');
+  var savedTab='stocks'; try{savedTab=sessionStorage.getItem('jv_tab')||'stocks';}catch(e){}
+  setTab(savedTab);
+  if(!CURRENT.owner){ var _ht=document.querySelector('.hint'); if(_ht)_ht.innerHTML='Tap the orb to talk to JARVIS · <a onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a>'; }
   document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
-  loadExtras(); addInfoButtons();
+  loadExtras(); addInfoButtons(); wireFreshTap();
   if(j.owner){ render(j.data); }
   else { renderGuest(j.data); }
 }
-function setTab(t){document.body.setAttribute('data-tab',t);['stocks','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){if(['stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='stocks';document.body.setAttribute('data-tab',t);['stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+/* tap the "updated Xm ago" stamp to force a refresh */
+function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
+  f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit)loadPremarket();}catch(e){}});}
 var INFO={
 "Portfolio":"Your live holdings, total value and profit/loss versus what you paid — priced off real market data.",
 "Sector map":"The AI & tech investment landscape grouped by sector. Tap a sector to see its stocks with live prices; the % shows each sector's average move.",
@@ -1496,6 +1655,8 @@ var INFO={
 "Market headlines":"Latest market news.",
 "VIC property watch":"Victorian property market news.",
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
+"Pre-Market Analysis":"A daily report built before the US open by a data scanner plus two independent AI analysts who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = both agree and clean, yellow = agree with caveats, red = they conflict (stand down). Not advice.",
+"Loop memory":"The analyst's brain. It logs every run, tracks where the two brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
 "Performance":"How your portfolio has actually done over 1 week, 1 month and year-to-date — value-weighted — set against the ASX 200 and S&P 500 so you can see if you're beating the market, plus your single biggest dollar mover.",
@@ -1514,7 +1675,7 @@ function renderGuest(d){
       var cost=h.ccy==="USD"?h.units*h.avg_cost/fx:h.units*h.avg_cost;
       var val=h.ccy==="USD"?h.units*price/fx:h.units*price;
       tv+=val;tc+=cost;
-      out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,buy_below:null,estimate:miss,note:miss?"price unavailable":(h.ccy==="USD"?"USD holding":""),series:[h.avg_cost,price],blurb:"",news:[]});
+      out.push({ticker:h.ticker,name:h.name,units:h.units,avg_cost:h.avg_cost,ccy:h.ccy,price:Math.round(price*100)/100,value_aud:Math.round(val*100)/100,pl_aud:Math.round((val-cost)*100)/100,pl_pct:cost?Math.round((val-cost)/cost*10000)/100:0,day:(p&&p.pct!=null)?p.pct:null,buy_below:null,estimate:miss,note:miss?"price unavailable":(h.ccy==="USD"?"USD holding":""),series:[h.avg_cost,price],blurb:"",news:[]});
     });
     var hr2=new Date().getHours(); var tod=hr2<12?"Good morning":hr2<18?"Good afternoon":"Good evening";
     var gname=(window.CURRENT&&CURRENT.name)?CURRENT.name:"there";
@@ -1529,7 +1690,10 @@ function renderGuest(d){
       portfolio:{total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:out,networth:[]},
       watchlist:[],agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:welcome,voice:"",focus:""},alerts:[]};
     render(dd); showAnswer(welcome);
-  }).catch(function(){});
+  }).catch(function(){
+    showAnswer("I couldn't fetch live prices just then — tap the timestamp up top to retry in a moment.");
+    try{ var f=document.getElementById("fresh"); if(f) f.textContent="retry ↻"; }catch(e){}
+  });
 }
 var ok=false,savedPin=null;try{ok=sessionStorage.getItem('jv_ok')==='1';savedPin=sessionStorage.getItem('jv_pin');}catch(e){}
 if(ok&&savedPin) submitPin(savedPin,false);
