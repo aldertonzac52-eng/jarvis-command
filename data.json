@@ -1,101 +1,336 @@
 {
-  "generated_at": "2026-06-29T09:42:00+10:00",
-  "as_of_date": "2026-06-29",
-  "tz": "Australia/Melbourne",
-  "fx": { "audusd": 0.6899 },
-  "portfolio": {
-    "total_value_aud": 36631.20,
-    "total_cost_aud": 39831.49,
-    "total_pl_aud": -3200.29,
-    "total_pl_pct": -8.03,
-    "holdings": [
-      { "ticker": "WTC.AX", "name": "WiseTech Global", "units": 665, "avg_cost": 39.09, "ccy": "AUD", "price": 33.14, "value_aud": 22038.10, "pl_aud": -3956.75, "pl_pct": -15.22, "buy_below": 30.00, "estimate": false, "note": "",
-        "series": [29.07, 30.43, 31.55, 33.14],
-        "blurb": "FY26 revenue guided US$1.39–1.44b (79–85% growth). AI-wide efficiency pivot, ~2,000 job cuts and e2open integration weighing on near-term margins.",
-        "news": [
-          { "t": "AI pivot & reaffirmed FY26 guidance reframe execution risk", "s": "Simply Wall St", "u": "https://simplywall.st/stocks/au/software/asx-wtc/wisetech-global-shares/news/is-wisetech-globals-asxwtc-ai-pivot-and-reaffirmed-guidance" },
-          { "t": "Tech sell-off has investors asking what comes next", "s": "Kalkine", "u": "https://kalkine.com.au/news/technology/wisetech-global-asxwtc-the-tech-stock-sell-off-that-has-investors-asking-what-comes-next" }
-        ] },
-      { "ticker": "NOW", "name": "ServiceNow", "units": 73, "avg_cost": 93.61, "ccy": "USD", "price": 99.14, "value_aud": 10490.60, "pl_aud": 585.50, "pl_pct": 5.91, "buy_below": 90.00, "estimate": false, "note": "USD holding",
-        "series": [96.06, 89.94, 98.75, 99.14],
-        "blurb": "Software rotation back in favour as OpenAI-replacement fears ease; expanded Google + HCLTech partnership. Shares jumped ~10% Friday.",
-        "news": [
-          { "t": "Why ServiceNow stock gained 9.9% on Friday", "s": "Motley Fool", "u": "https://www.fool.com/investing/2026/06/26/why-servicenow-stock-gained-99on-friday/" },
-          { "t": "ServiceNow, Salesforce surge as OpenAI threat weakens", "s": "MarketWatch", "u": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb" },
-          { "t": "The market rotation is on — software tops chips", "s": "Barron's", "u": "https://www.barrons.com/articles/servicenow-applovin-software-chips-on-semiconductor-4496e4be" }
-        ] },
-      { "ticker": "V500", "name": "Vanguard S&P 500", "units": 75, "avg_cost": 52.42, "ccy": "AUD", "price": 54.70, "value_aud": 4102.50, "pl_aud": 170.96, "pl_pct": 4.35, "buy_below": null, "estimate": false, "note": "all-time +$171 · app shows +9.6%",
-        "series": [52.42, 54.70],
-        "blurb": "Dollar-cost average ~A$1,000/month into the US S&P 500. Tracks the index daily move; long-term core.",
-        "news": [] }
+ "generated_at": "2026-06-29T09:42:00+10:00",
+ "as_of_date": "2026-06-29",
+ "tz": "Australia/Melbourne",
+ "fx": {
+  "audusd": 0.6899
+ },
+ "portfolio": {
+  "total_value_aud": 36631.2,
+  "total_cost_aud": 39831.49,
+  "total_pl_aud": -3200.29,
+  "total_pl_pct": -8.03,
+  "holdings": [
+   {
+    "ticker": "WTC.AX",
+    "name": "WiseTech Global",
+    "units": 665,
+    "avg_cost": 39.09,
+    "ccy": "AUD",
+    "price": 33.14,
+    "value_aud": 22038.1,
+    "pl_aud": -3956.75,
+    "pl_pct": -15.22,
+    "buy_below": 30.0,
+    "estimate": false,
+    "note": "",
+    "series": [
+     29.07,
+     30.43,
+     31.55,
+     33.14
+    ],
+    "blurb": "FY26 revenue guided US$1.39\u20131.44b (79\u201385% growth). AI-wide efficiency pivot, ~2,000 job cuts and e2open integration weighing on near-term margins.",
+    "news": [
+     {
+      "t": "AI pivot & reaffirmed FY26 guidance reframe execution risk",
+      "s": "Simply Wall St",
+      "u": "https://simplywall.st/stocks/au/software/asx-wtc/wisetech-global-shares/news/is-wisetech-globals-asxwtc-ai-pivot-and-reaffirmed-guidance"
+     },
+     {
+      "t": "Tech sell-off has investors asking what comes next",
+      "s": "Kalkine",
+      "u": "https://kalkine.com.au/news/technology/wisetech-global-asxwtc-the-tech-stock-sell-off-that-has-investors-asking-what-comes-next"
+     }
     ]
-  },
-  "watchlist": [
-    { "ticker": "CSL.AX", "name": "CSL Limited", "price": 114.87, "pct": -2.36, "spotlight": true, "buy_below": 110.00, "note": "",
-      "series": [100.00, 115.27, 114.87],
-      "blurb": "FY26 guidance revised lower on inventory/pricing headwinds; China albumin pricing weak. New CCO Diego Sacristan from 1 July.",
-      "news": [
-        { "t": "Diego Sacristan named CCO of CSL Behring & Vifor (1 Jul)", "s": "CSL IR", "u": "https://investors.csl.com/" },
-        { "t": "Can CSL overcome revenue challenges and return to growth?", "s": "Kalkine", "u": "https://kalkine.com.au/news/healthcare/can-csl-asxcsl-overcome-its-revenue-challenges-and-return-to-growth" }
-      ] },
-    { "ticker": "TLX.AX", "name": "Telix Pharmaceuticals", "price": 15.33, "pct": -2.23, "spotlight": false, "buy_below": 14.00, "note": "",
-      "series": [13.65, 13.65, 15.33],
-      "blurb": "Theranostics collaboration with United Imaging; ProstACT Global Phase 3 data at ASCO 2026. In focus on healthcare rotation.",
-      "news": [
-        { "t": "United Imaging collab; ProstACT Phase 3 data at ASCO", "s": "Telix IR", "u": "https://ir.telixpharma.com/filings/asx-announcements" },
-        { "t": "TLX gains spotlight in June healthcare rotation", "s": "Kalkine", "u": "https://kalkine.com.au/news/general-news/telix-pharmaceuticals-asx-tlx-gains-spotlight-in-june-healthcare-sector-rotation" }
-      ] },
-    { "ticker": "WDS.AX", "name": "Woodside Energy", "price": 27.65, "pct": 0.80, "spotlight": false, "buy_below": 26.00, "note": "",
-      "series": [28.24, 28.62, 27.65],
-      "blurb": "Scarborough LNG >95% complete, first cargo late 2026; Trion >50% done. Core ASX energy/LNG exposure.",
-      "news": [
-        { "t": "Scarborough >95% complete; first LNG cargo late 2026", "s": "Kalkine", "u": "https://kalkine.com.au/news/energy/why-woodside-energy-asxwds-remains-a-core-asx-energy-giant-in-2026-share-performance-lng-strength-outlook" }
-      ] },
-    { "ticker": "BAP.AX", "name": "Bapcor", "price": 0.41, "pct": -5.75, "spotlight": false, "buy_below": null, "note": "unverified", "series": [0.41, 0.41], "blurb": "Price reading unverified today — confirm before acting.", "news": [] },
-    { "ticker": "V500", "name": "Vanguard S&P 500 (VOO)", "price": 670.26, "pct": -0.82, "spotlight": false, "buy_below": null, "note": "USD", "series": [675.71, 670.26], "blurb": "US-listed VOO, the S&P 500 tracker behind your V500 position.", "news": [] },
-    { "ticker": "PV1.AX", "name": "Provaris Energy", "price": null, "pct": null, "spotlight": false, "buy_below": null, "note": "unverified", "series": [0.012, 0.009], "blurb": "Micro-cap hydrogen play; price unverified today.", "news": [] }
-  ],
-  "spotlight": ["WTC.AX", "NOW", "CSL.AX"],
-  "market": {
-    "tone": "Mixed into the weekend",
-    "leaders": "Consumer Cyclical, Healthcare, Industrials",
-    "laggards": "Energy, Communication Services",
-    "standout": "Microsoft +5.7%, Apple +3.1%; Micron −6.7%",
-    "movers": {
-      "gainers": [
-        { "ticker": "CABO", "name": "Cable One", "pct": 30.06 },
-        { "ticker": "FUBO", "name": "fuboTV", "pct": 22.50 },
-        { "ticker": "FCEL", "name": "FuelCell Energy", "pct": 22.14 },
-        { "ticker": "DOMO", "name": "Domo", "pct": 20.49 },
-        { "ticker": "SPCE", "name": "Virgin Galactic", "pct": 18.00 }
-      ],
-      "losers": [
-        { "ticker": "CRMT", "name": "America's Car-Mart", "pct": -31.40 },
-        { "ticker": "ON", "name": "ON Semiconductor", "pct": -23.66 },
-        { "ticker": "OMER", "name": "Omeros", "pct": -19.12 },
-        { "ticker": "XXII", "name": "22nd Century", "pct": -18.97 },
-        { "ticker": "BE", "name": "Bloom Energy", "pct": -18.49 }
-      ]
+   },
+   {
+    "ticker": "NOW",
+    "name": "ServiceNow",
+    "units": 73,
+    "avg_cost": 93.61,
+    "ccy": "USD",
+    "price": 99.14,
+    "value_aud": 10490.6,
+    "pl_aud": 585.5,
+    "pl_pct": 5.91,
+    "buy_below": 90.0,
+    "estimate": false,
+    "note": "USD holding",
+    "series": [
+     96.06,
+     89.94,
+     98.75,
+     99.14
+    ],
+    "blurb": "Software rotation back in favour as OpenAI-replacement fears ease; expanded Google + HCLTech partnership. Shares jumped ~10% Friday.",
+    "news": [
+     {
+      "t": "Why ServiceNow stock gained 9.9% on Friday",
+      "s": "Motley Fool",
+      "u": "https://www.fool.com/investing/2026/06/26/why-servicenow-stock-gained-99on-friday/"
+     },
+     {
+      "t": "ServiceNow, Salesforce surge as OpenAI threat weakens",
+      "s": "MarketWatch",
+      "u": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb"
+     },
+     {
+      "t": "The market rotation is on \u2014 software tops chips",
+      "s": "Barron's",
+      "u": "https://www.barrons.com/articles/servicenow-applovin-software-chips-on-semiconductor-4496e4be"
+     }
+    ]
+   },
+   {
+    "ticker": "V500",
+    "name": "Vanguard S&P 500",
+    "units": 75,
+    "avg_cost": 52.42,
+    "ccy": "AUD",
+    "price": 54.7,
+    "value_aud": 4102.5,
+    "pl_aud": 170.96,
+    "pl_pct": 4.35,
+    "buy_below": null,
+    "estimate": false,
+    "note": "estimate \u00b7 Vanguard app: +9.6% all-time",
+    "series": [
+     52.42,
+     54.7
+    ],
+    "blurb": "Dollar-cost average ~A$1,000/month into the US S&P 500. Tracks the index daily move; long-term core.",
+    "news": []
+   }
+  ]
+ },
+ "watchlist": [
+  {
+   "ticker": "CSL.AX",
+   "name": "CSL Limited",
+   "price": 114.87,
+   "pct": -2.36,
+   "spotlight": true,
+   "buy_below": 110.0,
+   "note": "",
+   "series": [
+    100.0,
+    115.27,
+    114.87
+   ],
+   "blurb": "FY26 guidance revised lower on inventory/pricing headwinds; China albumin pricing weak. New CCO Diego Sacristan from 1 July.",
+   "news": [
+    {
+     "t": "Diego Sacristan named CCO of CSL Behring & Vifor (1 Jul)",
+     "s": "CSL IR",
+     "u": "https://investors.csl.com/"
+    },
+    {
+     "t": "Can CSL overcome revenue challenges and return to growth?",
+     "s": "Kalkine",
+     "u": "https://kalkine.com.au/news/healthcare/can-csl-asxcsl-overcome-its-revenue-challenges-and-return-to-growth"
     }
+   ]
   },
-  "agenda": {
-    "calendar": [],
-    "tasks": [
-      { "name": "Nomad hostel proposal", "status": "to do", "due": null, "list": "nest possible proposals" }
-    ],
-    "inbox": [
-      { "from": "Supabase", "subject": "day-sheets project may be paused (idle >7d)", "urgent": true },
-      { "from": "GitHub", "subject": "TradieMate CI run failed / PAT expiry", "urgent": false }
-    ],
-    "drive": [
-      { "title": "ZAC ALDERTON CARPENTARY PTY LTD", "type": "Sheet" },
-      { "title": "Job Tracker", "type": "Sheet" }
-    ]
+  {
+   "ticker": "TLX.AX",
+   "name": "Telix Pharmaceuticals",
+   "price": 15.33,
+   "pct": -2.23,
+   "spotlight": false,
+   "buy_below": 14.0,
+   "note": "",
+   "series": [
+    13.65,
+    13.65,
+    15.33
+   ],
+   "blurb": "Theranostics collaboration with United Imaging; ProstACT Global Phase 3 data at ASCO 2026. In focus on healthcare rotation.",
+   "news": [
+    {
+     "t": "United Imaging collab; ProstACT Phase 3 data at ASCO",
+     "s": "Telix IR",
+     "u": "https://ir.telixpharma.com/filings/asx-announcements"
+    },
+    {
+     "t": "TLX gains spotlight in June healthcare rotation",
+     "s": "Kalkine",
+     "u": "https://kalkine.com.au/news/general-news/telix-pharmaceuticals-asx-tlx-gains-spotlight-in-june-healthcare-sector-rotation"
+    }
+   ]
   },
-  "briefing": {
-    "audio": "briefing.mp3",
-    "voice": "Alistair",
-    "focus": "Push the Nomad hostel proposal forward — the single item that genuinely moves the business.",
-    "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox — mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it — that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close — consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
+  {
+   "ticker": "WDS.AX",
+   "name": "Woodside Energy",
+   "price": 27.65,
+   "pct": 0.8,
+   "spotlight": false,
+   "buy_below": 26.0,
+   "note": "",
+   "series": [
+    28.24,
+    28.62,
+    27.65
+   ],
+   "blurb": "Scarborough LNG >95% complete, first cargo late 2026; Trion >50% done. Core ASX energy/LNG exposure.",
+   "news": [
+    {
+     "t": "Scarborough >95% complete; first LNG cargo late 2026",
+     "s": "Kalkine",
+     "u": "https://kalkine.com.au/news/energy/why-woodside-energy-asxwds-remains-a-core-asx-energy-giant-in-2026-share-performance-lng-strength-outlook"
+    }
+   ]
+  },
+  {
+   "ticker": "BAP.AX",
+   "name": "Bapcor",
+   "price": 0.41,
+   "pct": -5.75,
+   "spotlight": false,
+   "buy_below": null,
+   "note": "unverified",
+   "series": [
+    0.41,
+    0.41
+   ],
+   "blurb": "Price reading unverified today \u2014 confirm before acting.",
+   "news": []
+  },
+  {
+   "ticker": "V500",
+   "name": "Vanguard S&P 500 (VOO)",
+   "price": 670.26,
+   "pct": -0.82,
+   "spotlight": false,
+   "buy_below": null,
+   "note": "USD",
+   "series": [
+    675.71,
+    670.26
+   ],
+   "blurb": "US-listed VOO, the S&P 500 tracker behind your V500 position.",
+   "news": []
+  },
+  {
+   "ticker": "PV1.AX",
+   "name": "Provaris Energy",
+   "price": null,
+   "pct": null,
+   "spotlight": false,
+   "buy_below": null,
+   "note": "unverified",
+   "series": [
+    0.012,
+    0.009
+   ],
+   "blurb": "Micro-cap hydrogen play; price unverified today.",
+   "news": []
   }
+ ],
+ "spotlight": [
+  "WTC.AX",
+  "NOW",
+  "CSL.AX"
+ ],
+ "market": {
+  "tone": "Mixed into the weekend",
+  "leaders": "Consumer Cyclical, Healthcare, Industrials",
+  "laggards": "Energy, Communication Services",
+  "standout": "Microsoft +5.7%, Apple +3.1%; Micron \u22126.7%",
+  "movers": {
+   "gainers": [
+    {
+     "ticker": "CABO",
+     "name": "Cable One",
+     "pct": 30.06
+    },
+    {
+     "ticker": "FUBO",
+     "name": "fuboTV",
+     "pct": 22.5
+    },
+    {
+     "ticker": "FCEL",
+     "name": "FuelCell Energy",
+     "pct": 22.14
+    },
+    {
+     "ticker": "DOMO",
+     "name": "Domo",
+     "pct": 20.49
+    },
+    {
+     "ticker": "SPCE",
+     "name": "Virgin Galactic",
+     "pct": 18.0
+    }
+   ],
+   "losers": [
+    {
+     "ticker": "CRMT",
+     "name": "America's Car-Mart",
+     "pct": -31.4
+    },
+    {
+     "ticker": "ON",
+     "name": "ON Semiconductor",
+     "pct": -23.66
+    },
+    {
+     "ticker": "OMER",
+     "name": "Omeros",
+     "pct": -19.12
+    },
+    {
+     "ticker": "XXII",
+     "name": "22nd Century",
+     "pct": -18.97
+    },
+    {
+     "ticker": "BE",
+     "name": "Bloom Energy",
+     "pct": -18.49
+    }
+   ]
+  }
+ },
+ "agenda": {
+  "calendar": [],
+  "tasks": [
+   {
+    "name": "Nomad hostel proposal",
+    "status": "to do",
+    "due": null,
+    "list": "nest possible proposals"
+   }
+  ],
+  "inbox": [
+   {
+    "from": "Supabase",
+    "subject": "day-sheets project may be paused (idle >7d)",
+    "urgent": true
+   },
+   {
+    "from": "GitHub",
+    "subject": "TradieMate CI run failed / PAT expiry",
+    "urgent": false
+   }
+  ],
+  "drive": [
+   {
+    "title": "ZAC ALDERTON CARPENTARY PTY LTD",
+    "type": "Sheet"
+   },
+   {
+    "title": "Job Tracker",
+    "type": "Sheet"
+   }
+  ]
+ },
+ "briefing": {
+  "audio": "briefing.mp3",
+  "voice": "Alistair",
+  "focus": "Push the Nomad hostel proposal forward \u2014 the single item that genuinely moves the business.",
+  "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox \u2014 mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it \u2014 that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close \u2014 consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
+ }
 }

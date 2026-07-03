@@ -582,6 +582,32 @@
   /* soft coloured glows behind conviction badges */
   .wcb{box-shadow:0 0 12px -3px rgba(54,224,255,.75)}
   .wcb.cal{box-shadow:none}
+
+  /* ---------- layout hardening: holdings/watch rows never wrap or clip ---------- */
+  .hold{grid-template-columns:minmax(0,1fr) clamp(64px,24%,116px) auto}
+  .wrow{grid-template-columns:minmax(0,1fr) clamp(56px,22%,90px) auto}
+  .hold>div:first-child,.wrow>div:first-child{min-width:0}
+  .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spark{width:100%}
+  .vr{flex:none}
+
+  /* premarket report tables scroll sideways on small screens instead of crushing */
+  @media(max-width:740px){
+    .pmmd table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .pmmd th,.pmmd td{min-width:108px}
+  }
+
+  /* stale-data banner: old figures announce themselves */
+  #stalebar{display:none;max-width:1080px;margin:10px auto 0;font-size:12px;line-height:1.5;color:#ffd9a0;
+    background:rgba(255,194,75,.08);border:1px solid rgba(255,194,75,.35);border-left:3px solid var(--amber);
+    border-radius:10px;padding:9px 13px}
+
+  /* quick-ask chips under the ask bar */
+  .qchips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .qchip{font-family:inherit;font-size:10.5px;letter-spacing:.02em;color:var(--muted);background:rgba(54,224,255,.05);
+    border:1px solid var(--line);border-radius:14px;padding:4px 11px;cursor:pointer;transition:.15s}
+  .qchip:hover{border-color:var(--cyan-dim);color:var(--txt)}
+  .qchip:active{transform:scale(.94)}
 </style>
 </head>
 <body>
@@ -622,6 +648,11 @@
         <button class="iconbtn" onclick="sendText()" title="Send" aria-label="Send"><i data-lucide="arrow-up" style="width:17px;height:17px"></i></button>
       </div>
       <div class="answer" id="answer"></div>
+      <div class="qchips">
+        <button class="qchip" onclick="quickAsk('Explain today\'s pre-market report to me in really simple terms')">Explain today's report</button>
+        <button class="qchip" onclick="quickAsk('How is my portfolio doing today and what should I pay attention to?')">How's my book?</button>
+        <button class="qchip" onclick="quickAsk('Teach me one trading concept from today\'s dashboard, simply')">Teach me something</button>
+      </div>
     </div>
     <div class="hint">Tap the orb to talk to JARVIS, or type above · <a id="replaybtn" onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a> · <a id="alertbtn" onclick="enableAlerts()" style="cursor:pointer;text-decoration:underline">enable phone alerts</a></div>
   </div>
@@ -794,7 +825,7 @@ const FALLBACK = {
         "pl_pct": 4.35,
         "buy_below": null,
         "estimate": false,
-        "note": "all-time +$171 · app shows +9.6%",
+        "note": "estimate · Vanguard app: +9.6% all-time",
         "series": [
           52.42,
           54.7
@@ -1140,6 +1171,16 @@ if(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches){(f
   },{passive:true});
 })();}
 
+/* ---------- freshness: refresh everything when the app comes back to the foreground ---------- */
+function quickAsk(t){var i=document.getElementById('askin');if(i)i.value=t;try{sendText();}catch(e){}}
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden||!window.CURRENT)return;
+  var last=window._lastRef||0; if(Date.now()-last<60000)return; window._lastRef=Date.now();
+  try{refreshPortfolio();}catch(e){}
+  try{loadExtras();}catch(e){}
+  try{if(window._pmInit){loadPremarket();loadScorecard();}}catch(e){}
+});
+
 /* ---------- sticky mini-header: portfolio total + P/L + active tab ---------- */
 var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',property:'Property',lab:'Strategy Lab'};
 function updateMinibar(){try{
@@ -1253,10 +1294,13 @@ function render(d){
   d.fx=d.fx||{audusd:0.69}; if(d.fx.audusd==null)d.fx.audusd=0.69;
   d.market=d.market||{}; d.agenda=d.agenda||{}; d.briefing=d.briefing||{};
   d.watchlist=d.watchlist||[]; d.portfolio=d.portfolio||{holdings:[]}; d.portfolio.holdings=d.portfolio.holdings||[];
-  /* keep totals honest: the header always equals the sum of the holdings below it */
+  /* keep totals honest: header, donut and mini-header must ALL equal the sum of the
+     holdings below them — always recompute from whatever holdings carry numbers, and
+     never trust a baked/serverside total (they've drifted before). */
   var _H=d.portfolio.holdings;
-  if(_H.length&&_H.every(function(h){return typeof h.value_aud==="number";})){
-    var _sv=0,_sc=0; _H.forEach(function(h){_sv+=h.value_aud;_sc+=h.value_aud-(typeof h.pl_aud==="number"?h.pl_aud:0);});
+  var _hv=_H.filter(function(h){return typeof h.value_aud==="number";});
+  if(_hv.length){
+    var _sv=0,_sc=0; _hv.forEach(function(h){_sv+=h.value_aud;_sc+=h.value_aud-(typeof h.pl_aud==="number"?h.pl_aud:0);});
     d.portfolio.total_value_aud=Math.round(_sv*100)/100;
     d.portfolio.total_cost_aud=Math.round(_sc*100)/100;
     d.portfolio.total_pl_aud=Math.round((_sv-_sc)*100)/100;
@@ -1264,6 +1308,13 @@ function render(d){
   }
   window.__gen=d.generated_at;
   document.getElementById("fresh").textContent=ago(d.generated_at);
+  /* stale-data banner: figures older than 24h announce themselves loudly */
+  try{
+    var _age=(Date.now()-new Date(d.generated_at).getTime())/36e5;
+    var _sb=document.getElementById('stalebar');
+    if(!_sb){_sb=document.createElement('div');_sb.id='stalebar';var _tb=document.querySelector('.tabbar');if(_tb)_tb.parentNode.insertBefore(_sb,_tb);}
+    if(_sb){ if(isFinite(_age)&&_age>24){var _dd=Math.round(_age/24);_sb.textContent='⚠ These figures are '+_dd+' day'+(_dd>1?'s':'')+' old (last saved snapshot). Live data loads once the morning briefing runs — tap the timestamp up top to retry.';_sb.style.display='block';} else _sb.style.display='none'; }
+  }catch(e){}
   document.getElementById("pstamp").textContent=d.as_of_date||"";
   const hr=new Date().getHours();
   document.getElementById("hello").textContent=(hr<12?"GOOD MORNING":hr<18?"GOOD AFTERNOON":"GOOD EVENING")+", "+((window.CURRENT&&CURRENT.name?CURRENT.name:"Zac").toUpperCase());
@@ -1736,16 +1787,20 @@ function loadPremarket(){
 }
 const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-track";
 function scoreCell(o){var w=o.win_pct==null?"—":o.win_pct+"%";var r=o.avg_ret==null?"":(o.avg_ret>=0?"+":"")+o.avg_ret+"%";var cl=o.avg_ret==null?"":(o.avg_ret>=0?"up":"down");return '<div class="tsv '+cl+'">'+w+'</div><div class="labsub" style="text-align:center">'+(o.n||0)+' picks'+(r?' · '+r:'')+'</div>';}
-function loadScorecard(){var el=document.getElementById("pmscore");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
-  fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
-    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' picks logged — outcomes fill after each US session closes. First scores land tomorrow morning.'):'No picks logged yet. The panel starts tracking from its next run.')+'</div>';return;}
+function scSrcChips(){var s=window._scSrc||'';
+  function c(v,l){return '<button class="ptab'+(s===v?' on':'')+'" style="padding:3px 10px;font-size:10px" onclick="loadScorecard(\''+v+'\')">'+l+'</button>';}
+  return '<div class="ptabs" style="margin:0 0 8px">'+c('','All')+c('premarket','Pre-market')+c('plays','Plays')+'</div>';}
+function loadScorecard(src){if(src!==undefined)window._scSrc=src;
+  var el=document.getElementById("pmscore");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,source:window._scSrc||""})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
+    if(!j.total_tracked){el.innerHTML=scSrcChips()+'<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' picks logged — each one scores after about a week in the market (5 trading days), so every result is a fair comparison.'):'No picks logged yet. The panel starts tracking from its next run.')+'</div>';return;}
     var tiers=(j.tiers||[]).filter(function(t){return t.n>0;});
     var tierHtml='<div class="sec-lbl">Does consensus work? (win rate · avg move)</div><div class="trkstat">'+tiers.map(function(t){var cl=t.avg_ret==null?"":(t.avg_ret>=0?"up":"down");return '<div class="ts"><div class="tsl">'+t.label+'</div><div class="tsv '+cl+'">'+(t.win_pct==null?"—":t.win_pct+"%")+'</div><div class="labsub">'+t.n+' · '+(t.avg_ret>=0?"+":"")+(t.avg_ret==null?"":t.avg_ret+"%")+'</div></div>';}).join("")+'</div>';
     var brains=(j.brains||[]).filter(function(b){return b.n>0;});
     var brainHtml=brains.length?'<div class="sec-lbl" style="margin-top:10px">Which brain is right most</div>'+brains.map(function(b){var cl=b.avg_ret>=0?"up":"down";return '<div class="trsig"><span>'+b.brain+' <span style="opacity:.6">'+b.vendor+'</span></span><span class="trwin">'+(b.win_pct==null?"—":b.win_pct+"% right")+' · '+b.n+' calls</span></div>';}).join(""):"";
     var recent=(j.recent||[]).filter(function(r){return r.ret_pct!=null;}).slice(0,8);
     var recHtml=recent.length?'<div class="sec-lbl" style="margin-top:10px">Recent outcomes</div>'+recent.map(function(r){var cl=r.ret_pct>=0?"up":"down";return '<div class="trrow"><span class="trk2">'+r.ticker+'</span><span class="trt">'+r.tier+'</span><span class="'+cl+'">'+(r.ret_pct>=0?"+":"")+r.ret_pct+'%</span></div>';}).join(""):"";
-    el.innerHTML=tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' outcomes tracked since '+(j.since||"")+'. Paper only, not advice.</div>';
+    el.innerHTML=scSrcChips()+tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' outcomes tracked since '+(j.since||"")+'. Paper only, not advice.</div>';
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Scorecard unavailable right now.")+'</div>';});}
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
 function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
@@ -1845,7 +1900,7 @@ function loadDefi(){fetch("https://api.llama.fi/v2/chains").then(function(r){ret
 function trGrp(label,gp){if(!gp||!gp.n)return"";return '<div class="trsig"><span>'+label+' ('+gp.n+')</span><span class="trwin">'+(gp.winPct==null?"—":gp.winPct+"% win")+' · '+((gp.avg||0)>=0?"+":"")+(gp.avg||0)+'%</span></div>';}
 function loadTrack(){var el=document.getElementById("track");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
   fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,source:"plays"})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
-    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' plays graded by the panel — outcomes fill after each US session. First scores land tomorrow.'):'No graded plays yet. The three-brain panel grades the screener each night.')+'</div>';return;}
+    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' plays graded by the panel — each one scores after about a week in the market (5 trading days).'):'No graded plays yet. The three-brain panel grades the screener each night.')+'</div>';return;}
     var tiers=(j.tiers||[]).filter(function(t){return t.n>0&&t.tier!=="trap";});
     var tierHtml='<div class="sec-lbl">Does consensus work? (win rate · avg move)</div><div class="trkstat">'+tiers.map(function(t){var cl=t.avg_ret==null?"":(t.avg_ret>=0?"up":"down");return '<div class="ts"><div class="tsl">'+t.label+'</div><div class="tsv '+cl+'">'+(t.win_pct==null?"—":t.win_pct+"%")+'</div><div class="labsub">'+t.n+' · '+(t.avg_ret>=0?"+":"")+(t.avg_ret==null?"":t.avg_ret+"%")+'</div></div>';}).join("")+'</div>';
     var brains=(j.brains||[]).filter(function(b){return b.n>0;});
