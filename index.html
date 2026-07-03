@@ -1107,10 +1107,14 @@ if(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches){(f
   document.addEventListener('pointermove',function(ev){
     var p=ev.target&&ev.target.closest?ev.target.closest('.masonry>.panel'):null;
     if(el&&el!==p){ el.style.transform=''; el=null; }
-    if(!p)return; el=p;
+    if(!p)return;
+    /* no tilt on the Pre-Market tab (the big report tile swings too much) or on any very tall panel */
+    if(document.body.getAttribute('data-tab')==='premkt'){ el=null; return; }
+    el=p;
     if(raf)return;
     raf=requestAnimationFrame(function(){ raf=null; if(!el)return;
       var r=el.getBoundingClientRect();
+      if(r.height>560){ el.style.transform=''; return; }
       var dx=(ev.clientX-r.left)/(r.width||1)-.5, dy=(ev.clientY-r.top)/(r.height||1)-.5;
       el.style.transform='perspective(900px) rotateX('+(-dy*2.4).toFixed(2)+'deg) rotateY('+(dx*2.4).toFixed(2)+'deg) translateY(-2px)';
     });
