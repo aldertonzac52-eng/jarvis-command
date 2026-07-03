@@ -1468,7 +1468,7 @@ function loadPremarket(){
         var ag=j.agreement||{};
         var head='<div class="pmstat">'+
           '<div class="stat"><div class="sl">Runs</div><div class="sv">'+(j.runs_completed||0)+'</div></div>'+
-          '<div class="stat"><div class="sl">Both HIGH</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
+          '<div class="stat"><div class="sl">Panel HIGH (3-brain)</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
           '<div class="stat"><div class="sl">Conflicts</div><div class="sv" style="color:var(--amber)">'+((ag.conflict||[]).join(", ")||"—")+'</div></div></div>';
         var les=(j.lessons&&j.lessons.length)?'<div class="sec-lbl">Lessons in force</div>'+j.lessons.map(function(l){return '<div class="pmlesson">'+pmInline(pmEsc(l))+'</div>';}).join(""):'<div class="sec-lbl">Lessons in force</div><div class="empty" style="animation:none">None yet — lessons are written from real outcomes, and the file grows every reviewed run.</div>';
         var runs=(j.run_log&&j.run_log.length)?'<div class="sec-lbl" style="margin-top:12px">Run log (the memory)</div>'+j.run_log.slice(-6).reverse().map(function(r){return '<div class="pmrun">'+pmEsc(r)+'</div>';}).join(""):"";
