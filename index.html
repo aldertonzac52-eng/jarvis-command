@@ -554,6 +554,21 @@
   #minibar .mbsp{flex:1}
   #minibar .mbt{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);font-weight:700}
 
+  /* ---------- "Today in plain English" beginner tile ---------- */
+  .pmsrow{display:flex;gap:10px;margin:0 0 9px;font-size:12.5px;line-height:1.55;color:#d7e4f8;
+    background:rgba(54,224,255,.04);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .pmsrow .pmse{font-size:16px;flex:none;line-height:1.3}
+  .pmsrow b{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc,var(--cyan));margin-bottom:3px}
+  .pmsrow .pmstk{display:inline-block;font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:11px;
+    background:rgba(54,224,255,.08);border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin:0 4px 3px 0}
+  .pmsintro{font-size:12.5px;line-height:1.6;color:#e2edfc;margin:0 0 10px}
+  .glosshead{font-size:11px;color:var(--muted);letter-spacing:.06em;cursor:pointer;padding:7px 0 2px;user-select:none}
+  .glosshead b{color:var(--acc,var(--cyan))}
+  .gloss{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .gloss.open{max-height:900px}
+  .gloss .g{font-size:11.5px;line-height:1.5;color:var(--muted);padding:5px 0;border-bottom:1px solid rgba(86,140,210,.10)}
+  .gloss .g b{color:var(--txt);font-weight:700}
+
   /* ---------- ambient depth: slow drifting gradient mesh behind everything ---------- */
   .meshbg{position:fixed;inset:-22%;z-index:0;pointer-events:none;opacity:.55;
     background:radial-gradient(640px 440px at 18% 22%,rgba(40,120,200,.13),transparent 60%),
@@ -630,6 +645,7 @@
       <div id="holdings"></div>
     </div>
     <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · three brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
@@ -1661,6 +1677,36 @@ function mdToHtml(md){
   }
   return out.join("\n");
 }
+/* ---------- "Today in plain English": the same daily verdict, zero jargon ---------- */
+function toggleGloss(el){var g=el.nextElementSibling;if(g)g.classList.toggle('open');}
+function renderPmSimple(j){
+  var el=document.getElementById("pmsimple"); if(!el)return;
+  var ag=j.agreement||{};
+  var gl=ag.both_high||[], md=ag.agree_med||[], cf=ag.conflict||[], tr=ag.traps||[];
+  function chips(a){return a.map(function(t){return '<span class="pmstk">'+pmEsc(String(t))+'</span>';}).join('');}
+  var h='';
+  if(j.simple){ var s=Array.isArray(j.simple)?j.simple.join(' '):String(j.simple);
+    h+='<div class="pmsintro">'+pmInline(pmEsc(s))+'</div>'; }
+  if(gl.length) h+='<div class="pmsrow"><span class="pmse">🟢</span><div><b>Green light — all three AIs like these</b>'+chips(gl)+'This is the strongest signal the system gives. All three AIs, from three different companies, looked at the same data separately and all rated it highly.</div></div>';
+  if(md.length) h+='<div class="pmsrow"><span class="pmse">🟡</span><div><b>Worth watching — agreed, but nobody’s excited</b>'+chips(md)+'All three AIs think these are real setups, but none rated them a strong yes. Translation: interesting, not urgent. Watch how they behave, don’t chase.</div></div>';
+  if(cf.length) h+='<div class="pmsrow"><span class="pmse">🔴</span><div><b>The AIs disagree — stand down</b>'+chips(cf)+'They looked at the same numbers and came to different answers. When the panel splits, the rule is simple: do nothing and let it play out.</div></div>';
+  if(tr.length) h+='<div class="pmsrow"><span class="pmse">🚫</span><div><b>Traps — looks exciting, isn’t</b>'+chips(tr)+'These are up big and look tempting, but the AIs say the move is bait (bad news dressed up as a rally). Avoiding these is how the system protects you.</div></div>';
+  if(!gl.length&&!md.length&&!cf.length&&!tr.length&&!j.simple)
+    h+='<div class="pmsrow"><span class="pmse">😴</span><div><b>Quiet morning</b>Nothing on the board worth a look today. That’s not a failure — most mornings the right trade is no trade.</div></div>';
+  var n=gl.length+md.length;
+  h+='<div class="playsdis" style="margin-top:2px">Bottom line: '+(n?n+' name'+(n>1?'s':'')+' worth keeping an eye on':'nothing to act on')+' · the AIs only suggest — nothing is ever traded for real, and you make every decision.</div>';
+  h+='<div class="glosshead" onclick="toggleGloss(this)">📖 <b>What do the words mean?</b> tap to open</div><div class="gloss">'
+    +'<div class="g"><b>Gap up / gap down</b> — a stock opening much higher or lower than yesterday’s close, usually because news broke overnight.</div>'
+    +'<div class="g"><b>Catalyst</b> — the reason a stock is moving (earnings, a deal, FDA news). A move without a reason is usually noise.</div>'
+    +'<div class="g"><b>Day trade vs swing</b> — a day trade is in-and-out the same day; a swing is held for days or weeks.</div>'
+    +'<div class="g"><b>Volume / RVOL</b> — how many shares are changing hands vs normal. Big move + thin volume = don’t trust it.</div>'
+    +'<div class="g"><b>Conviction (HIGH / MED / LOW)</b> — how confident each AI is. HIGH means “I’d act”, MED means “interesting”, LOW means “skip”.</div>'
+    +'<div class="g"><b>Consensus (2-of-3)</b> — a pick only counts when at least two of the three AIs independently agree. One AI alone can be wrong in weird ways; two agreeing blind is much rarer.</div>'
+    +'<div class="g"><b>Trap</b> — a stock that’s up big on news that’s actually bad (lawsuits, investigations). Beginners get hurt chasing these.</div>'
+    +'<div class="g"><b>Paper trade</b> — a practice trade with fake money to test the system’s track record. No real dollars ever move.</div>'
+    +'</div>';
+  el.innerHTML=h;
+}
 function loadPremarket(){
   var rep=document.getElementById("pmreport"),br=document.getElementById("pmbrain");
   if(!rep)return;
@@ -1670,6 +1716,7 @@ function loadPremarket(){
     .then(function(j){
       var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · three brains · "+ago(j.updated_at||j.generated_at);
       rep.innerHTML=mdToHtml(j.report_md||"");
+      try{ renderPmSimple(j); }catch(e){}
       if(br){
         var ag=j.agreement||{};
         var head='<div class="pmstat">'+
@@ -1684,6 +1731,7 @@ function loadPremarket(){
     .catch(function(e){
       rep.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN to view the report.":(e===404?"No report yet — the analyst runs each weekday before the US open.":"Report unavailable right now — tap the timestamp to retry."))+'</div>';
       if(br)br.innerHTML='<div class="empty" style="animation:none">—</div>';
+      var ps=document.getElementById("pmsimple");if(ps)ps.innerHTML='<div class="empty" style="animation:none">The plain-English view appears once today\'s report loads.</div>';
     });
 }
 const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-track";
@@ -1892,6 +1940,7 @@ var INFO={
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
 "Pre-Market Analysis":"A daily report built before the US open by a data scanner plus three independent AI analysts (Claude, Gemini, Llama) from three different companies who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = all three agree and clean, yellow = two of three, red = they split (stand down). Not advice.",
 "Loop memory":"The analyst's brain. It logs every run, tracks where the three brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
+"Today in plain English":"The same daily verdict as the full report, translated for humans: who got a green light, what's worth watching, where the AIs disagreed, and which movers are traps — plus a tap-open glossary of the jargon. Read this first while you're learning; graduate to the full report when it starts making sense.",
 "Panel scorecard":"The panel grading itself on real outcomes. Every pick's forward return is tracked, then bucketed: does full 3/3 consensus actually beat a 2/3 majority or a split? And which of the three brains — Claude, Gemini, Llama — is right most often. Fills in as sessions close. Paper only, not advice.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
