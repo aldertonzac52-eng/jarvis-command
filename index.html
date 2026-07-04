@@ -710,6 +710,7 @@
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="flame"></i>Trending coins <span class="r">most searched</span></div><div id="ctrend"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="coins"></i>Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="gem"></i>Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">Shepparton · weekly</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="percent"></i>RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="home"></i>Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
@@ -1651,6 +1652,36 @@ function renderPlays(){var el=document.getElementById("plays");if(!el)return;var
     return '<div class="playrow" onclick="togglePlay(this)"><div><span class="pl-t">'+sym+'</span><span class="pl-meta">'+x.ccy+" $"+x.price+' · <span class="'+cl+'">'+x.pctFromHigh+'%</span> off high</span>'+wcb+'</div><div class="pl-score">'+sc+'</div></div><div class="pl-sig">'+sumHtml+sparkle+rng+metrics+bars+chips+'</div>';
   }).join("");}
 /* ---------- crypto + property extras ---------- */
+/* ---------- Shepparton rent roll (owner-only) ---------- */
+const RENT_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/rent-roll";
+function rrAct(action,payload){var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(RENT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pin:pin,action:action},payload||{}))})
+  .then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(renderRent)
+  .catch(function(e){var el=document.getElementById("rentroll");if(el)el.innerHTML='<div class="empty" style="animation:none">'+(e===401||e===403?"Owner only — unlock with your PIN.":"Rent roll unavailable right now.")+'</div>';});}
+function loadRentRoll(){if(document.getElementById("rentroll")&&window.CURRENT&&CURRENT.owner)rrAct("status");}
+function renderRent(j){var el=document.getElementById("rentroll");if(!el||!j||j.error)return;
+  var tw=j.this_week||[],act=(j.tenants||[]).filter(function(t){return t.active;});
+  var h='';
+  if(!j.payid)h+='<div class="allflag">&#9888; Set your PayID so Thursday rent emails include payment details. <b style="cursor:pointer;color:var(--cyan)" onclick="rrSetPayid()">Set now</b></div>';
+  if(!act.length)h+='<div class="empty" style="animation:none">House is empty. Add your first housemate when they move in.</div>';
+  else h+=tw.map(function(r){var paid=!!r.paid_at;
+    return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span>A$'+Number(r.due)+'</span><span class="trt '+(paid?'up':'')+'">'+(paid?'paid ✓':'owing')+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\''+(paid?'unmark':'mark_paid')+'\',{id:'+r.id+'})">'+(paid?'undo':'mark paid')+'</button></span></div>';}).join('');
+  var arr=j.arrears||[];
+  if(arr.length)h+='<div class="sec-lbl" style="margin-top:9px">Owing from past weeks</div>'+arr.map(function(r){return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span class="trt">wk '+String(r.week).slice(5)+'</span><span class="down">A$'+Number(r.due)+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\'mark_paid\',{id:'+r.id+'})">mark paid</button></span></div>';}).join('');
+  if(act.length)h+='<div class="allchips" style="margin-top:8px">'+act.map(function(t){return '<span class="allchip">'+pmEsc(t.name)+' A$'+Number(t.rate)+' <b style="cursor:pointer;color:var(--red)" onclick="if(confirm(\'End tenancy for '+pmEsc(t.name).replace(/'/g,"")+'?\'))rrAct(\'end_tenant\',{id:'+t.id+'})">&#10005;</b></span>';}).join('')+'</div>';
+  var bw=j.bills_per_week||0,al=j.allowance_per_week||0,over=al&&bw>al;
+  h+='<div class="trkstat" style="margin-top:10px">'
+    +'<div class="ts"><div class="tsl">Rent 12w</div><div class="tsv up">A$'+(j.income_12w||0).toLocaleString()+'</div></div>'
+    +'<div class="ts"><div class="tsl">Bills /wk</div><div class="tsv '+(over?'down':'')+'">A$'+bw+'</div></div>'
+    +'<div class="ts"><div class="tsl">Allowance</div><div class="tsv">A$'+al+'</div></div></div>';
+  if(over)h+='<div class="allflag">&#9888; Bills are running A$'+(bw-al)+'/wk above the allowance built into the rent — review usage or pricing.</div>';
+  h+='<div class="ptabs" style="margin-top:9px"><button class="ptab" onclick="rrAddTenant()">+ tenant</button><button class="ptab" onclick="rrAddBill()">+ bill</button><button class="ptab" onclick="rrSetPayid()">PayID</button></div>';
+  h+='<div class="playsdis" style="margin-top:7px">Week of '+pmEsc(String(j.week))+' · Thursday morning emails go out automatically with amount, PayID and reference.</div>';
+  el.innerHTML=h;}
+function rrAddTenant(){var n=prompt("Tenant name?");if(!n)return;var e=prompt("Their email (for the Thursday rent email)?")||"";var r=parseFloat(prompt("Weekly rate A$?","300"))||300;rrAct("add_tenant",{name:n,email:e,rate:r});}
+function rrAddBill(){var k=prompt("Bill type? elec / gas / wifi / water / other","elec");if(!k)return;var a=parseFloat(prompt("Amount A$?"));if(!a)return;var no=prompt("Note (e.g. AGL May bill)")||"";rrAct("add_bill",{kind:k,amount:a,note:no});}
+function rrSetPayid(){var p=prompt("Your PayID (the email or mobile registered with your bank):");if(!p)return;var nm=prompt("Account name tenants will see (e.g. Zac Alderton):")||"";rrAct("set_config",{payid:p,payid_name:nm});}
+
 const MACRO_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/macro";
 function fmtBig(n){n=+n;if(n>=1e12)return (n/1e12).toFixed(2)+"T";if(n>=1e9)return (n/1e9).toFixed(1)+"B";if(n>=1e6)return (n/1e6).toFixed(1)+"M";return Math.round(n).toLocaleString("en-AU");}
 function cstat(l,v,cls){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv '+(cls||"")+'">'+v+'</div></div>';}
@@ -1911,7 +1942,7 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); if(!window._secInit){window._secInit=1;loadSectors();} }
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
@@ -1984,6 +2015,7 @@ var INFO={
 "Crypto heatmap":"Top coins as tiles sized by market cap and coloured by 24-hour move — green up, red down.",
 "Crypto buzz":"Coins trending on Reddit right now.",
 "RBA cash rate":"The Reserve Bank of Australia's official cash rate — drives mortgage rates and borrowing power. Pulled straight from the RBA.",
+"Rent roll":"Your Shepparton house, run properly: who's in, who's paid this week, arrears, and rent income vs the bills you cover (with a flag when bills outrun the allowance built into the rent). Every Thursday JARVIS emails each tenant their amount, your PayID and a reference code — no more trust system. Owner-only.",
 "Mortgage repayment":"Estimate monthly repayments from a loan amount, interest rate and term.",
 "Rental yield":"Gross rental yield from weekly rent and property value.",
 "US Market Movers":"Biggest US gainers and losers today.",
