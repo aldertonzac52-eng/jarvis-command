@@ -1661,26 +1661,33 @@ function rrAct(action,payload){var pin="";try{pin=sessionStorage.getItem("jv_pin
   .catch(function(e){var el=document.getElementById("rentroll");if(el)el.innerHTML='<div class="empty" style="animation:none">'+(e===401||e===403?"Owner only — unlock with your PIN.":"Rent roll unavailable right now.")+'</div>';});}
 function loadRentRoll(){if(document.getElementById("rentroll")&&window.CURRENT&&CURRENT.owner)rrAct("status");}
 function renderRent(j){var el=document.getElementById("rentroll");if(!el||!j||j.error)return;
-  var tw=j.this_week||[],act=(j.tenants||[]).filter(function(t){return t.active;});
+  var act=(j.tenants||[]).filter(function(t){return t.active;});
   var h='<img src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display=\'none\'" style="width:100%;border-radius:12px;margin-bottom:10px;display:block;box-shadow:0 6px 20px rgba(0,0,0,.35)">';
-  if(!j.payid)h+='<div class="allflag">&#9888; Set your PayID so Thursday rent emails include payment details. <b style="cursor:pointer;color:var(--cyan)" onclick="rrSetPayid()">Set now</b></div>';
+  if(!j.payid)h+='<div class="allflag">&#9888; Set your PayID so rent emails include payment details. <b style="cursor:pointer;color:var(--cyan)" onclick="rrSetPayid()">Set now</b></div>';
   if(!act.length)h+='<div class="empty" style="animation:none">House is empty. Add your first housemate when they move in.</div>';
-  else h+=tw.map(function(r){var paid=!!r.paid_at;
-    return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span>A$'+Number(r.due)+'</span><span class="trt '+(paid?'up':'')+'">'+(paid?'paid ✓':'owing')+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\''+(paid?'unmark':'mark_paid')+'\',{id:'+r.id+'})">'+(paid?'undo':'mark paid')+'</button></span></div>';}).join('');
-  var arr=j.arrears||[];
-  if(arr.length)h+='<div class="sec-lbl" style="margin-top:9px">Owing from past weeks</div>'+arr.map(function(r){return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span class="trt">wk '+String(r.week).slice(5)+'</span><span class="down">A$'+Number(r.due)+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\'mark_paid\',{id:'+r.id+'})">mark paid</button></span></div>';}).join('');
-  if(act.length)h+='<div class="allchips" style="margin-top:8px">'+act.map(function(t){var cr=t.is_lead?'★':'☆';return '<span class="allchip"><span title="Lead payer — receives the Thursday email for the whole house" style="cursor:pointer;color:'+(t.is_lead?'var(--amber)':'var(--muted)')+'" onclick="rrAct(\'set_lead\',{id:'+(t.is_lead?0:t.id)+'})">'+cr+'</span> '+pmEsc(t.name)+' A$'+Number(t.rate)+' <b style="cursor:pointer;color:var(--red)" onclick="if(confirm(\'End tenancy for '+pmEsc(t.name).replace(/'/g,"")+'?\'))rrAct(\'end_tenant\',{id:'+t.id+'})">&#10005;</b></span>';}).join('')+'</div>';
-  if(j.lead_name)h+='<div class="playsdis" style="margin-top:6px">&#9733; <b style="color:var(--amber)">'+pmEsc(j.lead_name)+'</b> is the lead payer — the Thursday email bills them the house total <b>A$'+(j.house_total||0)+'/wk</b> with everyone\'s split shown. Tap a &#9734; to change; tap the &#9733; to clear.</div>';
+  else h+=act.map(function(t){var owe=t.owed>0;
+    var star='<span title="Lead payer" style="cursor:pointer;color:'+(t.is_lead?'var(--amber)':'var(--muted)')+'" onclick="rrAct(\'set_lead\',{id:'+(t.is_lead?0:t.id)+'})">'+(t.is_lead?'★':'☆')+'</span>';
+    var leave=t.leave_on?' <span class="est" style="color:var(--amber);border-color:rgba(255,194,75,.4)">leaving '+String(t.leave_on).slice(5)+(t.days_until_leave!=null?' ('+t.days_until_leave+'d)':'')+'</span>':'';
+    var line1='<div class="tk">'+star+' '+pmEsc(t.name)+leave+'</div>';
+    var sub='<div class="nm">A$'+Number(t.rate)+'/wk · A$'+t.daily+'/day · in since '+String(t.move_in).slice(5)+' · paid to '+String(t.paid_to).slice(5)+'</div>';
+    var owedLine=owe?'<div class="b down">owes A$'+t.owed+'<br><span style="font-weight:400;font-size:10px">'+t.owed_days+' days</span></div>':'<div class="b up">up to date ✓</div>';
+    var btns='<div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">'
+      +(owe?'<button class="ptab" style="padding:2px 8px;font-size:10px" onclick="rrAct(\'record_payment\',{id:'+t.id+'})">mark A$'+t.owed+' paid</button>':'')
+      +'<button class="ptab" style="padding:2px 8px;font-size:10px" onclick="rrDates('+t.id+')">dates</button>'
+      +'<button class="ptab" style="padding:2px 8px;font-size:10px;color:var(--red)" onclick="if(confirm(\'End this tenancy?\'))rrAct(\'end_tenant\',{id:'+t.id+'})">end</button></div>';
+    return '<div class="hold" style="grid-template-columns:1fr auto;cursor:default;align-items:start"><div>'+line1+sub+btns+'</div><div class="vr">'+owedLine+'</div></div>';}).join('');
+  if(j.lead_name)h+='<div class="playsdis" style="margin-top:6px">&#9733; <b style="color:var(--amber)">'+pmEsc(j.lead_name)+'</b> is the lead payer — the Thursday email bills them the house total with everyone\'s split. Tap a &#9734; to change; the &#9733; to clear.</div>';
   var bw=j.bills_per_week||0,al=j.allowance_per_week||0,over=al&&bw>al;
   h+='<div class="trkstat" style="margin-top:10px">'
-    +'<div class="ts"><div class="tsl">Rent 12w</div><div class="tsv up">A$'+(j.income_12w||0).toLocaleString()+'</div></div>'
-    +'<div class="ts"><div class="tsl">Bills /wk</div><div class="tsv '+(over?'down':'')+'">A$'+bw+'</div></div>'
-    +'<div class="ts"><div class="tsl">Allowance</div><div class="tsv">A$'+al+'</div></div></div>';
-  if(over)h+='<div class="allflag">&#9888; Bills are running A$'+(bw-al)+'/wk above the allowance built into the rent — review usage or pricing.</div>';
+    +'<div class="ts"><div class="tsl">Owed now</div><div class="tsv '+((j.owed_total||0)>0?'down':'up')+'">A$'+(j.owed_total||0)+'</div></div>'
+    +'<div class="ts"><div class="tsl">Income 12w</div><div class="tsv up">A$'+(j.income_12w||0).toLocaleString()+'</div></div>'
+    +'<div class="ts"><div class="tsl">Bills /wk</div><div class="tsv '+(over?'down':'')+'">A$'+bw+'</div></div></div>';
+  if(over)h+='<div class="allflag">&#9888; Bills running A$'+(bw-al)+'/wk above the allowance in the rent — review usage or pricing.</div>';
   h+='<div class="ptabs" style="margin-top:9px"><button class="ptab" onclick="rrAddTenant()">+ tenant</button><button class="ptab" onclick="rrAddBill()">+ bill</button><button class="ptab" onclick="rrSetPayid()">PayID</button></div>';
-  h+='<div class="playsdis" style="margin-top:7px">Week of '+pmEsc(String(j.week))+' · Thursday morning emails go out automatically with amount, PayID and reference.</div>';
+  h+='<div class="playsdis" style="margin-top:7px">Arrears billing — tenants pay for days actually stayed (rate÷7 per day). Set a move-out date and the final part-week prorates automatically, so no free days. Thursday emails carry the amount, PayID and reference.</div>';
   el.innerHTML=h;}
-function rrAddTenant(){var n=prompt("Tenant name?");if(!n)return;var e=prompt("Their email (for the Thursday rent email)?")||"";var r=parseFloat(prompt("Weekly rate A$?","300"))||300;rrAct("add_tenant",{name:n,email:e,rate:r});}
+function rrAddTenant(){var n=prompt("Tenant name?");if(!n)return;var e=prompt("Their email (for rent emails)?")||"";var r=parseFloat(prompt("Weekly rate A$?","300"))||300;var mi=prompt("Move-in date? (YYYY-MM-DD)",new Date().toISOString().slice(0,10))||"";rrAct("add_tenant",{name:n,email:e,rate:r,move_in:mi});}
+function rrDates(id){var mi=prompt("Move-IN date? (YYYY-MM-DD) — blank to keep as is")||"";var lo=prompt("Move-OUT date? (YYYY-MM-DD) — blank clears it. The final part-week auto-prorates.","");var p={id:id,leave_on:(lo||"")};if(mi)p.move_in=mi;rrAct("set_dates",p);}
 function rrAddBill(){var k=prompt("Bill type? elec / gas / wifi / water / other","elec");if(!k)return;var a=parseFloat(prompt("Amount A$?"));if(!a)return;var no=prompt("Note (e.g. AGL May bill)")||"";rrAct("add_bill",{kind:k,amount:a,note:no});}
 function rrSetPayid(){var p=prompt("Your PayID (the email or mobile registered with your bank):");if(!p)return;var nm=prompt("Account name tenants will see (e.g. Zac Alderton):")||"";rrAct("set_config",{payid:p,payid_name:nm});}
 
