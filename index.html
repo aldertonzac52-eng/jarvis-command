@@ -1661,14 +1661,15 @@ function rrAct(action,payload){var pin="";try{pin=sessionStorage.getItem("jv_pin
 function loadRentRoll(){if(document.getElementById("rentroll")&&window.CURRENT&&CURRENT.owner)rrAct("status");}
 function renderRent(j){var el=document.getElementById("rentroll");if(!el||!j||j.error)return;
   var tw=j.this_week||[],act=(j.tenants||[]).filter(function(t){return t.active;});
-  var h='';
+  var h='<img src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display=\'none\'" style="width:100%;border-radius:12px;margin-bottom:10px;display:block;box-shadow:0 6px 20px rgba(0,0,0,.35)">';
   if(!j.payid)h+='<div class="allflag">&#9888; Set your PayID so Thursday rent emails include payment details. <b style="cursor:pointer;color:var(--cyan)" onclick="rrSetPayid()">Set now</b></div>';
   if(!act.length)h+='<div class="empty" style="animation:none">House is empty. Add your first housemate when they move in.</div>';
   else h+=tw.map(function(r){var paid=!!r.paid_at;
     return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span>A$'+Number(r.due)+'</span><span class="trt '+(paid?'up':'')+'">'+(paid?'paid ✓':'owing')+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\''+(paid?'unmark':'mark_paid')+'\',{id:'+r.id+'})">'+(paid?'undo':'mark paid')+'</button></span></div>';}).join('');
   var arr=j.arrears||[];
   if(arr.length)h+='<div class="sec-lbl" style="margin-top:9px">Owing from past weeks</div>'+arr.map(function(r){return '<div class="trrow"><span class="trk2">'+pmEsc(r.name||'')+'</span><span class="trt">wk '+String(r.week).slice(5)+'</span><span class="down">A$'+Number(r.due)+'</span><span style="margin-left:auto"><button class="ptab" style="padding:2px 9px;font-size:10px" onclick="rrAct(\'mark_paid\',{id:'+r.id+'})">mark paid</button></span></div>';}).join('');
-  if(act.length)h+='<div class="allchips" style="margin-top:8px">'+act.map(function(t){return '<span class="allchip">'+pmEsc(t.name)+' A$'+Number(t.rate)+' <b style="cursor:pointer;color:var(--red)" onclick="if(confirm(\'End tenancy for '+pmEsc(t.name).replace(/'/g,"")+'?\'))rrAct(\'end_tenant\',{id:'+t.id+'})">&#10005;</b></span>';}).join('')+'</div>';
+  if(act.length)h+='<div class="allchips" style="margin-top:8px">'+act.map(function(t){var cr=t.is_lead?'★':'☆';return '<span class="allchip"><span title="Lead payer — receives the Thursday email for the whole house" style="cursor:pointer;color:'+(t.is_lead?'var(--amber)':'var(--muted)')+'" onclick="rrAct(\'set_lead\',{id:'+(t.is_lead?0:t.id)+'})">'+cr+'</span> '+pmEsc(t.name)+' A$'+Number(t.rate)+' <b style="cursor:pointer;color:var(--red)" onclick="if(confirm(\'End tenancy for '+pmEsc(t.name).replace(/'/g,"")+'?\'))rrAct(\'end_tenant\',{id:'+t.id+'})">&#10005;</b></span>';}).join('')+'</div>';
+  if(j.lead_name)h+='<div class="playsdis" style="margin-top:6px">&#9733; <b style="color:var(--amber)">'+pmEsc(j.lead_name)+'</b> is the lead payer — the Thursday email bills them the house total <b>A$'+(j.house_total||0)+'/wk</b> with everyone\'s split shown. Tap a &#9734; to change; tap the &#9733; to clear.</div>';
   var bw=j.bills_per_week||0,al=j.allowance_per_week||0,over=al&&bw>al;
   h+='<div class="trkstat" style="margin-top:10px">'
     +'<div class="ts"><div class="tsl">Rent 12w</div><div class="tsv up">A$'+(j.income_12w||0).toLocaleString()+'</div></div>'
