@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#04070f" />
+<title>3 Varcoe St — House Info</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#04070f;--glass:rgba(16,28,52,.55);--line:rgba(86,140,210,.22);--txt:#eaf2ff;--muted:#9eb4d8;--cyan:#36e0ff;--green:#33e6a0;--amber:#ffc24b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{background:radial-gradient(1200px 600px at 50% -10%,rgba(40,120,180,.20),transparent 60%),linear-gradient(180deg,#04070f,#060b18 60%,#04070f);color:var(--txt);font-family:"Inter",-apple-system,sans-serif;font-size:15px;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top) 16px 46px;line-height:1.55}
+  .wrap{max-width:600px;margin:0 auto}
+  .top{text-align:center;padding:26px 0 6px}
+  .mk{font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:.3em;color:var(--cyan);font-size:13px}
+  h1{font-size:24px;margin:14px 0 2px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+  img.house{width:100%;border-radius:16px;display:block;margin:6px 0 18px;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+  .card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:14px}
+  .card h2{font-size:16px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .card h2 .ic{font-size:18px}
+  .card p{margin:6px 0;color:#d7e3f7}
+  .card p.muted{color:var(--muted);font-size:13px}
+  ul{margin:6px 0;padding-left:20px;color:#d7e3f7}
+  li{margin:4px 0}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted);font-size:13px}
+  .kv .v{font-weight:600;text-align:right}
+  .pay{background:rgba(51,230,160,.07);border:1px solid rgba(51,230,160,.35);border-radius:12px;padding:12px 14px;margin-top:8px}
+  .pay .big{font-size:20px;font-weight:800}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6}
+  a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="mk">3 VARCOE ST · SHEPPARTON</span><h1>Welcome home 🏡</h1><div class="sub">Everything you need to settle in — keep this handy.</div></div>
+  <img class="house" src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display='none'" />
+
+  <div class="card">
+    <h2><span class="ic">📶</span> Wi-Fi</h2>
+    <div class="kv"><span class="k">Network</span><span class="v" id="wifi_net">— ask Zac —</span></div>
+    <div class="kv"><span class="k">Password</span><span class="v" id="wifi_pass">— ask Zac —</span></div>
+    <p class="muted">Trouble connecting? Give Zac a text and he'll sort it.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ic">💸</span> How rent works</h2>
+    <p id="rentline">You pay weekly for the days you've actually stayed — never in advance.</p>
+    <ul>
+      <li>Each week you'll get a short email with the exact amount and a reference.</li>
+      <li>Pay by <b>PayID</b>, then tap the <b>“✓ I've paid this”</b> button in the email — that's it, you're marked up to date.</li>
+      <li>Moving out? Just give Zac your leave date — the final few days are worked out at the daily rate, so you never pay for a week you didn't use.</li>
+    </ul>
+    <div class="pay">
+      <div class="k" style="color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase">Pay by PayID</div>
+      <div class="big">0439607086</div>
+      <div class="muted" style="font-size:13px">Zac Alderton · use the reference from your weekly email</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ic">🗑️</span> Bins</h2>
+    <div class="kv"><span class="k">Rubbish (red)</span><span class="v" id="bin_red">— ask Zac —</span></div>
+    <div class="kv"><span class="k">Recycling (yellow)</span><span class="v" id="bin_yellow">— ask Zac —</span></div>
+    <p class="muted">Whoever's up first on bin night, please roll them out to the kerb. We rotate — don't leave it to the same person.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ic">🏠</span> House basics</h2>
+    <ul>
+      <li>Quiet, respectful and tidy — clean up after yourself in shared spaces.</li>
+      <li>Keep the kitchen and bathroom the way you'd like to find them.</li>
+      <li>Guests are fine — just be considerate, especially late at night.</li>
+      <li>No smoking or vaping inside. Keep noise down after 10pm.</li>
+      <li>If something breaks or runs out (toilet paper, a light globe, an appliance), flag it to Zac early rather than leaving it.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="ic">📞</span> Contact</h2>
+    <div class="kv"><span class="k">Zac (landlord)</span><span class="v">0439607086</span></div>
+    <div class="kv"><span class="k">Email</span><span class="v">aldertonzac52@gmail.com</span></div>
+    <p class="muted">Anything at all — maintenance, a question, running late on rent — just message. Easiest for everyone if you flag things early.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="ic">👋</span> Moving out</h2>
+    <ul>
+      <li>Give Zac as much notice as you can, with your exact leave date.</li>
+      <li>Your final rent covers only the days you stay — the last part-week is prorated automatically.</li>
+      <li>Leave your room and shared areas clean, and hand back any keys.</li>
+    </ul>
+  </div>
+
+  <div class="note">3 Varcoe St, Shepparton · managed with JARVIS.<br>Save this page — it's yours to keep.</div>
+</div>
+<script>
+// Pull the live house billing mode so the rent line always matches what Zac has set.
+fetch("https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/rent-roll")
+ .then(function(r){return r.json();}).then(function(j){
+   if(!j||!j.bill_mode)return;
+   var el=document.getElementById("rentline");if(!el)return;
+   if(j.bill_mode==="rentonly"){el.textContent="You pay weekly rent for the days you've actually stayed (never in advance), and the house splits the utility bills (power, gas, water, internet) between everyone.";}
+   else{el.textContent="You pay one flat weekly amount for the days you've actually stayed (never in advance) — that covers your room and all the bills (power, gas, water, internet). Nothing else to think about.";}
+ }).catch(function(){});
+</script>
+</body>
+</html>
