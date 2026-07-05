@@ -675,6 +675,7 @@
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
+    <div class="panel sec-port"><div class="ph"><i data-lucide="calendar-plus"></i>Calendar <span class="r">dates · reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · three brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
@@ -1683,6 +1684,34 @@ function rrAddTenant(){var n=prompt("Tenant name?");if(!n)return;var e=prompt("T
 function rrAddBill(){var k=prompt("Bill type? elec / gas / wifi / water / other","elec");if(!k)return;var a=parseFloat(prompt("Amount A$?"));if(!a)return;var no=prompt("Note (e.g. AGL May bill)")||"";rrAct("add_bill",{kind:k,amount:a,note:no});}
 function rrSetPayid(){var p=prompt("Your PayID (the email or mobile registered with your bank):");if(!p)return;var nm=prompt("Account name tenants will see (e.g. Zac Alderton):")||"";rrAct("set_config",{payid:p,payid_name:nm});}
 
+/* ---------- Calendar (per-user dates + reminders, syncs to Google Calendar) ---------- */
+const CAL_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/calendar";
+function calAct(action,payload){var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(CAL_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pin:pin,action:action},payload||{}))})
+  .then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(renderCal)
+  .catch(function(e){var el=document.getElementById("calbox");if(el)el.innerHTML='<div class="empty" style="animation:none">'+(e===401||e===403?"Unlock with your PIN to use your calendar.":"Calendar unavailable right now.")+'</div>';});}
+function loadCal(){if(document.getElementById("calbox")&&window.CURRENT)calAct("list");}
+function calWhen(iso,allday){var d=new Date(iso);var now=new Date();var days=Math.round((d-now)/86400000);
+  var day=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
+  var tm=allday?"all day":d.toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
+  var rel=days<0?"past":days===0?"today":days===1?"tomorrow":"in "+days+"d";
+  return {day:day,tm:tm,rel:rel,soon:days>=0&&days<=2};}
+var CAL_ICON={rent:"🏠",bill:"⚡",inspection:"🔍",market:"📈",personal:"📅"};
+function renderCal(j){var el=document.getElementById("calbox");if(!el||!j)return;var ev=j.events||[];
+  var h='<div class="ptabs" style="margin:0 0 9px"><button class="ptab" onclick="calAdd()">+ add date</button></div>';
+  if(!ev.length){h+='<div class="empty" style="animation:none">No dates yet. Add rent due dates, inspections, bills or anything you want a reminder for.</div>';el.innerHTML=h;return;}
+  h+=ev.map(function(e){var w=calWhen(e.at,e.all_day);var ic=CAL_ICON[e.kind]||"📅";
+    return '<div class="li" style="align-items:center"><div class="dot '+(w.soon?"warn":"")+'"></div><div style="flex:1"><div>'+ic+' '+pmEsc(e.title)+'<span style="color:'+(w.soon?"var(--amber)":"var(--muted)")+';font-size:11px;margin-left:6px">'+w.rel+'</span></div><span class="meta">'+w.day+' · '+w.tm+(e.gcal_state==="synced"?' · 🔔 phone':'')+'</span></div><button class="ptab" style="padding:2px 8px;font-size:10px" onclick="if(confirm(\'Remove this date?\'))calAct(\'delete\',{id:'+e.id+'})">✕</button></div>';}).join('');
+  h+='<div class="playsdis" style="margin-top:8px">Dates sync to your Google Calendar so reminders ring on your phone. JARVIS knows your schedule too — just ask.</div>';
+  el.innerHTML=h;}
+function calAdd(){var t=prompt("What's the event? (e.g. Rent due, House inspection)");if(!t)return;
+  var d=prompt("Date? (YYYY-MM-DD)",new Date(Date.now()+86400000).toISOString().slice(0,10));if(!d)return;
+  var tm=prompt("Time? (HH:MM, 24h) — leave blank for all-day","09:00");
+  var allday=!tm;var at=allday?(d+"T09:00:00+10:00"):(d+"T"+(tm.length===5?tm:"09:00")+":00+10:00");
+  var k=(prompt("Type? rent / bill / inspection / personal","personal")||"personal").toLowerCase();
+  var rm=parseInt(prompt("Remind how many minutes before? (e.g. 60 = 1hr, 1440 = 1 day)","120"),10);if(isNaN(rm))rm=120;
+  calAct("add",{title:t,at:at,all_day:allday,kind:k,remind_min:rm});}
+
 const MACRO_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/macro";
 function fmtBig(n){n=+n;if(n>=1e12)return (n/1e12).toFixed(2)+"T";if(n>=1e9)return (n/1e9).toFixed(1)+"B";if(n>=1e6)return (n/1e6).toFixed(1)+"M";return Math.round(n).toLocaleString("en-AU");}
 function cstat(l,v,cls){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv '+(cls||"")+'">'+v+'</div></div>';}
@@ -1943,7 +1972,7 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
