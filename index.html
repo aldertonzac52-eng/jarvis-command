@@ -675,7 +675,6 @@
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
-    <div class="panel sec-port"><div class="ph"><i data-lucide="calendar-plus"></i>Calendar <span class="r">dates · reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · three brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
@@ -712,6 +711,7 @@
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="coins"></i>Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="gem"></i>Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Property calendar <span class="r">dates · phone reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="percent"></i>RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="home"></i>Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
@@ -1664,6 +1664,12 @@ function renderRent(j){var el=document.getElementById("rentroll");if(!el||!j||j.
   var act=(j.tenants||[]).filter(function(t){return t.active;});
   var h='<img src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display=\'none\'" style="width:100%;border-radius:12px;margin-bottom:10px;display:block;box-shadow:0 6px 20px rgba(0,0,0,.35)">';
   if(!j.payid)h+='<div class="allflag">&#9888; Set your PayID so rent emails include payment details. <b style="cursor:pointer;color:var(--cyan)" onclick="rrSetPayid()">Set now</b></div>';
+  var mode=j.bill_mode||'allin';var isAll=mode==='allin';var other=isAll?'rentonly':'allin';
+  h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:10px">'
+    +'<span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">House mode</span>'
+    +'<b style="color:'+(isAll?'var(--green)':'var(--cyan)')+'">'+(isAll?'All-inclusive':'Rent-only')+'</b>'
+    +'<span style="font-size:11px;color:var(--muted)">'+(isAll?'you cover bills · $300pp':'they split bills · $233pp')+'</span>'
+    +'<button class="ptab" style="margin-left:auto;padding:3px 10px;font-size:10px" onclick="rrSetMode(\''+other+'\')">switch to '+(isAll?'Rent-only':'All-inclusive')+'</button></div>';
   var apps=j.applicants||[];
   if(apps.length){var OPTLBL={allin:"All-inclusive",rentonly:"Rent only",couple_allin:"Couple all-in",couple_rentonly:"Couple rent-only"};
     h+='<div class="allflag" style="border-color:rgba(51,230,160,.4);background:rgba(51,230,160,.08);color:#bfeed8">&#128075; '+apps.length+' new application'+(apps.length>1?'s':'')+' to review</div>';
@@ -1685,7 +1691,8 @@ function renderRent(j){var el=document.getElementById("rentroll");if(!el||!j||j.
   var bw=j.bills_per_week||0,al=j.allowance_per_week||0,over=al&&bw>al;
   h+='<div class="trkstat" style="margin-top:10px">'
     +'<div class="ts"><div class="tsl">Owed now</div><div class="tsv '+((j.owed_total||0)>0?'down':'up')+'">A$'+(j.owed_total||0)+'</div></div>'
-    +'<div class="ts"><div class="tsl">Income 12w</div><div class="tsv up">A$'+(j.income_12w||0).toLocaleString()+'</div></div>'
+    +'<div class="ts"><div class="tsl">This FY</div><div class="tsv up">A$'+(j.income_fy||0).toLocaleString()+'</div></div>'
+    +'<div class="ts"><div class="tsl">All-time</div><div class="tsv up">A$'+(j.income_all||0).toLocaleString()+'</div></div>'
     +'<div class="ts"><div class="tsl">Bills /wk</div><div class="tsv '+(over?'down':'')+'">A$'+bw+'</div></div></div>';
   if(over)h+='<div class="allflag">&#9888; Bills running A$'+(bw-al)+'/wk above the allowance in the rent — review usage or pricing.</div>';
   h+='<div class="ptabs" style="margin-top:9px"><button class="ptab" onclick="rrAddTenant()">+ tenant</button><button class="ptab" onclick="rrAddBill()">+ bill</button><button class="ptab" onclick="rrSetPayid()">PayID</button><button class="ptab" onclick="rrFormLink()">form link</button></div>';
@@ -1696,6 +1703,10 @@ function rrDates(id){var mi=prompt("Move-IN date? (YYYY-MM-DD) — blank to keep
 function rrFormLink(){var u=location.origin+location.pathname.replace(/index\.html$/,'')+'intake.html';try{navigator.clipboard.writeText(u);showAnswer("Application form link copied — send it to prospective housemates:<br><b>"+u+"</b><br>When they fill it out, it shows up here to approve.");}catch(e){showAnswer("Your application form: <b>"+u+"</b>");}}
 function rrAddBill(){var k=prompt("Bill type? elec / gas / wifi / water / other","elec");if(!k)return;var a=parseFloat(prompt("Amount A$?"));if(!a)return;var no=prompt("Note (e.g. AGL May bill)")||"";rrAct("add_bill",{kind:k,amount:a,note:no});}
 function rrSetPayid(){var p=prompt("Your PayID (the email or mobile registered with your bank):");if(!p)return;var nm=prompt("Account name tenants will see (e.g. Zac Alderton):")||"";rrAct("set_config",{payid:p,payid_name:nm});}
+function rrSetMode(m){var lbl=m==='rentonly'?'Rent-only — $233pp, housemates split the bills':'All-inclusive — $300pp, you cover all bills';
+  if(!confirm('Switch the WHOLE house to:\n\n'+lbl+'\n\nEveryone must be on the same mode.'))return;
+  var rr=confirm('Also reset each housemate\'s weekly rate to the new standard ($'+(m==='rentonly'?'233':'300')+'pp)?\n\nOK = update rates   ·   Cancel = keep current rates');
+  rrAct('set_bill_mode',{mode:m,rerate:rr});}
 
 /* ---------- Calendar (per-user dates + reminders, syncs to Google Calendar) ---------- */
 const CAL_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/calendar";
@@ -1704,21 +1715,36 @@ function calAct(action,payload){var pin="";try{pin=sessionStorage.getItem("jv_pi
   .then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(renderCal)
   .catch(function(e){var el=document.getElementById("calbox");if(el)el.innerHTML='<div class="empty" style="animation:none">'+(e===401||e===403?"Unlock with your PIN to use your calendar.":"Calendar unavailable right now.")+'</div>';});}
 function loadCal(){if(document.getElementById("calbox")&&window.CURRENT)calAct("list");}
-function calWhen(iso,allday){var d=new Date(iso);var now=new Date();var days=Math.round((d-now)/86400000);
-  var day=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
-  var tm=allday?"all day":d.toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
-  var rel=days<0?"past":days===0?"today":days===1?"tomorrow":"in "+days+"d";
-  return {day:day,tm:tm,rel:rel,soon:days>=0&&days<=2};}
 var CAL_ICON={rent:"🏠",bill:"⚡",inspection:"🔍",market:"📈",personal:"📅"};
-function renderCal(j){var el=document.getElementById("calbox");if(!el||!j)return;var ev=j.events||[];
-  var h='<div class="ptabs" style="margin:0 0 9px"><button class="ptab" onclick="calAdd()">+ add date</button></div>';
-  if(!ev.length){h+='<div class="empty" style="animation:none">No dates yet. Add rent due dates, inspections, bills or anything you want a reminder for.</div>';el.innerHTML=h;return;}
-  h+=ev.map(function(e){var w=calWhen(e.at,e.all_day);var ic=CAL_ICON[e.kind]||"📅";
-    return '<div class="li" style="align-items:center"><div class="dot '+(w.soon?"warn":"")+'"></div><div style="flex:1"><div>'+ic+' '+pmEsc(e.title)+'<span style="color:'+(w.soon?"var(--amber)":"var(--muted)")+';font-size:11px;margin-left:6px">'+w.rel+'</span></div><span class="meta">'+w.day+' · '+w.tm+(e.gcal_state==="synced"?' · 🔔 phone':'')+'</span></div><button class="ptab" style="padding:2px 8px;font-size:10px" onclick="if(confirm(\'Remove this date?\'))calAct(\'delete\',{id:'+e.id+'})">✕</button></div>';}).join('');
-  h+='<div class="playsdis" style="margin-top:8px">Dates sync to your Google Calendar so reminders ring on your phone. JARVIS knows your schedule too — just ask.</div>';
+function calColor(k){return k==='rent'?'var(--green)':k==='bill'?'var(--amber)':k==='inspection'?'var(--cyan)':'var(--muted)';}
+function calInjectCss(){if(document.getElementById("calcss"))return;var st=document.createElement("style");st.id="calcss";
+  st.textContent=".calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.calhead .calm{font-weight:700;font-size:14px}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.caldow{text-align:center;font-size:10px;color:var(--muted);padding:1px 0}.calcell{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;padding-top:4px;cursor:pointer;transition:.12s;min-height:32px}.calcell:hover{border-color:rgba(54,224,255,.5);background:rgba(54,224,255,.07)}.calcell.blank{border:none;cursor:default;background:none}.calcell.today{border-color:var(--cyan);background:rgba(54,224,255,.12)}.calcell.has .caln{font-weight:700}.caln{font-size:12px;color:var(--txt);line-height:1}.caldots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center}.caldot{width:5px;height:5px;border-radius:50%}.calup{margin-top:11px;display:flex;flex-direction:column;gap:6px}.calupr{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px}.calupd{color:var(--muted);font-size:11px;white-space:nowrap}";
+  document.head.appendChild(st);}
+function renderCal(j){window.CAL_EVENTS=(j&&j.events)||[];if(!window.calCursor){var n=new Date();window.calCursor={y:n.getFullYear(),m:n.getMonth()};}drawCal();}
+function calShift(d){if(!window.calCursor)return;var m=window.calCursor.m+d,y=window.calCursor.y;if(m<0){m=11;y--;}if(m>11){m=0;y++;}window.calCursor={y:y,m:m};drawCal();}
+function calGoToday(){var n=new Date();window.calCursor={y:n.getFullYear(),m:n.getMonth()};drawCal();}
+function drawCal(){var el=document.getElementById("calbox");if(!el)return;calInjectCss();
+  var c=window.calCursor,evs=window.CAL_EVENTS||[];
+  var pad=function(n){return String(n).padStart(2,"0");};
+  var first=new Date(c.y,c.m,1);var start=(first.getDay()+6)%7;var dim=new Date(c.y,c.m+1,0).getDate();
+  var todayStr=new Date().toLocaleDateString("en-CA");
+  var byDay={};evs.forEach(function(e){var k=new Date(e.at).toLocaleDateString("en-CA");(byDay[k]=byDay[k]||[]).push(e);});
+  var mName=first.toLocaleDateString("en-AU",{month:"long",year:"numeric"});
+  var h='<div class="calhead"><button class="ptab" style="padding:3px 11px" onclick="calShift(-1)">‹</button><div class="calm">'+mName+'</div><button class="ptab" style="padding:3px 11px" onclick="calShift(1)">›</button></div>';
+  h+='<div class="calgrid">';["M","T","W","T","F","S","S"].forEach(function(d){h+='<div class="caldow">'+d+'</div>';});
+  for(var i=0;i<start;i++)h+='<div class="calcell blank"></div>';
+  for(var day=1;day<=dim;day++){var k=c.y+"-"+pad(c.m+1)+"-"+pad(day);var de=byDay[k]||[];
+    var dots=de.slice(0,3).map(function(e){return '<span class="caldot" style="background:'+calColor(e.kind)+'"></span>';}).join('');
+    h+='<div class="calcell'+(k===todayStr?' today':'')+(de.length?' has':'')+'" title="'+de.map(function(e){return pmEsc(e.title);}).join(", ")+'" onclick="calAdd(\''+k+'\')"><span class="caln">'+day+'</span><div class="caldots">'+dots+'</div></div>';}
+  h+='</div>';
+  var up=evs.filter(function(e){return new Date(e.at)>=new Date(todayStr+"T00:00:00");}).sort(function(a,b){return new Date(a.at)-new Date(b.at);}).slice(0,6);
+  if(up.length){h+='<div class="calup">'+up.map(function(e){var d=new Date(e.at);var ds=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
+    return '<div class="calupr"><span>'+(CAL_ICON[e.kind]||"📅")+' '+pmEsc(e.title)+'</span><span class="calupd">'+ds+(e.gcal_state==="synced"?' 🔔':'')+' <b onclick="event.stopPropagation();if(confirm(\'Remove this date?\'))calAct(\'delete\',{id:'+e.id+'})" style="cursor:pointer;color:var(--red)">✕</b></span></div>';}).join('')+'</div>';}
+  h+='<div class="ptabs" style="margin-top:9px"><button class="ptab" onclick="calAdd()">+ add date</button><button class="ptab" onclick="calGoToday()">today</button></div>';
+  h+='<div class="playsdis" style="margin-top:7px">Tap any day to add. Property dates sync to your Google Calendar so reminders ring on your phone — and JARVIS knows your schedule.</div>';
   el.innerHTML=h;}
-function calAdd(){var t=prompt("What's the event? (e.g. Rent due, House inspection)");if(!t)return;
-  var d=prompt("Date? (YYYY-MM-DD)",new Date(Date.now()+86400000).toISOString().slice(0,10));if(!d)return;
+function calAdd(preDate){var t=prompt("What's the event? (e.g. Rent due, House inspection)");if(!t)return;
+  var d=prompt("Date? (YYYY-MM-DD)",preDate||new Date(Date.now()+86400000).toISOString().slice(0,10));if(!d)return;
   var tm=prompt("Time? (HH:MM, 24h) — leave blank for all-day","09:00");
   var allday=!tm;var at=allday?(d+"T09:00:00+10:00"):(d+"T"+(tm.length===5?tm:"09:00")+":00+10:00");
   var k=(prompt("Type? rent / bill / inspection / personal","personal")||"personal").toLowerCase();

@@ -44,13 +44,8 @@
   <div class="top"><span class="mk">3 VARCOE ST · SHEPPARTON</span><h1>Room Application</h1><div class="sub">Fill this out and I'll be in touch. Takes a minute.</div></div>
   <img class="house" src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display='none'" />
   <div class="card" id="form">
-    <label class="f">Which option suits you?</label>
-    <div class="opts" id="opts">
-      <label class="opt sel"><input type="radio" name="option" value="allin" checked><div class="t">All-inclusive — $300/week</div><div class="d">Rent + all bills (power, gas, water, internet). One flat payment.</div></label>
-      <label class="opt"><input type="radio" name="option" value="rentonly"><div class="t">Rent only — $233/week</div><div class="d">You split the bills with the house.</div></label>
-      <label class="opt"><input type="radio" name="option" value="couple_allin"><div class="t">Couple, all-inclusive — $450/week</div><div class="d">Two of you sharing a room, everything covered.</div></label>
-      <label class="opt"><input type="radio" name="option" value="couple_rentonly"><div class="t">Couple, rent only — $350/week</div><div class="d">Two of you, you split the bills.</div></label>
-    </div>
+    <label class="f">Which suits you?</label>
+    <div class="opts" id="opts"><div style="color:var(--muted);font-size:13px;padding:6px 2px">Loading current options…</div></div>
     <label class="f">Your name</label><input id="name" autocomplete="name" />
     <div class="row"><div><label class="f">Email</label><input id="email" type="email" autocomplete="email" /></div><div><label class="f">Mobile</label><input id="mobile" type="tel" autocomplete="tel" /></div></div>
     <div class="row"><div><label class="f">Move-in date</label><input id="move_in" type="date" /></div><div><label class="f">Move-out (if known)</label><input id="leave_on" type="date" /></div></div>
@@ -65,7 +60,19 @@
 </div>
 <script>
 const INTAKE="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/rent-intake";
-document.querySelectorAll('.opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel');});o.classList.add('sel');});});
+const MODEURL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/rent-roll";
+function bindOpts(){document.querySelectorAll('.opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel');});o.classList.add('sel');});});}
+function buildOpts(mode,rates){
+  var r=rates&&rates[mode]?rates[mode]:(mode==='rentonly'?{single:233,couple:350}:{single:300,couple:450});
+  var single=mode==='rentonly'?'rentonly':'allin', couple=mode==='rentonly'?'couple_rentonly':'couple_allin';
+  var sd=mode==='rentonly'?'Your room; you split the bills (power, gas, water, internet) with the house.':'Your room + all bills included. One flat weekly payment, nothing else to think about.';
+  var cd=mode==='rentonly'?'Two of you sharing a room; you split the bills with the house.':'Two of you sharing a room, everything covered.';
+  var h='';
+  h+='<label class="opt sel"><input type="radio" name="option" value="'+single+'" checked><div class="t">'+(mode==='rentonly'?'Rent only':'All-inclusive')+' — $'+r.single+'/week</div><div class="d">'+sd+'</div></label>';
+  h+='<label class="opt"><input type="radio" name="option" value="'+couple+'"><div class="t">Couple — $'+r.couple+'/week</div><div class="d">'+cd+'</div></label>';
+  document.getElementById('opts').innerHTML=h;bindOpts();
+}
+fetch(MODEURL).then(function(r){return r.json();}).then(function(j){buildOpts((j&&j.bill_mode)||'allin',j&&j.rates);}).catch(function(){buildOpts('allin',null);});
 function val(id){var e=document.getElementById(id);return e?e.value.trim():"";}
 function submit(){
   var err=document.getElementById('err');err.textContent="";
