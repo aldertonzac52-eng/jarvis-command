@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#04070f" />
-<title>3 Varcoe St — House Info</title>
+<title>3 Varcoe St House Info</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
 <style>
@@ -37,30 +37,31 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><span class="mk">3 VARCOE ST · SHEPPARTON</span><h1>Welcome home 🏡</h1><div class="sub">Everything you need to settle in — keep this handy.</div></div>
+  <div class="top"><span class="mk">3 VARCOE ST · SHEPPARTON</span><h1>Welcome home 🏡</h1><div class="sub">Everything you need to settle in. Keep this handy.</div></div>
   <img class="house" src="house.jpg" alt="3 Varcoe St, Shepparton" onerror="this.style.display='none'" />
 
   <div class="card">
     <h2><span class="ic">💸</span> How rent works</h2>
-    <p id="rentline">You pay weekly for the days you've actually stayed — never in advance.</p>
+    <p id="rentline">You pay weekly for the days you've actually stayed, never in advance.</p>
     <ul>
       <li>Each week you'll get a short email with the exact amount and a reference.</li>
-      <li>Pay by <b>PayID</b>, then tap the <b>“✓ I've paid this”</b> button in the email — that's it, you're marked up to date.</li>
-      <li>Moving out? Just give Zac your leave date — the final few days are worked out at the daily rate, so you never pay for a week you didn't use.</li>
+      <li>Pay by <b>PayID</b>, then tap the <b>“✓ I've paid this”</b> button in the email, and that's it, you're marked up to date.</li>
+      <li>Moving out? Just give Zac your leave date, and the final few days are worked out at the daily rate, so you never pay for a week you didn't use.</li>
     </ul>
     <div class="pay">
       <div class="k" style="color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase">Pay by PayID</div>
       <div class="big">0439607086</div>
       <div class="muted" style="font-size:13px">Zac Alderton · use the reference from your weekly email</div>
     </div>
+    <p class="muted" style="margin-top:13px">Costs have risen a fair bit lately, energy especially, along with rising rates and interest, so the rate is set to cover those while keeping things simple and predictable. One price, everything sorted, nothing else to think about.</p>
   </div>
 
   <div class="card">
     <h2><span class="ic">🏠</span> House basics</h2>
     <ul>
-      <li>Quiet, respectful and tidy — clean up after yourself in shared spaces.</li>
+      <li>Quiet, respectful and tidy. Clean up after yourself in shared spaces.</li>
       <li>Keep the kitchen and bathroom the way you'd like to find them.</li>
-      <li>Guests are fine — just be considerate, especially late at night.</li>
+      <li>Guests are fine, just be considerate, especially late at night.</li>
       <li>No smoking or vaping inside. Keep noise down after 10pm.</li>
       <li>If something breaks or runs out (toilet paper, a light globe, an appliance), flag it to Zac early rather than leaving it.</li>
     </ul>
@@ -70,19 +71,19 @@
     <h2><span class="ic">📞</span> Contact</h2>
     <div class="kv"><span class="k">Zac (landlord)</span><span class="v">0439607086</span></div>
     <div class="kv"><span class="k">Email</span><span class="v">aldertonzac52@gmail.com</span></div>
-    <p class="muted">Anything at all — maintenance, a question, running late on rent — just message. Easiest for everyone if you flag things early.</p>
+    <p class="muted">Anything at all, whether it's maintenance, a question, or running late on rent, just message. Easiest for everyone if you flag things early.</p>
   </div>
 
   <div class="card">
     <h2><span class="ic">👋</span> Moving out</h2>
     <ul>
       <li>Give Zac as much notice as you can, with your exact leave date.</li>
-      <li>Your final rent covers only the days you stay — the last part-week is prorated automatically.</li>
+      <li>Your final rent covers only the days you stay, and the last part-week is prorated automatically.</li>
       <li>Leave your room and shared areas clean, and hand back any keys.</li>
     </ul>
   </div>
 
-  <div class="note">3 Varcoe St, Shepparton · managed with JARVIS.<br>Save this page — it's yours to keep.</div>
+  <div class="note">3 Varcoe St, Shepparton · managed with JARVIS.<br>Save this page, it's yours to keep.</div>
 </div>
 <script>
 // Pull the live house billing mode so the rent line always matches what Zac has set.
@@ -91,7 +92,7 @@ fetch("https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/rent-roll")
    if(!j||!j.bill_mode)return;
    var el=document.getElementById("rentline");if(!el)return;
    if(j.bill_mode==="rentonly"){el.textContent="You pay weekly rent for the days you've actually stayed (never in advance), and the house splits the utility bills (power, gas, water, internet) between everyone.";}
-   else{el.textContent="You pay one flat weekly amount for the days you've actually stayed (never in advance) — that covers your room and all the bills (power, gas, water, internet). Nothing else to think about.";}
+   else{el.textContent="You pay one flat weekly amount for the days you've actually stayed (never in advance), and that covers your room and all the bills (power, gas, water, internet). Nothing else to think about.";}
  }).catch(function(){});
 </script>
 </body>
