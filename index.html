@@ -679,7 +679,7 @@
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
+    <div class="panel sec-port guestwatch"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
@@ -2108,7 +2108,8 @@ var INFO={
 };
 function addInfoButtons(){var keys=Object.keys(INFO);document.querySelectorAll('.panel .ph').forEach(function(ph){if(ph._info)return;var t=(ph.textContent||"").trim();var key=null;for(var i=0;i<keys.length;i++){if(t.indexOf(keys[i])===0){key=keys[i];break;}}if(!key)return;ph._info=1;var b=document.createElement('span');b.className='infobtn';b.textContent='?';b.title='What is this?';b.onclick=function(e){e.stopPropagation();var d=ph.parentNode.querySelector('.pinfo');if(d)d.classList.toggle('open');};ph.appendChild(b);var d=document.createElement('div');d.className='pinfo';d.textContent=INFO[key];ph.parentNode.insertBefore(d,ph.nextSibling);});}
 function renderGuest(d){
-  var hold=d.holdings||[]; var tk=hold.map(function(h){return h.ticker;}).join(",");
+  var hold=d.holdings||[]; var gwatch=d.watchlist||[];
+  var tk=hold.map(function(h){return h.ticker;}).concat(gwatch.map(function(w){return w.ticker;})).join(",");
   fetch(LOOKUP_URL+"?tickers="+tk).then(function(r){return r.json();}).then(function(px){
     var prices={}; (px.rows||[]).forEach(function(r){prices[r.sym]={price:r.price,pct:r.pct};});
     var fx=(d.fx&&d.fx.audusd)||0.6899,out=[],tv=0,tc=0;
@@ -2128,9 +2129,14 @@ function renderGuest(d){
       tod+", "+gname+". Everything's tracked and up to date — tap the orb whenever you want a recap.",
       tod+", "+gname+". Portfolio A$"+v+", "+(plp>=0?"up":"down")+" "+Math.abs(plp)+"% on cost. What's up?"];
     var welcome=opns[Math.floor(Math.random()*opns.length)];
+    /* guest watchlist: their own tickers, priced live, same row UI as the owner's */
+    var wout=gwatch.map(function(w){var p=prices[w.ticker]||{};
+      return {ticker:w.ticker,name:w.name||w.ticker,price:p.price!=null?p.price:null,pct:p.pct!=null?p.pct:null,
+        buy_below:w.buy_below!=null?w.buy_below:null,note:w.note||"",spotlight:false,series:[]};});
+    try{var wp=document.querySelector('.panel.guestwatch');if(wp)wp.style.display=wout.length?"":"none";}catch(e){}
     var dd={generated_at:d.generated_at,as_of_date:d.as_of_date,tz:d.tz,fx:d.fx||{audusd:fx},market:d.market||{movers:{gainers:[],losers:[]}},
       portfolio:{total_value_aud:Math.round(tv*100)/100,total_cost_aud:Math.round(tc*100)/100,total_pl_aud:Math.round((tv-tc)*100)/100,total_pl_pct:tc?Math.round((tv-tc)/tc*10000)/100:0,holdings:out,networth:[]},
-      watchlist:[],agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:welcome,voice:"",focus:""},alerts:[]};
+      watchlist:wout,agenda:{calendar:[],tasks:[],inbox:[],drive:[]},briefing:{text:welcome,voice:"",focus:""},alerts:[]};
     render(dd); showAnswer(welcome);
   }).catch(function(){
     showAnswer("I couldn't fetch live prices just then — tap the timestamp up top to retry in a moment.");
