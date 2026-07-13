@@ -608,6 +608,24 @@
     border:1px solid var(--line);border-radius:14px;padding:4px 11px;cursor:pointer;transition:.15s}
   .qchip:hover{border-color:var(--cyan-dim);color:var(--txt)}
   .qchip:active{transform:scale(.94)}
+
+  /* ---------- v2 feature tiles ---------- */
+  .askrow{display:flex;gap:7px;margin-bottom:9px}
+  .askrow input{flex:1;background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px 11px;color:var(--txt);font-family:inherit;font-size:13px;text-transform:uppercase}
+  .askrow input:focus{outline:none;border-color:var(--cyan-dim)}
+  .apcard{font-size:12.5px;line-height:1.55;color:#dfeaf9;background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:4px}
+  .apcard .apv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:15px}
+  .fundhero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .fundhero .fv{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+  .fundhero .fp{font-size:14px;font-weight:700}
+  .econrow{display:flex;align-items:center;gap:8px;padding:7px 1px;border-bottom:1px solid rgba(86,140,210,.10);font-size:12.5px}
+  .econ-c{font-size:9px;font-weight:700;border-radius:6px;padding:1px 5px;letter-spacing:.03em}
+  .econ-us{background:rgba(54,224,255,.15);color:var(--cyan)}
+  .econ-au{background:rgba(51,230,160,.15);color:var(--green)}
+  .econ-hi{color:var(--red);font-weight:700}
+  .econ-when{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .learnc{font-size:13px;line-height:1.6;color:#e2edfc}
+  .learnc b{color:var(--acc,var(--cyan));display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;font-weight:700}
 </style>
 </head>
 <body>
@@ -679,17 +697,24 @@
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt"><div class="ph"><i data-lucide="graduation-cap"></i>Learn one thing <span class="r">concept of the day</span></div><div id="learn"></div></div>
     <div class="panel sec-port guestwatch"><div class="ph"><i data-lucide="eye"></i>Watchlist <span class="r">buy-zone alerts</span></div><div id="watch"></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="bell"></i>Smart alerts <span class="r">live triggers</span></div><div id="alerts"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="trending-up"></i>Performance <span class="r">vs the market</span></div><div id="perf"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port"><div class="ph"><i data-lucide="pie-chart"></i>Allocation <span class="r">mix · concentration</span></div><div id="alloc"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="receipt"></i>CGT / tax lots <span class="r">for your accountant</span></div><div id="cgt"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screener + 3-brain panel</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
       <div class="playsdis">The screener flags candidates; three blind cross-vendor brains (Claude · Gemini · Llama) grade each. 🟢 all three would act · 🟡 two · 🔴 they split. Informational only — not advice.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-plays"><div class="ph"><i data-lucide="activity"></i>Panel track record <span class="r">3 brains · real outcomes</span></div><div id="track"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="activity"></i>Panel track record <span class="r">brains · real outcomes</span></div><div id="track"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="search-check"></i>Ask the Panel <span class="r">grade any ticker now</span></div>
+      <div class="askrow"><input id="apin" placeholder="Ticker (e.g. NVDA, BHP.AX, BTC)" onkeydown="if(event.key==='Enter')askPanel()"><button class="ptab on" onclick="askPanel()">Grade</button></div>
+      <div id="apout"><div class="playsdis">Type any stock or coin — JARVIS gives a fast read plus your nightly panel's record on it. Educational only, not advice.</div></div></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="landmark"></i>The JARVIS Fund <span class="r">A$10k · follows consensus</span></div><div id="fund"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="star"></i>Panel watchlist <span class="r">names the brains keep liking</span></div><div id="pwatch"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="map"></i>Sector map <span class="r">tap a sector · live</span></div>
       <div class="sectrend" id="sectrend"></div>
       <div class="secmap" id="secmap"></div>
@@ -717,6 +742,8 @@
     <div class="panel sec-property"><div class="ph"><i data-lucide="home"></i>Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Today</div>
       <div class="fchip" id="fchip" style="display:none"></div>
@@ -1780,6 +1807,82 @@ function loadCryptoSignals(){
 /* ---------- Early radar: attention accelerating before price moves ---------- */
 const WHALE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/whale-stocks";
 const RADAR_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/early-radar";
+/* ---------- v2 features: ask-panel, fund, econ, watchlist, cgt, learn, position sizer ---------- */
+const ASKPANEL_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/ask-panel";
+const FUND_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/jarvis-fund";
+const ECON_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/econ-calendar";
+const PWATCH_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-watchlist";
+const CGT_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/cgt";
+function askPanel(){var inp=document.getElementById("apin"),out=document.getElementById("apout");if(!inp||!out)return;
+  var t=(inp.value||"").trim().toUpperCase();if(!t){return;}var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  out.innerHTML='<div class="empty" style="animation:none">Reading '+pmEsc(t)+'…</div>';
+  fetch(ASKPANEL_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,ticker:t})})
+  .then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
+    if(j.error){out.innerHTML='<div class="empty" style="animation:none">'+(j.error==="bad_ticker"?"Check the symbol — ASX names need .AX (e.g. BHP.AX).":"Unlock with your PIN to ask.")+'</div>';return;}
+    var p=j.price||{};var pl=p.price!=null?('<span class="apv">'+(p.currency==="USD"?"US$":"A$")+p.price+'</span> <span class="'+((p.pct||0)>=0?"up":"down")+'">'+((p.pct||0)>=0?"+":"")+(p.pct==null?"":p.pct)+'%</span>'):"";
+    var pan=j.panel?'<div style="margin-top:7px;font-size:11.5px;color:var(--muted)">Nightly panel last rated <b style="color:var(--cyan)">'+pmEsc(j.panel.tier)+'</b> on '+pmEsc(j.panel.d)+(j.panel.ret_pct!=null?' · then '+(j.panel.ret_pct>=0?"+":"")+j.panel.ret_pct+'% over 5d':'')+'</div>':'<div style="margin-top:7px;font-size:11.5px;color:var(--muted)">Not in the recent panel logs.</div>';
+    out.innerHTML='<div class="apcard"><div>'+pmEsc(t)+' '+pl+'</div><div style="margin-top:6px">'+pmInline(pmEsc(j.take||""))+'</div>'+pan+'</div><div class="playsdis" style="margin-top:6px">Fast single-brain read + your panel record. Educational only, not advice.</div>';
+  }).catch(function(e){out.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN to ask.":"Couldn\'t reach the panel just now.")+'</div>';});}
+function loadFund(){var el=document.getElementById("fund");if(!el)return;
+  fetch(FUND_URL).then(function(r){return r.json();}).then(function(j){
+    if(!j.trades){el.innerHTML='<div class="empty" style="animation:none">'+(j.note||"The fund starts trading as picks mature.")+'</div>';return;}
+    var cl=(j.ret_pct||0)>=0?"up":"down";
+    var h='<div class="fundhero"><span class="fv">A$'+(j.equity||0).toLocaleString()+'</span><span class="fp '+cl+'">'+((j.ret_pct||0)>=0?"+":"")+j.ret_pct+'%</span></div>';
+    h+=(j.curve&&j.curve.length>1?spark(j.curve.map(function(c){return c.v;}),260,46):"");
+    h+='<div class="trkstat" style="margin-top:8px"><div class="ts"><div class="tsl">Trades</div><div class="tsv">'+j.trades+'</div></div><div class="ts"><div class="tsl">Win rate</div><div class="tsv">'+(j.win_pct==null?"—":j.win_pct+"%")+'</div></div><div class="ts"><div class="tsl">Best</div><div class="tsv up" style="font-size:13px">'+(j.best?j.best.ticker+" +"+j.best.ret+"%":"—")+'</div></div></div>';
+    h+='<div class="playsdis" style="margin-top:6px">'+pmEsc(j.note||"")+'</div>';
+    el.innerHTML=h;
+  }).catch(function(){el.innerHTML='<div class="empty" style="animation:none">Fund unavailable right now.</div>';});}
+function loadEcon(){var el=document.getElementById("econ");if(!el)return;
+  fetch(ECON_URL).then(function(r){return r.json();}).then(function(j){var ev=j.events||[];if(!ev.length){el.innerHTML='<div class="empty" style="animation:none">No high-impact events this week.</div>';return;}
+    var now=Date.now();el.innerHTML=ev.map(function(e){var dt=e.ts-now;var when;
+      if(dt<0)when="now";else{var h=Math.floor(dt/3600000);when=h<24?("in "+h+"h"):("in "+Math.floor(h/24)+"d");}
+      var cc=e.country==="USD"?"econ-us":"econ-au";var lbl=e.country==="USD"?"US":"AU";
+      return '<div class="econrow"><span class="econ-c '+cc+'">'+lbl+'</span><span class="'+(e.impact==="High"?"econ-hi":"")+'">'+pmEsc(e.title)+'</span><span class="econ-when">'+when+'</span></div>';}).join("")
+      +'<div class="playsdis" style="margin-top:6px">High-impact US &amp; AU releases. Big prints move everything — trade lighter around them. Not advice.</div>';
+  }).catch(function(){el.innerHTML='<div class="empty" style="animation:none">Calendar unavailable.</div>';});}
+function loadPanelWatch(){var el=document.getElementById("pwatch");if(!el)return;
+  fetch(PWATCH_URL).then(function(r){return r.json();}).then(function(j){var n=j.names||[];if(!n.length){el.innerHTML='<div class="empty" style="animation:none">No repeat consensus names yet — builds as the panel runs.</div>';return;}
+    el.innerHTML=n.map(function(x){var cl=(x.day_pct||0)>=0?"up":"down";var pr=x.price!=null?(' · $'+x.price+' <span class="'+cl+'">'+((x.day_pct||0)>=0?"+":"")+(x.day_pct==null?"":x.day_pct)+'%</span>'):"";
+      var badge=x.full_consensus?'<span class="oppflag">'+x.full_consensus+'× full</span>':'';
+      return '<div class="trrow"><span class="trk2">'+pmEsc(x.ticker.replace(".AX",""))+'</span><span class="trt">'+x.hits+' hits</span>'+badge+'<span style="margin-left:auto;font-size:11px;color:var(--muted)">'+pr+'</span></div>';}).join("")
+      +'<div class="playsdis" style="margin-top:6px">'+pmEsc(j.note||"")+'</div>';
+  }).catch(function(){el.innerHTML='<div class="empty" style="animation:none">Unavailable.</div>';});}
+function loadCgt(){var el=document.getElementById("cgt");if(!el||!(window.CURRENT&&CURRENT.owner))return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
+  fetch(CGT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,action:"status"})})
+  .then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){if(j.error){el.innerHTML='<div class="empty" style="animation:none">Owner only.</div>';return;}
+    var open=j.open||[],closed=j.closed||[];var h='';
+    if(!open.length&&!closed.length)h+='<div class="empty" style="animation:none">No lots yet. Add a parcel to track cost base, holding period and the 12-month CGT discount.</div>';
+    if(open.length)h+='<div class="sec-lbl">Open parcels</div>'+open.map(function(l){var cl=(l.unrealised||0)>=0?"up":"down";var disc=l.cgt_discount_eligible?'<span class="oppflag">CGT ✓</span>':'<span class="trt">'+l.days_to_discount+'d to 50%</span>';
+      return '<div class="trrow"><span class="trk2">'+pmEsc(l.ticker.replace(".AX",""))+'</span>'+disc+'<span style="margin-left:auto" class="'+cl+'">'+(l.unrealised==null?"—":((l.unrealised>=0?"+":"")+l.ccy+" "+Math.round(l.unrealised).toLocaleString()))+'</span></div>';}).join("");
+    if(closed.length)h+='<div class="sec-lbl" style="margin-top:8px">Sold this year — taxable gain A$'+(j.taxable_gain_fy||0).toLocaleString()+'</div>';
+    h+='<div class="ptabs" style="margin-top:9px"><button class="ptab" onclick="cgtAdd()">+ parcel</button></div>';
+    h+='<div class="playsdis" style="margin-top:6px">'+pmEsc(j.disclaimer||"")+'</div>';el.innerHTML=h;
+  }).catch(function(){el.innerHTML='<div class="empty" style="animation:none">Owner only — unlock with your PIN.</div>';});}
+function cgtAct(a,p){var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}fetch(CGT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pin:pin,action:a},p||{}))}).then(function(){loadCgt();});}
+function cgtAdd(){var t=prompt("Ticker (ASX needs .AX)?");if(!t)return;var u=parseFloat(prompt("Units?"));if(!u)return;var c=parseFloat(prompt("Cost per unit?"));if(!c)return;var d=prompt("Date bought (YYYY-MM-DD)?",new Date().toISOString().slice(0,10));if(!d)return;var cc=/\.AX$/i.test(t)?"AUD":(prompt("Currency (AUD/USD)?","USD")||"USD");cgtAct("add_lot",{ticker:t,units:u,cost_per_unit:c,bought:d,ccy:cc});}
+var LEARN=[
+ ["RVOL (relative volume)","How busy a stock is versus its own average. High RVOL = real participation behind a move; a big % gain on thin volume is usually noise you can't trust."],
+ ["Gap fill","When a stock opens far from yesterday's close, price often drifts back to 'fill' the gap. Chasing the open is how beginners get caught; disciplined traders wait to see if the gap holds."],
+ ["The 200-day average","A line of the last 200 daily closes. Above it = long-term uptrend, below = downtrend. Most of our screener's rules insist a name is above its 200-day before it's tradeable."],
+ ["Consensus vs conviction","Our panel isn't just voting yes/no — it grades HIGH/MED/LOW. Three MEDs isn't the same as three HIGHs. Full 3/3 HIGH is the rare, strongest signal."],
+ ["Stop loss","The price where you admit the trade's wrong and get out. Set it before you enter, not after. The single biggest difference between traders who last and those who blow up."],
+ ["Position sizing","Risk a fixed small % (1–2%) of your account per trade, not a fixed dollar amount. It's why one bad trade never ends the game. Use the Position sizer tile."],
+ ["A falling knife","An oversold stock that's still dropping. Oversold doesn't mean 'about to bounce' — it can get more oversold. Wait for it to stabilise before calling a bottom."],
+ ["Why we paper trade","The JARVIS Fund and panel picks use fake money on purpose — to build a real track record before a cent is risked. If the paper record isn't good, the real one won't be either."],
+ ["Contrarian hype","In crypto especially, a coin trending everywhere is usually late — the crowd's already in. The best setups are quiet ones nobody's talking about yet."],
+ ["Insider buying","When company executives buy their own stock on the open market (public SEC filings), it's one of the few signals where someone's betting their own money. Clusters of buyers matter most."],
+ ["Beta","How much your stock moves when the market moves 1%. A beta of 1.5 means it swings 50% harder than the index — more reward, more risk. High-beta books feel great up, brutal down."],
+ ["The trend is your friend","Trading with the prevailing direction beats fighting it. Most of our best strategies are trend-followers: they buy strength and cut weakness, rather than guessing reversals."]
+];
+function loadLearn(){var el=document.getElementById("learn");if(!el)return;var doy=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/864e5);var c=LEARN[doy%LEARN.length];el.innerHTML='<div class="learnc"><b>📚 '+c[0]+'</b>'+c[1]+'</div>';}
+function buildPosCalc(){var el=document.getElementById("poscalc");if(!el||el._b)return;el._b=1;
+  el.innerHTML='<label>Account size A$</label><input id="ps_acct" type="number" value="10000"><label>Risk per trade %</label><input id="ps_risk" type="number" step="0.5" value="1"><label>Entry price</label><input id="ps_entry" type="number" step="0.01" value="100"><label>Stop-loss price</label><input id="ps_stop" type="number" step="0.01" value="95"><div class="calcout" id="ps_out">—</div>';
+  ["ps_acct","ps_risk","ps_entry","ps_stop"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcPos);});calcPos();}
+function calcPos(){var a=cv("ps_acct"),rk=cv("ps_risk"),en=cv("ps_entry"),st=cv("ps_stop");var o=document.getElementById("ps_out");if(!o)return;
+  var risk$=a*rk/100;var perShare=Math.abs(en-st);if(!perShare||!en){o.innerHTML='<span style="font-size:12px;color:var(--muted)">Enter an entry and a different stop.</span>';return;}
+  var shares=Math.floor(risk$/perShare);var cost=shares*en;var pctStop=(perShare/en*100).toFixed(1);
+  o.innerHTML='<b>'+shares.toLocaleString()+'</b> shares<div style="font-size:11.5px;color:var(--muted);margin-top:4px">Risks A$'+Math.round(risk$).toLocaleString()+' if stopped ('+pctStop+'% away) · position A$'+Math.round(cost).toLocaleString()+'</div>';}
 function loadRadar(){var el=document.getElementById("radar");if(!el)return;
   fetch(RADAR_URL).then(function(r){return r.json();}).then(function(j){
     var ea=(j.early_attention||[]),qv=(j.quiet_volume||[]),ic=(j.insider_clusters||[]);
@@ -1986,7 +2089,14 @@ function renderAlloc(H){
   var flags="";
   if(topPct>=45)flags+='<div class="allflag">&#9888; '+sorted[0].ticker+' is '+topPct.toFixed(0)+'% of the book — concentrated.</div>';
   if(usd/tot>=0.6)flags+='<div class="allflag">&#9888; '+Math.round(usd/tot*100)+'% USD exposure — currency risk.</div>';
-  var chips='<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>';
+  /* diversification score: 1 - Herfindahl (sum of squared weights), 0-100. Higher = better spread. */
+  var hhi=H.reduce(function(a,h){var w=(h.value_aud||0)/tot;return a+w*w;},0);
+  var divScore=Math.round((1-hhi)*100);var effN=hhi>0?(1/hhi):0;
+  var dcl=divScore>=66?"up":(divScore>=40?"flat":"down");
+  var risk='<div class="trkstat" style="margin-top:8px"><div class="ts"><div class="tsl">Diversification</div><div class="tsv '+dcl+'">'+divScore+'/100</div><div class="labsub">≈'+effN.toFixed(1)+' equal bets</div></div>'
+    +'<div class="ts"><div class="tsl">Top name</div><div class="tsv">'+topPct.toFixed(0)+'%</div><div class="labsub">'+pmEsc(sorted[0].ticker.replace(".AX",""))+'</div></div>'
+    +'<div class="ts"><div class="tsl">USD risk</div><div class="tsv">'+Math.round(usd/tot*100)+'%</div><div class="labsub">currency</div></div></div>';
+  var chips='<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+risk;
   if(typeof ApexCharts==="undefined"){ el.innerHTML=bars+chips+flags; return; }
   if(!document.getElementById("allocapex")) el.innerHTML='<div id="allocapex"></div><div id="allocmeta"></div>';
   var am=document.getElementById("allocmeta"); if(am) am.innerHTML=chips+flags;
@@ -2043,7 +2153,9 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){}
+  try{loadFund();}catch(e){} try{loadEcon();}catch(e){} try{loadPanelWatch();}catch(e){} try{loadCgt();}catch(e){} try{loadLearn();}catch(e){} try{buildPosCalc();}catch(e){}
+  if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
@@ -2135,6 +2247,13 @@ var INFO={
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
 "Performance":"How your portfolio has actually done over 1 week, 1 month and year-to-date — value-weighted — set against the ASX 200 and S&P 500 so you can see if you're beating the market, plus your single biggest dollar mover.",
 "Allocation":"Where your money sits: each holding's share of the book, the split between shares and ETF/index funds, and AUD vs USD exposure. Flags when you're over-concentrated in one name or currency.",
+"Ask the Panel":"Type any stock or coin and JARVIS gives a fast, skeptical technical read on the spot — plus how the nightly blind panel last rated it and what happened next. A quick single-brain take, not the full overnight consensus. Educational only, not advice.",
+"The JARVIS Fund":"A paper portfolio that answers 'should I follow this?' in dollars: A$10,000 that buys every full or majority consensus pick the panel makes and closes each at the 5-day mark. Frictionless, paper only — it shows whether following the panel's buys would have paid. Not advice.",
+"Panel watchlist":"The names the blind panel keeps rating a consensus buy over the last 60 days — your 'on deck' list, built by the panel itself, not held by you. Not advice.",
+"Economic calendar":"Upcoming high-impact US and Australian economic releases (CPI, jobs, Fed/RBA) with countdowns. These prints move whole markets — disciplined traders size down around them. Not advice.",
+"Position sizer":"Enter your account size, the % you're willing to risk, your entry and your stop — it tells you how many shares keeps the loss to that fixed risk if you're stopped out. The core discipline that stops one bad trade ending the game.",
+"CGT / tax lots":"Tracks each parcel you buy: cost base, how long you've held, the 12-month mark where AU individuals generally get a 50% CGT discount, and realised vs unrealised gain from live prices. Bookkeeping for your accountant — NOT tax advice.",
+"Learn one thing":"A rotating plain-English trading concept each day, tied to how this dashboard actually works. Read one, build the vocabulary over time.",
 "In the news":"Any news article mentioning one of your holdings, refreshed through the day — tap to read. JARVIS also picks these up in the morning briefing.",
 "Today":"Your calendar, tasks and inbox highlights."
 };
