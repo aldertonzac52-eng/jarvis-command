@@ -697,6 +697,7 @@
     <div class="panel"><div class="ph"><i data-lucide="message-circle"></i>Social buzz <span class="r">Reddit · sentiment</span></div><div id="buzz"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="arrow-up-down"></i>US Market Movers <span class="r">live</span></div><div class="movers" id="movers"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="arrow-up-down"></i>Aussie Market Movers <span class="r">ASX · live</span></div><div class="movers" id="asxmovers"><div class="empty">Loading…</div></div></div>
+    <div class="panel"><div class="ph"><i data-lucide="radar"></i>Early radar <span class="r">pre-mainstream · scored</span></div><div id="radar"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="zap"></i>Unusual volume <span class="r">big money · live</span></div><div id="whale"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="landmark"></i>Congress trades <span class="r">STOCK Act · filings</span></div><div id="poltrades"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="radio"></i>Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
@@ -1775,7 +1776,26 @@ function cryptoBadge(sym){var c=window.CRYPTOPANEL[sym];if(!c)return "";var v=c.
 function loadCryptoSignals(){
   fetch(CCON_URL).then(function(r){return r.json();}).then(function(j){window.CRYPTOPANEL=(j&&j.consensus)||{};}).catch(function(){}).then(function(){
   fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return ["USDT","USDC","DAI","BUSD","TUSD","USDE","FDUSD"].indexOf(c.sym)<0;});var el=document.getElementById("csignals");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}coins.sort(function(a,b){return (b.opportunity?1:0)-(a.opportunity?1:0);});el.innerHTML=coins.slice(0,14).map(function(c){var rcl=c.rsi==null?"":(c.rsi<35?"down":c.rsi>70?"up":"");var arrow=c.trend==="up"?'<span class="up">&#9650;</span>':'<span class="down">&#9660;</span>';var opp=c.opportunity?'<span class="oppflag">opportunity</span>':"";var s7=c.pct7d==null?"":'<span class="'+(c.pct7d>=0?"up":"down")+'">'+(c.pct7d>=0?"+":"")+c.pct7d+'% 7d</span>';return '<div class="csrow" onclick="togglePlay(this)"><div class="cshead"><img src="'+c.image+'" alt=""><span class="csym">'+c.sym+'</span>'+cryptoBadge(c.sym)+arrow+opp+'<span class="csrsi '+rcl+'">RSI '+(c.rsi==null?"—":c.rsi)+'</span><span class="cs7">'+s7+'</span></div></div><div class="pl-sig">'+(c.series?spark(c.series,260,40):"")+'<div class="sigchips">'+(c.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div></div>';}).join("");}).catch(function(){});});}
-const WHALE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/whale-stocks";
+/* ---------- Early radar: attention accelerating before price moves ---------- */
+const RADAR_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/early-radar";
+function loadRadar(){var el=document.getElementById("radar");if(!el)return;
+  fetch(RADAR_URL).then(function(r){return r.json();}).then(function(j){
+    var ea=(j.early_attention||[]),qv=(j.quiet_volume||[]),ic=(j.insider_clusters||[]);
+    var early=ea.filter(function(x){return x.status==="early";}),crowd=ea.filter(function(x){return x.status==="crowded";});
+    var h='';
+    if(early.length){h+='<div class="sec-lbl">Attention rising · price hasn\'t moved</div>'+early.slice(0,6).map(function(x){
+      return '<div class="trrow"><span class="trk2">'+pmEsc(x.ticker)+'</span><span class="trt">'+(x.kind==='crypto'?'coin':'stock')+'</span>'
+        +'<span class="up">&#9650; '+(x.rank_jump!=null?x.rank_jump+' spots':'+'+x.velocity_pct+'%')+'</span>'
+        +'<span style="margin-left:auto" class="'+((x.price_move_pct||0)>=0?'up':'down')+'">'+((x.price_move_pct||0)>=0?'+':'')+(x.price_move_pct==null?'—':x.price_move_pct)+'%</span></div>';}).join('');}
+    if(ic.length){h+='<div class="sec-lbl" style="margin-top:9px">Insiders buying their own stock</div>'+ic.slice(0,5).map(function(c){
+      return '<div class="trrow"><span class="trk2">'+pmEsc(c.ticker)+'</span><span class="trt">'+c.buyers+' buyer'+(c.buyers>1?'s':'')+(c.strong?' · cluster':'')+'</span><span style="margin-left:auto">$'+Math.round((c.total_value||0)/1000)+'k</span></div>';}).join('');}
+    if(qv.length){h+='<div class="sec-lbl" style="margin-top:9px">Big volume · no story yet</div>'+qv.slice(0,5).map(function(w){
+      return '<div class="trrow"><span class="trk2">'+pmEsc(w.ticker)+'</span><span class="trt">'+w.volSpike+'x vol</span><span class="trt">'+(w.mentions||0)+' mentions</span><span style="margin-left:auto" class="'+((w.dayPct||0)>=0?'up':'down')+'">'+((w.dayPct||0)>=0?'+':'')+w.dayPct+'%</span></div>';}).join('');}
+    if(crowd.length)h+='<div class="playsdis" style="margin-top:8px">Already crowded (chatter + price both up): '+crowd.map(function(x){return x.ticker;}).join(', ')+'</div>';
+    if(!h)h='<div class="empty" style="animation:none">Radar\'s quiet — no early attention shifts right now. That\'s honest, not broken.</div>';
+    h+='<div class="playsdis" style="margin-top:6px">Every "early" name is paper-logged and scored 5 days later — check the Panel scorecard\'s Radar tab. Attention ≠ a good trade. Not advice.</div>';
+    el.innerHTML=h;
+  }).catch(function(){el.innerHTML='<div class="empty" style="animation:none">Radar unavailable right now.</div>';});}
 const TRACK_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/plays-track";
 const SBOARD_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sector-leaderboard";
 function fmtm(v){return v==null?"—":(v>=0?"+":"")+v+"%";}
@@ -1899,7 +1919,7 @@ const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-t
 function scoreCell(o){var w=o.win_pct==null?"—":o.win_pct+"%";var r=o.avg_ret==null?"":(o.avg_ret>=0?"+":"")+o.avg_ret+"%";var cl=o.avg_ret==null?"":(o.avg_ret>=0?"up":"down");return '<div class="tsv '+cl+'">'+w+'</div><div class="labsub" style="text-align:center">'+(o.n||0)+' picks'+(r?' · '+r:'')+'</div>';}
 function scSrcChips(){var s=window._scSrc||'';
   function c(v,l){return '<button class="ptab'+(s===v?' on':'')+'" style="padding:3px 10px;font-size:10px" onclick="loadScorecard(\''+v+'\')">'+l+'</button>';}
-  return '<div class="ptabs" style="margin:0 0 8px">'+c('','All')+c('premarket','Pre-market')+c('plays','Plays')+c('crypto','Crypto')+'</div>';}
+  return '<div class="ptabs" style="margin:0 0 8px">'+c('','All')+c('premarket','Pre-market')+c('plays','Plays')+c('crypto','Crypto')+c('radar','Radar')+'</div>';}
 function loadScorecard(src){if(src!==undefined)window._scSrc=src;
   var el=document.getElementById("pmscore");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
   fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,source:window._scSrc||""})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
@@ -2021,7 +2041,7 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){} if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
@@ -2083,6 +2103,7 @@ var INFO={
 "Strategy backtest":"How each strategy would have done over the last 2 years of real (split/dividend-adjusted) history, starting from $10k, versus simply buying and holding. A shortlist tool only — past performance overfits and does not predict the future. Not advice.",
 "Social buzz":"Stocks trending on Reddit right now — with how fast the chatter is rising (velocity), NEW and surging flags, and cross-links to your plays, holdings and unusual-volume names. Tap a name for the news.",
 "Unusual volume":"Stocks trading above their 20-day average volume — a proxy for big money moving. 'Accum' = heavy volume with price up; 'distrib' = heavy volume with price down. 1.5x+ is flagged unusual.",
+"Early radar":"Catches attention shifts BEFORE the mainstream. Three detectors: Reddit chatter accelerating (big rank jumps) while price hasn't moved yet — once price and chatter are both up you ARE the mainstream; unusual volume with no story or chatter (quiet positioning); and clusters of company insiders buying their own stock on the open market (public SEC filings, refreshed daily). Every 'early' hit is paper-logged and scored 5 days later on the Panel scorecard's Radar tab, so you'll know if being early actually works. Attention is not a recommendation. Not advice.",
 "Congress trades":"What US senators and representatives are buying and selling, from their mandatory public STOCK Act disclosures — including which names Congress is buying most. 'Notable' flags high-profile members and committee chairs. Filings can lag the actual trade by up to 45 days. Informational only — not advice.",
 "Crypto signals":"RSI, trend and opportunity flags across the top coins from 7-day price action, now graded nightly by the same three-brain panel as your stocks (Claude · Gemini · Llama, blind to each other) — 🟢 all three would act, 🟡 two, 🔴 they split, and every verdict is scored against real prices a week later on the Panel scorecard. 'Opportunity' = oversold and falling. Not advice.",
 "Whale watch":"Coins with the biggest 24-hour trading volume and turnover (volume vs market cap) — where the big money is churning.",
