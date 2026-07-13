@@ -693,7 +693,7 @@
       <div id="nwchart" style="margin:12px 0 6px"></div>
       <div id="holdings"></div>
     </div>
-    <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · three brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-premkt pm-wide"><div class="ph"><i data-lucide="sunrise"></i>Pre-Market Analysis <span class="r" id="pmstamp">daily · four brains</span></div><div class="pmmd" id="pmreport"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="languages"></i>Today in plain English <span class="r">the beginner view</span></div><div id="pmsimple"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="brain"></i>Loop memory <span class="r">state · lessons · self-learning</span></div><div id="pmbrain"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-premkt"><div class="ph"><i data-lucide="award"></i>Panel scorecard <span class="r">outcomes · does consensus work</span></div><div id="pmscore"><div class="empty">Loading…</div></div></div>
@@ -705,9 +705,9 @@
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="receipt"></i>CGT / tax lots <span class="r">for your accountant</span></div><div id="cgt"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port owneronly"><div class="ph"><i data-lucide="newspaper"></i>In the news <span class="r">your holdings · daily</span></div><div id="holdnews"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="bar-chart-3"></i>Sector leaderboard <span class="r">momentum · future lean</span></div><div id="sboard"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screener + 3-brain panel</span></div>
+    <div class="panel sec-plays"><div class="ph"><i data-lucide="target"></i>Possible Plays <span class="r">screener + 4-brain panel</span></div>
       <div class="ptabs"><button class="ptab on" id="ptab-bounce" onclick="playsTab('bounce')">Bounce</button><button class="ptab" id="ptab-value" onclick="playsTab('value')">Turnaround</button></div>
-      <div class="playsdis">The screener flags candidates; three blind cross-vendor brains (Claude · Gemini · Llama) grade each. 🟢 all three would act · 🟡 two · 🔴 they split. Informational only — not advice.</div>
+      <div class="playsdis">The screener flags candidates; four blind cross-vendor brains (Claude · Gemini · Llama · GPT-OSS) grade each. 🟢 all three would act · 🟡 two · 🔴 they split. Informational only — not advice.</div>
       <div id="plays"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="activity"></i>Panel track record <span class="r">brains · real outcomes</span></div><div id="track"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-plays"><div class="ph"><i data-lucide="search-check"></i>Ask the Panel <span class="r">grade any ticker now</span></div>
@@ -2000,14 +2000,14 @@ function loadPremarket(){
   fetch(PM_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})})
     .then(function(r){if(!r.ok)throw r.status;return r.json();})
     .then(function(j){
-      var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · three brains · "+ago(j.updated_at||j.generated_at);
+      var st=document.getElementById("pmstamp");if(st)st.textContent=(j.date||"")+" · four brains · "+ago(j.updated_at||j.generated_at);
       rep.innerHTML=mdToHtml(j.report_md||"");
       try{ renderPmSimple(j); }catch(e){}
       if(br){
         var ag=j.agreement||{};
         var head='<div class="pmstat">'+
           '<div class="stat"><div class="sl">Runs</div><div class="sv">'+(j.runs_completed||0)+'</div></div>'+
-          '<div class="stat"><div class="sl">Panel HIGH (3-brain)</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
+          '<div class="stat"><div class="sl">Panel HIGH (4-brain)</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
           '<div class="stat"><div class="sl">Conflicts</div><div class="sv" style="color:var(--amber)">'+((ag.conflict||[]).join(", ")||"—")+'</div></div></div>';
         var les=(j.lessons&&j.lessons.length)?'<div class="sec-lbl">Lessons in force</div>'+j.lessons.map(function(l){return '<div class="pmlesson">'+pmInline(pmEsc(l))+'</div>';}).join(""):'<div class="sec-lbl">Lessons in force</div><div class="empty" style="animation:none">None yet — lessons are written from real outcomes, and the file grows every reviewed run.</div>';
         var runs=(j.run_log&&j.run_log.length)?'<div class="sec-lbl" style="margin-top:12px">Run log (the memory)</div>'+j.run_log.slice(-6).reverse().map(function(r){return '<div class="pmrun">'+pmEsc(r)+'</div>';}).join(""):"";
@@ -2142,14 +2142,14 @@ function loadDefi(){fetch("https://api.llama.fi/v2/chains").then(function(r){ret
 function trGrp(label,gp){if(!gp||!gp.n)return"";return '<div class="trsig"><span>'+label+' ('+gp.n+')</span><span class="trwin">'+(gp.winPct==null?"—":gp.winPct+"% win")+' · '+((gp.avg||0)>=0?"+":"")+(gp.avg||0)+'%</span></div>';}
 function loadTrack(){var el=document.getElementById("track");if(!el)return;var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){}
   fetch(PMSCORE_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin,source:"plays"})}).then(function(r){return r.ok?r.json():Promise.reject(r.status);}).then(function(j){
-    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' plays graded by the panel — each one scores after about a week in the market (5 trading days).'):'No graded plays yet. The three-brain panel grades the screener each night.')+'</div>';return;}
+    if(!j.total_tracked){el.innerHTML='<div class="empty" style="animation:none">'+(j.total_logged?(j.total_logged+' plays graded by the panel — each one scores after about a week in the market (5 trading days).'):'No graded plays yet. The four-brain panel grades the screener each night.')+'</div>';return;}
     var tiers=(j.tiers||[]).filter(function(t){return t.n>0&&t.tier!=="trap";});
     var tierHtml='<div class="sec-lbl">Does consensus work? (win rate · avg move)</div><div class="trkstat">'+tiers.map(function(t){var cl=t.avg_ret==null?"":(t.avg_ret>=0?"up":"down");return '<div class="ts"><div class="tsl">'+t.label+'</div><div class="tsv '+cl+'">'+(t.win_pct==null?"—":t.win_pct+"%")+'</div><div class="labsub">'+t.n+' · '+(t.avg_ret>=0?"+":"")+(t.avg_ret==null?"":t.avg_ret+"%")+'</div></div>';}).join("")+'</div>';
     var brains=(j.brains||[]).filter(function(b){return b.n>0;});
     var brainHtml=brains.length?'<div class="sec-lbl" style="margin-top:10px">Which brain is right most</div>'+brains.map(function(b){return '<div class="trsig"><span>'+b.brain+' <span style="opacity:.6">'+b.vendor+'</span></span><span class="trwin">'+(b.win_pct==null?"—":b.win_pct+"% right")+' · '+b.n+' calls</span></div>';}).join(""):"";
     var recent=(j.recent||[]).filter(function(r){return r.ret_pct!=null;}).slice(0,8);
     var recHtml=recent.length?'<div class="sec-lbl" style="margin-top:10px">Recent outcomes</div>'+recent.map(function(r){var cl=r.ret_pct>=0?"up":"down";return '<div class="trrow"><span class="trk2">'+r.ticker.replace(".AX","")+'</span><span class="trt">'+r.tier+'</span><span class="'+cl+'">'+(r.ret_pct>=0?"+":"")+r.ret_pct+'%</span></div>';}).join(""):"";
-    el.innerHTML=tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' plays outcomes tracked. The three-brain consensus grading itself. Paper only, not advice.</div>';
+    el.innerHTML=tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' plays outcomes tracked. The four-brain consensus grading itself. Paper only, not advice.</div>';
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
@@ -2219,7 +2219,7 @@ var INFO={
 "Unusual volume":"Stocks trading above their 20-day average volume — a proxy for big money moving. 'Accum' = heavy volume with price up; 'distrib' = heavy volume with price down. 1.5x+ is flagged unusual.",
 "Early radar":"Catches attention shifts BEFORE the mainstream. Three detectors: Reddit chatter accelerating (big rank jumps) while price hasn't moved yet — once price and chatter are both up you ARE the mainstream; unusual volume with no story or chatter (quiet positioning); and clusters of company insiders buying their own stock on the open market (public SEC filings, refreshed daily). Every 'early' hit is paper-logged and scored 5 days later on the Panel scorecard's Radar tab, so you'll know if being early actually works. Attention is not a recommendation. Not advice.",
 "Congress trades":"What US senators and representatives are buying and selling, from their mandatory public STOCK Act disclosures — including which names Congress is buying most. 'Notable' flags high-profile members and committee chairs. Filings can lag the actual trade by up to 45 days. Informational only — not advice.",
-"Crypto signals":"RSI, trend and opportunity flags across the top coins from 7-day price action, now graded nightly by the same three-brain panel as your stocks (Claude · Gemini · Llama, blind to each other) — 🟢 all three would act, 🟡 two, 🔴 they split, and every verdict is scored against real prices a week later on the Panel scorecard. 'Opportunity' = oversold and falling. Not advice.",
+"Crypto signals":"RSI, trend and opportunity flags across the top coins from 7-day price action, now graded nightly by the same four-brain panel as your stocks (Claude · Gemini · Llama · GPT-OSS, blind to each other) — 🟢 all three would act, 🟡 two, 🔴 they split, and every verdict is scored against real prices a week later on the Panel scorecard. 'Opportunity' = oversold and falling. Not advice.",
 "Whale watch":"Coins with the biggest 24-hour trading volume and turnover (volume vs market cap) — where the big money is churning.",
 "Crypto market":"Total crypto market cap, 24-hour change, and Bitcoin / Ethereum dominance.",
 "Fear & Greed":"Crypto market sentiment from 0 (extreme fear) to 100 (extreme greed). Deep fear is often where bottoms form.",
@@ -2239,10 +2239,10 @@ var INFO={
 "Market headlines":"Latest market news.",
 "VIC property watch":"Victorian property market news.",
 "Spoken briefing":"An AI summary of your portfolio's day — recovery vs yesterday, biggest mover, buy-zone alerts, news and screener flags. Refreshes through the day.",
-"Pre-Market Analysis":"A daily report built before the US open by a data scanner plus three independent AI analysts (Claude, Gemini, Llama) from three different companies who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = all three agree and clean, yellow = two of three, red = they split (stand down). Not advice.",
-"Loop memory":"The analyst's brain. It logs every run, tracks where the three brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
+"Pre-Market Analysis":"A daily report built before the US open by a data scanner plus four independent AI analysts (Claude, Gemini, Llama, GPT-OSS) from three different companies who never see each other's work. Deterministic rules pick the watchlist; the brains judge quality. Green = all three agree and clean, yellow = two of three, red = they split (stand down). Not advice.",
+"Loop memory":"The analyst's brain. It logs every run, tracks where the four brains agreed or fought, and turns reviewed outcomes into standing lessons that bind every future run. It gets smarter as the log grows.",
 "Today in plain English":"The same daily verdict as the full report, translated for humans: who got a green light, what's worth watching, where the AIs disagreed, and which movers are traps — plus a tap-open glossary of the jargon. Read this first while you're learning; graduate to the full report when it starts making sense.",
-"Panel scorecard":"The panel grading itself on real outcomes. Every pick's forward return is tracked, then bucketed: does full 3/3 consensus actually beat a 2/3 majority or a split? And which of the three brains — Claude, Gemini, Llama — is right most often. Fills in as sessions close. Paper only, not advice.",
+"Panel scorecard":"The panel grading itself on real outcomes. Every pick's forward return is tracked, then bucketed: does full 3/3 consensus actually beat a 2/3 majority or a split? And which of the four brains — Claude, Gemini, Llama — is right most often. Fills in as sessions close. Paper only, not advice.",
 "Watchlist":"Stocks you're watching, with alerts when one hits your buy level.",
 "Smart alerts":"Live triggers across your holdings: buy-zone hits, take-profit targets, when a name is within 5% of its 52-week high or low, big daily moves (±5%), and fresh news mentions. Tell JARVIS a take-profit price to add sell targets.",
 "Performance":"How your portfolio has actually done over 1 week, 1 month and year-to-date — value-weighted — set against the ASX 200 and S&P 500 so you can see if you're beating the market, plus your single biggest dollar mover.",
