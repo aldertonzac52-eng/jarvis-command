@@ -2021,6 +2021,29 @@ function loadPremarket(){
     });
 }
 const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-track";
+const LOOPREVIEW_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/loop-review";
+function loadBrainTrust(){var el=document.getElementById("braintrust");if(!el)return;
+  fetch(LOOPREVIEW_URL).then(function(r){return r.json();}).then(function(j){
+    var w=(j.brain_weights||[]).filter(function(b){return b.high_n||b.avoid_n;});
+    if(!w.length){el.innerHTML="";return;}
+    w.sort(function(a,b){return (b.spread==null?-99:b.spread)-(a.spread==null?-99:a.spread);});
+    var mx=Math.max.apply(null,w.map(function(b){return Math.abs(b.spread||0);}))||1;
+    var rows=w.map(function(b){
+      var prov=b.provisional;var sp=b.spread==null?null:b.spread;
+      var barw=sp==null?0:Math.round(Math.abs(sp)/mx*100);
+      var hi=b.high_avg==null?"—":(b.high_avg>=0?"+":"")+b.high_avg+"%";
+      var av=b.avoid_avg==null?"—":(b.avoid_avg>=0?"+":"")+b.avoid_avg+"%";
+      var wtxt=prov?'<span style="opacity:.5">building…</span>':'weight <b>'+b.weight+'×</b>';
+      return '<div class="trsig" style="flex-direction:column;align-items:stretch;gap:3px">'
+        +'<div style="display:flex;justify-content:space-between"><span>'+b.label
+        +(prov?'':' <span style="opacity:.6">Δ'+(sp>=0?"+":"")+sp.toFixed(1)+'pts</span>')+'</span><span class="trwin">'+wtxt+'</span></div>'
+        +(prov?'':'<div style="height:5px;background:rgba(86,140,210,.14);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+barw+'%;background:'+(sp>=0?"var(--green)":"var(--red)")+'"></div></div>'
+        +'<div class="labsub" style="opacity:.7">HIGH calls '+hi+' vs its avoids '+av+' · '+(b.high_n+b.avoid_n)+' scored</div>')
+        +'</div>';
+    }).join("");
+    el.innerHTML='<div class="sec-lbl" style="margin-top:10px">Brain trust — earned weight <span style="opacity:.55;font-weight:400">(does each brain\'s HIGH beat its avoid?)</span></div>'+rows
+      +'<div class="labsub" style="opacity:.6;margin-top:4px">Weights are set nightly from real outcomes; the panel leans harder on the brains with the bigger edge.</div>';
+  }).catch(function(){var e=document.getElementById("braintrust");if(e)e.innerHTML="";});}
 function scoreCell(o){var w=o.win_pct==null?"—":o.win_pct+"%";var r=o.avg_ret==null?"":(o.avg_ret>=0?"+":"")+o.avg_ret+"%";var cl=o.avg_ret==null?"":(o.avg_ret>=0?"up":"down");return '<div class="tsv '+cl+'">'+w+'</div><div class="labsub" style="text-align:center">'+(o.n||0)+' picks'+(r?' · '+r:'')+'</div>';}
 function scSrcChips(){var s=window._scSrc||'';
   function c(v,l){return '<button class="ptab'+(s===v?' on':'')+'" style="padding:3px 10px;font-size:10px" onclick="loadScorecard(\''+v+'\')">'+l+'</button>';}
@@ -2035,7 +2058,8 @@ function loadScorecard(src){if(src!==undefined)window._scSrc=src;
     var brainHtml=brains.length?'<div class="sec-lbl" style="margin-top:10px">Which brain is right most</div>'+brains.map(function(b){var cl=b.avg_ret>=0?"up":"down";return '<div class="trsig"><span>'+b.brain+' <span style="opacity:.6">'+b.vendor+'</span></span><span class="trwin">'+(b.win_pct==null?"—":b.win_pct+"% right")+' · '+b.n+' calls</span></div>';}).join(""):"";
     var recent=(j.recent||[]).filter(function(r){return r.ret_pct!=null;}).slice(0,8);
     var recHtml=recent.length?'<div class="sec-lbl" style="margin-top:10px">Recent outcomes</div>'+recent.map(function(r){var cl=r.ret_pct>=0?"up":"down";return '<div class="trrow"><span class="trk2">'+r.ticker+'</span><span class="trt">'+r.tier+'</span><span class="'+cl+'">'+(r.ret_pct>=0?"+":"")+r.ret_pct+'%</span></div>';}).join(""):"";
-    el.innerHTML=scSrcChips()+tierHtml+brainHtml+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' outcomes tracked since '+(j.since||"")+'. Paper only, not advice.</div>';
+    el.innerHTML=scSrcChips()+tierHtml+brainHtml+'<div id="braintrust"></div>'+recHtml+'<div class="playsdis" style="margin-top:8px">'+j.total_tracked+' outcomes tracked since '+(j.since||"")+'. Paper only, not advice.</div>';
+    try{loadBrainTrust();}catch(e){}
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Scorecard unavailable right now.")+'</div>';});}
 const SIM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/sim-trade";
 function loadSim(){fetch(SIM_URL).then(function(r){return r.json();}).then(function(j){var el=document.getElementById("sim");if(!el)return;var ps=j.portfolios||[];if(!ps.length){el.innerHTML='<div class="empty">No sims yet.</div>';return;}el.innerHTML='<div id="simchart" style="margin:2px 0 12px"></div><div class="playsdis" style="margin:0 0 6px">Each strategy started with A$10,000 and trades the live signals forward, earning its real track record over time. Super strategy &amp; Possible Plays highlighted. Not advice.</div>'+ps.map(function(s,i){var st=s.stats||{};var cl=(st.retPct||0)>=0?"up":"down";var sup=s.key==='super'||s.key==='plays';return '<div class="labrow'+(sup?' labsuper':'')+'" onclick="toggleStrat(this)"><span class="labrk">'+(i+1)+'</span><div class="labmid"><div class="labn">'+s.name+'<span class="labq">i</span></div><div class="labsub">'+(st.openPositions||0)+' open · '+(st.closed||0)+' closed'+(st.winPct!=null?' · '+st.winPct+'% win':'')+(st.maxDD?' · max drop -'+st.maxDD+'%':'')+'</div></div>'+(s.curve&&s.curve.length>1?spark(s.curve,80,26):'')+'<div class="labvr"><div class="labv '+cl+'">$'+((st.final||10000)).toLocaleString()+'</div><div class="labp '+cl+'">'+((st.retPct||0)>=0?"+":"")+(st.retPct||0)+'%</div></div></div><div class="labdesc">'+labDesc(s.key,j.brain)+'</div>';}).join("");renderEquityChart('simchart',ps,null);}).catch(function(){});}
