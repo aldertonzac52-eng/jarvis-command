@@ -13,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.1/dist/apexcharts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.454.0/dist/umd/lucide.min.js"></script>
 <title>JARVIS · Command</title>
 <style>
@@ -519,6 +518,22 @@
     transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;white-space:nowrap;
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.45)}
   #sktip b{color:var(--cyan);font-weight:700}
+  /* ---------- SVG charts (crisp, fast, no flicker) ---------- */
+  .jchart{width:100%;height:auto;display:block;overflow:visible;font-family:Inter,sans-serif}
+  .jchart .jcl{stroke-dasharray:1;stroke-dashoffset:1;animation:jdraw .9s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes jdraw{to{stroke-dashoffset:0}}
+  .jchart rect{transition:opacity .12s}.jchart:hover rect{opacity:.9}.jchart rect:hover{opacity:1}
+  .jdonut{max-width:212px;margin:2px auto 6px;display:block}
+  .jdonut path{transition:transform .12s;transform-origin:110px 110px}.jdonut path:hover{transform:scale(1.03)}
+  .jleg{display:flex;flex-wrap:wrap;gap:3px 13px;justify-content:center;font-size:11px;color:var(--muted);margin:0 0 7px}
+  .jleg.jleg-wrap{margin-top:2px}
+  .jleg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .jleg i{width:9px;height:9px;border-radius:2.5px;display:inline-block;flex:0 0 auto}
+  #jctip{position:fixed;z-index:95;pointer-events:none;background:rgba(8,16,30,.95);border:1px solid var(--line);
+    border-radius:8px;padding:5px 9px;font-size:11px;font-variant-numeric:tabular-nums;color:var(--txt);line-height:1.5;
+    transform:translate(-50%,-108%);opacity:0;transition:opacity .12s;white-space:nowrap;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  @media(prefers-reduced-motion:reduce){.jchart .jcl{animation:none}}
 
   /* ---------- tactile micro-interactions: every touch responds ---------- */
   .hold:active,.wrow:active,.playrow:active,.labrow:active,.sbrow:active,.csrow:active,.bzrow:active,
@@ -1544,23 +1559,57 @@ function drawChart(hostId,opts){
   var ch=new ApexCharts(host,opts); window[key]=ch; ch.render(); return ch;
 }
 function destroyChart(hostId){ var key="__ch_"+hostId; if(window[key]){ try{window[key].destroy();}catch(e){} window[key]=null; } }
+/* ---------- lightweight SVG charts — crisp, fast, no flicker (replaces ApexCharts) ---------- */
+function _niceScale(min,max){ if(!isFinite(min)||!isFinite(max))return{lo:0,hi:1,ticks:[0,1]}; if(min===max){min-=1;max+=1;} var span=max-min,step=Math.pow(10,Math.floor(Math.log10(span/3.2))),err=span/3.2/step; if(err>=7.5)step*=10;else if(err>=3.3)step*=5;else if(err>=1.6)step*=2; var lo=Math.floor(min/step)*step,hi=Math.ceil(max/step)*step,t=[]; for(var v=lo;v<=hi+step*0.001;v+=step)t.push(Math.round(v*1e6)/1e6); return{lo:lo,hi:hi,ticks:t}; }
+function _smoothPath(pts){ if(pts.length<2)return pts.length?("M"+pts[0][0]+" "+pts[0][1]):""; var d="M"+pts[0][0].toFixed(1)+" "+pts[0][1].toFixed(1); for(var i=0;i<pts.length-1;i++){ var p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2; var c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6,c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6; d+=" C"+c1x.toFixed(1)+" "+c1y.toFixed(1)+" "+c2x.toFixed(1)+" "+c2y.toFixed(1)+" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);} return d; }
+function chartLine(id,series,opt){ var host=document.getElementById(id); if(!host)return; opt=opt||{}; var W=560,H=opt.height||210,padL=opt.yfmt?46:12,padR=14,padT=14,padB=12;
+  var all=[]; series.forEach(function(s){(s.data||[]).forEach(function(v){if(v!=null&&!isNaN(v))all.push(+v);});}); if(all.length<2){host.innerHTML='<div class="empty" style="animation:none">Not enough data yet.</div>';return;}
+  var sc=_niceScale(Math.min.apply(null,all),Math.max.apply(null,all)),mn=sc.lo,mx=sc.hi,rng=(mx-mn)||1;
+  var X=function(i,n){return padL+(n<2?0:(i/(n-1))*(W-padL-padR));},Y=function(v){return padT+(1-(v-mn)/rng)*(H-padT-padB);};
+  var grid=sc.ticks.map(function(t){var y=Y(t).toFixed(1);return '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(86,140,210,.12)" stroke-dasharray="2 5"/>'+(opt.yfmt?'<text x="'+(padL-7)+'" y="'+(+y+4)+'" text-anchor="end" font-size="12" fill="#7f97bd">'+opt.yfmt(t)+'</text>':'');}).join("");
+  var defs="",paths="",dots="";
+  series.forEach(function(s){ var col=s.color||"#36e0ff",n=(s.data||[]).length,pts=s.data.map(function(v,i){return[X(i,n),Y(+v)];}),line=_smoothPath(pts);
+    if(opt.area&&series.length===1){ var gid="jcg_"+id; defs+='<linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".26"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient>'; paths+='<path d="'+line+" L"+pts[n-1][0].toFixed(1)+" "+(H-padB)+" L"+pts[0][0].toFixed(1)+" "+(H-padB)+' Z" fill="url(#'+gid+')"/>'; }
+    paths+='<path class="jcl" pathLength="1" d="'+line+'" fill="none" stroke="'+col+'" stroke-width="'+(s.dash?1.7:2.4)+'" stroke-linecap="round" stroke-linejoin="round"'+(s.dash?' stroke-dasharray="5 4" style="animation:none"':'')+'/>';
+    var lp=pts[n-1]; dots+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="4" fill="'+col+'" opacity=".2"/><circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="2.3" fill="'+col+'"/>'; });
+  var leg=(opt.legend&&series.length>1)?'<div class="jleg">'+series.map(function(s){return '<span><i style="background:'+(s.color||'#36e0ff')+(s.dash?';opacity:.6':'')+'"></i>'+s.name+'</span>';}).join("")+'</div>':"";
+  var ds=JSON.stringify(series.map(function(s){return{n:s.name,d:s.data,c:s.color||'#36e0ff'};}));
+  host.innerHTML=leg+'<svg class="jchart" viewBox="0 0 '+W+' '+H+'" data-jl=\''+ds.replace(/'/g,"&#39;")+'\' data-pl="'+padL+'" data-pr="'+padR+'"><defs>'+defs+'</defs>'+grid+paths+dots+'<g class="jcross"></g></svg>'; }
+function chartBars(id,cats,groups,opt){ var host=document.getElementById(id); if(!host)return; opt=opt||{}; var W=560,H=opt.height||196,padL=40,padR=12,padT=12,padB=26;
+  var all=[0]; groups.forEach(function(g){g.data.forEach(function(v){all.push(+v);});}); var sc=_niceScale(Math.min.apply(null,all),Math.max.apply(null,all)),mn=sc.lo,mx=sc.hi,rng=(mx-mn)||1;
+  var Y=function(v){return padT+(1-(v-mn)/rng)*(H-padT-padB);},zY=Y(0),gw=(W-padL-padR)/cats.length,inner=Math.min((gw*0.7)/groups.length,20);
+  var grid=sc.ticks.map(function(t){var y=Y(t).toFixed(1);return '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(86,140,210,.12)"/><text x="'+(padL-6)+'" y="'+(+y+4)+'" text-anchor="end" font-size="12" fill="#7f97bd">'+(opt.yfmt?opt.yfmt(t):t)+'</text>';}).join("");
+  var bars=""; cats.forEach(function(c,ci){var gx=padL+ci*gw+(gw-inner*groups.length)/2; groups.forEach(function(g,gi){var v=+g.data[ci]||0,x=gx+gi*inner,y=Y(Math.max(v,0)),h=Math.max(1,Math.abs(Y(v)-zY)); bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(inner-3).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2.5" fill="'+g.color+'"><title>'+c+' · '+g.name+': '+(opt.vfmt?opt.vfmt(v):v)+'</title></rect>';});});
+  var xlab=cats.map(function(c,ci){return '<text x="'+(padL+ci*gw+gw/2).toFixed(1)+'" y="'+(H-7)+'" text-anchor="middle" font-size="12" fill="#9eb4d8">'+c+'</text>';}).join("");
+  var leg='<div class="jleg">'+groups.map(function(g){return '<span><i style="background:'+g.color+'"></i>'+g.name+'</span>';}).join("")+'</div>';
+  host.innerHTML=leg+'<svg class="jchart" viewBox="0 0 '+W+' '+H+'">'+grid+'<line x1="'+padL+'" y1="'+zY.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+zY.toFixed(1)+'" stroke="rgba(86,140,210,.28)"/>'+bars+xlab+'</svg>'; }
+function chartDonut(id,items,opt){ var host=document.getElementById(id); if(!host)return; opt=opt||{}; var tot=items.reduce(function(a,x){return a+(+x.value||0);},0)||1,cx=110,cy=110,r=90,rin=60,ang=-Math.PI/2;
+  var arcs=items.map(function(it){var frac=(+it.value||0)/tot; if(frac<=0)return""; var a2=ang+frac*Math.PI*2,large=frac>0.5?1:0,x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang),x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2),xi2=cx+rin*Math.cos(a2),yi2=cy+rin*Math.sin(a2),xi1=cx+rin*Math.cos(ang),yi1=cy+rin*Math.sin(ang); var d="M"+x1.toFixed(1)+" "+y1.toFixed(1)+" A"+r+" "+r+" 0 "+large+" 1 "+x2.toFixed(1)+" "+y2.toFixed(1)+" L"+xi2.toFixed(1)+" "+yi2.toFixed(1)+" A"+rin+" "+rin+" 0 "+large+" 0 "+xi1.toFixed(1)+" "+yi1.toFixed(1)+" Z"; ang=a2; return '<path d="'+d+'" fill="'+it.color+'" stroke="#04070f" stroke-width="1.5"><title>'+it.label+': '+(opt.vfmt?opt.vfmt(it.value):it.value)+' ('+Math.round(frac*100)+'%)</title></path>';}).join("");
+  var center='<text x="110" y="103" text-anchor="middle" font-size="10" fill="#7f97bd" letter-spacing="1.5">TOTAL</text><text x="110" y="123" text-anchor="middle" font-size="16" font-weight="700" fill="#eaf2ff">'+(opt.centerText||"")+'</text>';
+  var leg='<div class="jleg jleg-wrap">'+items.map(function(it){return '<span><i style="background:'+it.color+'"></i>'+it.label+' '+Math.round((+it.value||0)/tot*100)+'%</span>';}).join("")+'</div>';
+  host.innerHTML='<svg class="jchart jdonut" viewBox="0 0 220 220">'+arcs+center+'</svg>'+leg; }
+/* shared crosshair tooltip for line charts */
+(function(){ var tip=null; function ensure(){ if(!tip&&document.body){tip=document.createElement('div');tip.id='jctip';document.body.appendChild(tip);} return tip; }
+  document.addEventListener('pointermove',function(ev){ var t=ensure(); if(!t)return; var svg=ev.target&&ev.target.closest?ev.target.closest('svg.jchart'):null; var g=svg&&svg.querySelector?svg.querySelector('.jcross'):null;
+    if(!svg||!svg.dataset.jl||!g){ if(t)t.style.opacity=0; return; }
+    var ser; try{ser=JSON.parse(svg.dataset.jl);}catch(e){return;} if(!ser.length){return;}
+    var r=svg.getBoundingClientRect(),padL=+svg.dataset.pl||12,padR=+svg.dataset.pr||14,W=560; var px=(ev.clientX-r.left)/(r.width||1)*W; var f=Math.max(0,Math.min(1,(px-padL)/(W-padL-padR)));
+    var n=ser[0].d.length,i=Math.round(f*(n-1)); var vx=padL+(n<2?0:(i/(n-1))*(W-padL-padR));
+    g.innerHTML='<line x1="'+vx.toFixed(1)+'" y1="10" x2="'+vx.toFixed(1)+'" y2="'+((svg.viewBox.baseVal.height||210)-12)+'" stroke="rgba(150,180,220,.35)" stroke-dasharray="3 3"/>';
+    t.innerHTML=ser.map(function(s){var v=s.d[i];return '<span style="color:'+s.c+'">●</span> '+(s.n?s.n+' ':'')+fmtSparkVal(v);}).join('<br>');
+    t.style.left=ev.clientX+'px'; t.style.top=(r.top-6)+'px'; t.style.opacity=1;
+  },{passive:true});
+  document.addEventListener('pointerout',function(ev){ if(tip&&!(ev.relatedTarget&&ev.relatedTarget.closest&&ev.relatedTarget.closest('svg.jchart')))tip.style.opacity=0; },{passive:true});
+})();
 function renderNwChart(series){
   var el=document.getElementById("nwchart"); if(!el) return;
   if(!series||series.length<2){ destroyChart("nwapex"); el.innerHTML=""; return; }
   var up=series[series.length-1]>=series[0], col=up?"#33e6a0":"#ff5d72";
   var chg=series[series.length-1]-series[0], pc=series[0]?chg/series[0]*100:0;
   var head='<span>Net worth · last '+series.length+' days</span><span style="color:'+col+';font-weight:700">'+(chg>=0?"+":"")+money(Math.round(chg))+" ("+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span>';
-  if(typeof ApexCharts==="undefined"){ el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px">'+head+'</div>'+netChart(series); return; }
   if(!document.getElementById("nwapex")) el.innerHTML='<div id="nwhead" style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1px"></div><div id="nwapex"></div>';
   document.getElementById("nwhead").innerHTML=head;
-  drawChart("nwapex",{
-    chart:{type:"area",height:104,sparkline:{enabled:true},animations:{enabled:true,easing:"easeinout",speed:600,dynamicAnimation:{enabled:true,speed:450}},fontFamily:"Inter,sans-serif"},
-    series:[{name:"Net worth",data:series.map(function(v){return Math.round(v);})}],
-    stroke:{curve:"smooth",width:2.2},colors:[col],
-    fill:{type:"gradient",gradient:{shadeIntensity:1,opacityFrom:.34,opacityTo:0,stops:[0,100]}},
-    tooltip:{theme:"dark",x:{show:false},y:{formatter:function(v){return money(v);}},marker:{show:false}},
-    grid:{padding:{left:0,right:0,top:2,bottom:0}}
-  });
+  chartLine("nwapex",[{name:"Net worth",data:series.map(function(v){return Math.round(v);}),color:col}],{height:118,area:true});
 }
 function buildNetWorth(d,map){
   try{
@@ -1919,22 +1968,12 @@ function toggleStrat(el){var d=el.nextElementSibling;if(d&&d.classList.contains(
 var SLBL={plays:"Plays",golden:"Golden",momentum:"Momentum",tsmom:"TS-mom",donchian:"Donchian",rsi2:"RSI-2",bounce:"Bounce"};
 function labDesc(key,brain){if(key==='super'&&brain&&brain.weights){var w=brain.weights;var bar=Object.keys(w).sort(function(a,b){return w[b]-w[a];}).map(function(k){return '<span style="font-size:10px;border:1px solid var(--line);border-radius:7px;padding:1px 6px;margin:0 5px 4px 0;display:inline-block;color:var(--txt)">'+(SLBL[k]||k)+' <b style="color:var(--cyan)">'+w[k]+'%</b></span>';}).join('');return '<b>Live allocation — auto-adjusts every day:</b><div style="margin:5px 0 7px">'+bar+'</div>'+(brain.insight||STRAT_DESC.super);}return STRAT_DESC[key]||"";}
 function renderEquityChart(cid,strats,bench){
-  if(typeof ApexCharts==="undefined")return; var host=document.getElementById(cid); if(!host)return;
+  var host=document.getElementById(cid); if(!host)return;
   var pal=["#36e0ff","#33e6a0","#ffc24b","#ff5d72","#8b7dff","#4db8ff","#c589ff","#ff9a2e"];
-  var series=(strats||[]).filter(function(s){return s.curve&&s.curve.length>1;}).map(function(s){return {name:s.name,data:s.curve.map(function(v){return Math.round(v);})};});
-  if(bench&&bench.curve&&bench.curve.length>1) series.push({name:"Buy & hold",data:bench.curve.map(function(v){return Math.round(v);})});
-  if(series.length<1)return;
-  var colors=series.map(function(s,i){return s.name==="Buy & hold"?"#8aa0c6":pal[i%pal.length];});
-  drawChart(cid,{
-    chart:{type:"line",height:214,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}},zoom:{enabled:false}},
-    series:series, colors:colors,
-    stroke:{curve:"smooth",width:2,dashArray:series.map(function(s){return s.name==="Buy & hold"?4:0;})},
-    xaxis:{labels:{show:false},axisBorder:{show:false},axisTicks:{show:false},tooltip:{enabled:false}},
-    yaxis:{labels:{style:{colors:"#9eb4d8"},formatter:function(v){return "$"+(v/1000).toFixed(0)+"k";}}},
-    legend:{labels:{colors:"#9eb4d8"},position:"top",fontSize:"10.5px",markers:{width:8,height:8},itemMargin:{horizontal:5,vertical:1}},
-    grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
-    tooltip:{theme:"dark",shared:true,intersect:false,x:{show:false},y:{formatter:function(v){return "$"+v.toLocaleString();}}}
-  });
+  var series=(strats||[]).filter(function(s){return s.curve&&s.curve.length>1;}).map(function(s,i){return {name:s.name,data:s.curve.map(function(v){return Math.round(v);}),color:pal[i%pal.length]};});
+  if(bench&&bench.curve&&bench.curve.length>1) series.push({name:"Buy & hold",data:bench.curve.map(function(v){return Math.round(v);}),color:"#8aa0c6",dash:true});
+  if(series.length<1){host.innerHTML="";return;}
+  chartLine(cid,series,{height:216,legend:true,yfmt:function(v){return "$"+(v/1000).toFixed(0)+"k";}});
 }
 /* ---------- pre-market analysis (daily two-brain report + loop memory) ---------- */
 const PM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/premarket";
@@ -2101,24 +2140,13 @@ function renderPerf(j,H){
   var note=(top?'<div class="perfnote">Biggest P&amp;L position: <b>'+top.ticker+'</b> '+(top.pl_aud>=0?"+":"-")+'A$'+Math.round(Math.abs(top.pl_aud)).toLocaleString()+' all-time.</div>':"")+'<div class="perfnote2">Value-weighted local returns vs index price. Not advice.</div>';
   var cats=[],you=[],asx=[],spx=[];
   [["1 wk","1w"],["1 mo","1m"],["YTD","ytd"]].forEach(function(p){var o=pr[p[1]];if(o){cats.push(p[0]);you.push(Math.round((o.portfolio||0)*100)/100);asx.push(Math.round((o.asx200||0)*100)/100);spx.push(Math.round((o.spx||0)*100)/100);}});
-  if(typeof ApexCharts==="undefined"||!cats.length){
+  if(!cats.length){
     function cellrow(label,o){if(!o)return "";var y=o.portfolio,a=o.asx200,s=o.spx;return '<div class="perfrow"><span class="perflbl">'+label+'</span><span class="perfyou '+(y>=0?"up":"down")+'">'+fmtSign(y)+'</span><span class="perfb">ASX '+fmtSign(a)+'</span><span class="perfb">S&amp;P '+fmtSign(s)+'</span></div>';}
     el.innerHTML='<div class="perfhd"><span></span><span>You</span><span>ASX200</span><span>S&amp;P500</span></div>'+cellrow("1 week",pr["1w"])+cellrow("1 month",pr["1m"])+cellrow("YTD",pr.ytd)+note;return;
   }
   if(!document.getElementById("perfapex")) el.innerHTML='<div id="perfapex"></div><div id="perfnote"></div>';
   var pn=document.getElementById("perfnote"); if(pn) pn.innerHTML=note;
-  drawChart("perfapex",{
-    chart:{type:"bar",height:200,toolbar:{show:false},fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}}},
-    series:[{name:"You",data:you},{name:"ASX200",data:asx},{name:"S&P500",data:spx}],
-    xaxis:{categories:cats,labels:{style:{colors:["#9eb4d8","#9eb4d8","#9eb4d8"]}},axisBorder:{show:false},axisTicks:{show:false}},
-    yaxis:{labels:{style:{colors:"#9eb4d8"},formatter:function(v){return v.toFixed(0)+"%";}}},
-    colors:["#36e0ff","#8aa0c6","#ffc24b"],
-    plotOptions:{bar:{columnWidth:"64%",borderRadius:3}},
-    dataLabels:{enabled:false},
-    legend:{labels:{colors:"#9eb4d8"},position:"top",horizontalAlign:"right",fontSize:"11px",markers:{width:8,height:8}},
-    grid:{borderColor:"rgba(86,140,210,.14)",strokeDashArray:3},
-    tooltip:{theme:"dark",y:{formatter:function(v){return (v>=0?"+":"")+v.toFixed(2)+"%";}}}
-  });
+  chartBars("perfapex",cats,[{name:"You",data:you,color:"#36e0ff"},{name:"ASX200",data:asx,color:"#8aa0c6"},{name:"S&P500",data:spx,color:"#ffc24b"}],{height:200,yfmt:function(v){return v.toFixed(0)+"%";},vfmt:function(v){return (v>=0?"+":"")+v.toFixed(2)+"%";}});
 }
 function renderAlloc(H){
   var el=document.getElementById("alloc");if(!el)return;if(!H.length){el.innerHTML='<div class="empty">No holdings.</div>';return;}
@@ -2140,21 +2168,10 @@ function renderAlloc(H){
     +'<div class="ts"><div class="tsl">Top name</div><div class="tsv">'+topPct.toFixed(0)+'%</div><div class="labsub">'+pmEsc(sorted[0].ticker.replace(".AX",""))+'</div></div>'
     +'<div class="ts"><div class="tsl">USD risk</div><div class="tsv">'+Math.round(usd/tot*100)+'%</div><div class="labsub">currency</div></div></div>';
   var chips='<div class="allchips">'+chip("Shares",stockv)+chip("ETF/Index",etfv)+chip("AUD",aud)+chip("USD",usd)+'</div>'+risk;
-  if(typeof ApexCharts==="undefined"){ el.innerHTML=bars+chips+flags; return; }
   if(!document.getElementById("allocapex")) el.innerHTML='<div id="allocapex"></div><div id="allocmeta"></div>';
   var am=document.getElementById("allocmeta"); if(am) am.innerHTML=chips+flags;
   var pal=["#36e0ff","#33e6a0","#ffc24b","#ff5d72","#8b7dff","#4db8ff","#7CFFB2","#ff9a2e","#c589ff","#5ad1c9"];
-  drawChart("allocapex",{
-    chart:{type:"donut",height:236,fontFamily:"Inter,sans-serif",animations:{speed:500,dynamicAnimation:{speed:400}}},
-    series:sorted.map(function(h){return Math.round(h.value_aud||0);}),
-    labels:sorted.map(function(h){return h.ticker;}),
-    colors:pal,
-    stroke:{width:1,colors:["#04070f"]},
-    legend:{position:"bottom",labels:{colors:"#9eb4d8"},fontSize:"11px",itemMargin:{horizontal:6,vertical:2}},
-    dataLabels:{enabled:true,formatter:function(v){return v>=8?Math.round(v)+"%":"";},style:{fontSize:"10px",fontWeight:600},dropShadow:{enabled:false}},
-    plotOptions:{pie:{donut:{size:"64%",labels:{show:true,value:{color:"#eaf2ff",fontSize:"15px",formatter:function(v){return money(Number(v));}},total:{show:true,label:"Total",color:"#9eb4d8",fontSize:"11px",formatter:function(){return money(tot);}}}}}},
-    tooltip:{theme:"dark",y:{formatter:function(v){return money(v)+" ("+Math.round(v/tot*100)+"%)";}}}
-  });
+  chartDonut("allocapex",sorted.map(function(h,i){return {label:h.ticker,value:Math.round(h.value_aud||0),color:pal[i%pal.length]};}),{centerText:money(tot),vfmt:function(v){return money(v);}});
 }
 function renderAlerts(H,perf){
   var el=document.getElementById("alerts");if(!el)return;var al=[];var pm={};
