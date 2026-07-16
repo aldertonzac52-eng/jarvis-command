@@ -2022,27 +2022,46 @@ function loadPremarket(){
 }
 const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-track";
 const LOOPREVIEW_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/loop-review";
+const REGIME_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/market-regime";
+const BACKTEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/backtest-weighting";
 function loadBrainTrust(){var el=document.getElementById("braintrust");if(!el)return;
-  fetch(LOOPREVIEW_URL).then(function(r){return r.json();}).then(function(j){
+  Promise.all([
+    fetch(LOOPREVIEW_URL).then(function(r){return r.json();}).catch(function(){return {};}),
+    fetch(REGIME_URL).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch(BACKTEST_URL).then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(res){
+    var j=res[0]||{},reg=res[1],bt=res[2];
+    var html="";
+    /* #4 market-regime chip */
+    if(reg&&reg.regime){var rc=reg.regime==="risk-on"?"var(--green)":reg.regime==="risk-off"?"var(--red)":"var(--amber)";
+      html+='<div class="sec-lbl" style="margin-top:10px">Market weather</div>'
+        +'<div class="trsig"><span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+rc+';margin-right:6px"></span>'+reg.regime+' <span style="opacity:.55">score '+reg.score+'/100</span></span><span class="trwin">sizing '+reg.sizing_mult+'×</span></div>'
+        +'<div class="labsub" style="opacity:.7">'+(reg.read||"")+'</div>';}
+    /* #5 brain trust + calibration */
     var w=(j.brain_weights||[]).filter(function(b){return b.high_n||b.avoid_n;});
-    if(!w.length){el.innerHTML="";return;}
-    w.sort(function(a,b){return (b.spread==null?-99:b.spread)-(a.spread==null?-99:a.spread);});
-    var mx=Math.max.apply(null,w.map(function(b){return Math.abs(b.spread||0);}))||1;
-    var rows=w.map(function(b){
-      var prov=b.provisional;var sp=b.spread==null?null:b.spread;
-      var barw=sp==null?0:Math.round(Math.abs(sp)/mx*100);
-      var hi=b.high_avg==null?"—":(b.high_avg>=0?"+":"")+b.high_avg+"%";
-      var av=b.avoid_avg==null?"—":(b.avoid_avg>=0?"+":"")+b.avoid_avg+"%";
-      var wtxt=prov?'<span style="opacity:.5">building…</span>':'weight <b>'+b.weight+'×</b>';
-      return '<div class="trsig" style="flex-direction:column;align-items:stretch;gap:3px">'
-        +'<div style="display:flex;justify-content:space-between"><span>'+b.label
-        +(prov?'':' <span style="opacity:.6">Δ'+(sp>=0?"+":"")+sp.toFixed(1)+'pts</span>')+'</span><span class="trwin">'+wtxt+'</span></div>'
-        +(prov?'':'<div style="height:5px;background:rgba(86,140,210,.14);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+barw+'%;background:'+(sp>=0?"var(--green)":"var(--red)")+'"></div></div>'
-        +'<div class="labsub" style="opacity:.7">HIGH calls '+hi+' vs its avoids '+av+' · '+(b.high_n+b.avoid_n)+' scored</div>')
-        +'</div>';
-    }).join("");
-    el.innerHTML='<div class="sec-lbl" style="margin-top:10px">Brain trust — earned weight <span style="opacity:.55;font-weight:400">(does each brain\'s HIGH beat its avoid?)</span></div>'+rows
-      +'<div class="labsub" style="opacity:.6;margin-top:4px">Weights are set nightly from real outcomes; the panel leans harder on the brains with the bigger edge.</div>';
+    if(w.length){
+      w.sort(function(a,b){return (b.spread==null?-99:b.spread)-(a.spread==null?-99:a.spread);});
+      var mx=Math.max.apply(null,w.map(function(b){return Math.abs(b.spread||0);}))||1;
+      var rows=w.map(function(b){
+        var prov=b.provisional;var sp=b.spread==null?null:b.spread;
+        var barw=sp==null?0:Math.round(Math.abs(sp)/mx*100);
+        var wtxt=prov?'<span style="opacity:.5">building…</span>':'weight <b>'+b.weight+'×</b>';
+        var cal=(b.high_win!=null)?('HIGH wins '+b.high_win+'%'+(b.med_win!=null?' · MED '+b.med_win+'%':'')+(b.low_win!=null?' · LOW '+b.low_win+'%':'')+(b.calibrated?' <span style="color:var(--green)">✓ calibrated</span>':'')):'';
+        return '<div class="trsig" style="flex-direction:column;align-items:stretch;gap:3px">'
+          +'<div style="display:flex;justify-content:space-between"><span>'+b.label
+          +(prov?'':' <span style="opacity:.6">Δ'+(sp>=0?"+":"")+sp.toFixed(1)+'pts</span>')+'</span><span class="trwin">'+wtxt+'</span></div>'
+          +(prov?'':'<div style="height:5px;background:rgba(86,140,210,.14);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+barw+'%;background:'+(sp>=0?"var(--green)":"var(--red)")+'"></div></div>'
+          +(cal?'<div class="labsub" style="opacity:.7">'+cal+'</div>':''))
+          +'</div>';
+      }).join("");
+      html+='<div class="sec-lbl" style="margin-top:10px">Brain trust — earned weight <span style="opacity:.55;font-weight:400">(is each brain\'s HIGH really its best call?)</span></div>'+rows;
+    }
+    /* #6 weighted-vs-equal proof */
+    if(bt&&bt.weighted_actionable&&bt.weighted_actionable.avg!=null){
+      html+='<div class="labsub" style="opacity:.75;margin-top:6px"><b>Weighting check:</b> the panel\'s buys average '+bt.weighted_actionable.avg+'% under the earned weights vs '+bt.equal_actionable.avg+'% under the old one-vote-each rule'+(bt.tiers_changed?' ('+bt.tiers_changed+' verdict'+(bt.tiers_changed>1?'s':'')+' changed)':'')+'.</div>';
+    }
+    if(!html){el.innerHTML="";return;}
+    el.innerHTML=html+'<div class="labsub" style="opacity:.6;margin-top:4px">Weights, calibration and market weather are recomputed nightly from real outcomes. Paper only, not advice.</div>';
   }).catch(function(){var e=document.getElementById("braintrust");if(e)e.innerHTML="";});}
 function scoreCell(o){var w=o.win_pct==null?"—":o.win_pct+"%";var r=o.avg_ret==null?"":(o.avg_ret>=0?"+":"")+o.avg_ret+"%";var cl=o.avg_ret==null?"":(o.avg_ret>=0?"up":"down");return '<div class="tsv '+cl+'">'+w+'</div><div class="labsub" style="text-align:center">'+(o.n||0)+' picks'+(r?' · '+r:'')+'</div>';}
 function scSrcChips(){var s=window._scSrc||'';
