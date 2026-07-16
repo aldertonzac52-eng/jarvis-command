@@ -1441,10 +1441,10 @@ async function endSession(){ if(convo){ try{ await convo.endSession(); }catch(e)
 async function orbTap(){
   if(convo||speaking){ try{ if(convo) await endSession(); }catch(e){} stopSpeak(); setOrbState("idle"); showAnswer("Stopped. Tap the orb to talk to JARVIS."); return; }
   try{ stopSpeak(); await startSession("voice"); }catch(e){} }
-async function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…");
-  try{ if(!convo) await startSession("text"); if(convo&&typeof convo.sendUserMessage==="function"){ convo.sendUserMessage(q); } else { throw new Error("no-send"); } }
-  catch(e){ chatFallback(q); } }
-function chatFallback(q){ var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){} fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:[],pin:pin})}).then(function(r){return r.json();}).then(function(j){ showAnswer(j.reply||"Sorry, I didn't catch that."); }).catch(function(){ showAnswer("I couldn't reach the network just then."); }); }
+/* Typed questions go STRAIGHT to the smart jarvis-chat brain (knows premarket, all
+   panels, radar, fund, the 4 brains). The ElevenLabs agent is voice-only now. */
+function sendText(t){ var inp=document.getElementById("askin"); var q=((typeof t==="string")?t:(inp?inp.value:"")||"").trim(); if(!q)return; if(inp)inp.value=""; showAnswer("…"); chatFallback(q); }
+function chatFallback(q){ var pin="";try{pin=sessionStorage.getItem("jv_pin")||"";}catch(e){} fetch(CHAT_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:q,history:(chatHistory||[]).slice(-6),pin:pin})}).then(function(r){return r.json();}).then(function(j){ var rep=j.reply||"Sorry, I didn't catch that."; showAnswer(rep); try{chatHistory.push({role:"user",content:q},{role:"assistant",content:rep});}catch(e){} }).catch(function(){ showAnswer("I couldn't reach the network just then."); }); }
 
 /* ---------- speak: Alistair via ElevenLabs (iOS-robust: plain audio + timed pulse) ---------- */
 let voiceAudio=null;
