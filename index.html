@@ -1973,7 +1973,7 @@ function renderEquityChart(cid,strats,bench){
   var series=(strats||[]).filter(function(s){return s.curve&&s.curve.length>1;}).map(function(s,i){return {name:s.name,data:s.curve.map(function(v){return Math.round(v);}),color:pal[i%pal.length]};});
   if(bench&&bench.curve&&bench.curve.length>1) series.push({name:"Buy & hold",data:bench.curve.map(function(v){return Math.round(v);}),color:"#8aa0c6",dash:true});
   if(series.length<1){host.innerHTML="";return;}
-  chartLine(cid,series,{height:216,legend:true,yfmt:function(v){return "$"+(v/1000).toFixed(0)+"k";}});
+  chartLine(cid,series,{height:216,legend:true,yfmt:function(v){var a=Math.abs(v);if(a>=1e6)return "$"+(v/1e6).toFixed(1)+"m";if(a>=1e5)return "$"+Math.round(v/1000)+"k";if(a>=1000)return "$"+(v/1000).toFixed(1)+"k";return "$"+Math.round(v);}});
 }
 /* ---------- pre-market analysis (daily two-brain report + loop memory) ---------- */
 const PM_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/premarket";
