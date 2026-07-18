@@ -2048,9 +2048,10 @@ function loadPremarket(){
           '<div class="stat"><div class="sl">Runs</div><div class="sv">'+(j.runs_completed||0)+'</div></div>'+
           '<div class="stat"><div class="sl">Panel HIGH (4-brain)</div><div class="sv up">'+((ag.both_high||[]).join(", ")||"—")+'</div></div>'+
           '<div class="stat"><div class="sl">Conflicts</div><div class="sv" style="color:var(--amber)">'+((ag.conflict||[]).join(", ")||"—")+'</div></div></div>';
-        var les=(j.lessons&&j.lessons.length)?'<div class="sec-lbl">Lessons in force</div>'+j.lessons.map(function(l){return '<div class="pmlesson">'+pmInline(pmEsc(l))+'</div>';}).join(""):'<div class="sec-lbl">Lessons in force</div><div class="empty" style="animation:none">None yet — lessons are written from real outcomes, and the file grows every reviewed run.</div>';
+        var les='<div class="sec-lbl">Lessons in force</div><div id="pmlessons">'+((j.lessons&&j.lessons.length)?j.lessons.map(function(l){return '<div class="pmlesson">'+pmInline(pmEsc(l))+'</div>';}).join(""):'<div class="empty" style="animation:none">None yet — lessons are written from real outcomes, and the file grows every reviewed run.</div>')+'</div>';
         var runs=(j.run_log&&j.run_log.length)?'<div class="sec-lbl" style="margin-top:12px">Run log (the memory)</div>'+j.run_log.slice(-6).reverse().map(function(r){return '<div class="pmrun">'+pmEsc(r)+'</div>';}).join(""):"";
         br.innerHTML=head+les+runs+'<div class="playsdis" style="margin-top:10px">The loop reads this memory before every run. Traps flagged: '+((ag.traps||[]).join(", ")||"—")+'</div>';
+        try{loadLoopLessons();}catch(e){}
       }
     })
     .catch(function(e){
@@ -2063,13 +2064,34 @@ const PMSCORE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/panel-t
 const LOOPREVIEW_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/loop-review";
 const REGIME_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/market-regime";
 const BACKTEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/backtest-weighting";
+const DIGEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/weekly-digest";
+/* Status-tagged lesson book — hard rules never retire, standing = proven, provisional = on trial */
+function lessonBadge(l){
+  if(l.kind==="rule")return ["HARD RULE","var(--red)"];
+  if(l.kind==="warning")return ["WARNING","var(--amber)"];
+  if(l.kind==="autopsy")return ["AUTOPSY","var(--red)"];
+  if(l.status==="standing")return ["STANDING","var(--green)"];
+  return ["PROVISIONAL","rgba(150,170,200,.85)"];
+}
+function loadLoopLessons(){var el=document.getElementById("pmlessons");if(!el)return;
+  fetch(LOOPREVIEW_URL).then(function(r){return r.json();}).then(function(j){
+    var ls=(j.lessons||[]).filter(function(l){return String(l.rule||"").indexOf("WEIGHTING:")!==0;});
+    if(!ls.length)return;
+    var ord=function(l){if(l.kind==="rule")return 0;if(l.kind==="warning")return 1;if(l.kind==="autopsy")return 2;return l.status==="standing"?3:4;};
+    ls.sort(function(a,b){return ord(a)-ord(b);});
+    el.innerHTML=ls.map(function(l){var b=lessonBadge(l);
+      var trial=(l.status==="provisional"&&l.kind==="lesson")?' <span style="opacity:.5">(on trial · '+(l.sample_n||0)+'/15 picks confirmed)</span>':'';
+      return '<div class="pmlesson"><span style="font-size:9px;font-weight:700;letter-spacing:.5px;color:'+b[1]+';border:1px solid '+b[1]+';border-radius:3px;padding:0 4px;margin-right:6px;white-space:nowrap;vertical-align:1px">'+b[0]+'</span>'+pmInline(pmEsc(l.rule||""))+trial+'</div>';
+    }).join("")+'<div class="labsub" style="opacity:.6;margin-top:4px">The book self-corrects nightly: contradicted lessons retire; provisional ones must earn STANDING across 15+ scored picks.</div>';
+  }).catch(function(){});}
 function loadBrainTrust(){var el=document.getElementById("braintrust");if(!el)return;
   Promise.all([
     fetch(LOOPREVIEW_URL).then(function(r){return r.json();}).catch(function(){return {};}),
     fetch(REGIME_URL).then(function(r){return r.json();}).catch(function(){return null;}),
-    fetch(BACKTEST_URL).then(function(r){return r.json();}).catch(function(){return null;})
+    fetch(BACKTEST_URL).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch(DIGEST_URL+"?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
   ]).then(function(res){
-    var j=res[0]||{},reg=res[1],bt=res[2];
+    var j=res[0]||{},reg=res[1],bt=res[2],wd=res[3];
     var html="";
     /* #4 market-regime chip */
     if(reg&&reg.regime){var rc=reg.regime==="risk-on"?"var(--green)":reg.regime==="risk-off"?"var(--red)":"var(--amber)";
@@ -2098,6 +2120,15 @@ function loadBrainTrust(){var el=document.getElementById("braintrust");if(!el)re
     /* #6 weighted-vs-equal proof */
     if(bt&&bt.weighted_actionable&&bt.weighted_actionable.avg!=null){
       html+='<div class="labsub" style="opacity:.75;margin-top:6px"><b>Weighting check:</b> the panel\'s buys average '+bt.weighted_actionable.avg+'% under the earned weights vs '+bt.equal_actionable.avg+'% under the old one-vote-each rule'+(bt.tiers_changed?' ('+bt.tiers_changed+' verdict'+(bt.tiers_changed>1?'s':'')+' changed)':'')+'.</div>';
+    }
+    /* weekly digest — actionable strike + where the edge lives */
+    if(wd&&wd.matured){
+      var act=wd.actionable||{};
+      html+='<div class="sec-lbl" style="margin-top:10px">This week — where the edge lives</div>'
+        +'<div class="trsig"><span>Actionable <span style="opacity:.55">(consensus, ex-premarket)</span></span><span class="trwin">'+(act.n?act.win+'% right · '+act.n+' picks · avg '+act.avg+'%':'none matured yet')+'</span></div>'
+        +((wd.by_source||[]).map(function(s){return '<div class="trsig"><span style="opacity:.8;text-transform:capitalize">'+s.key+'-sourced</span><span class="trwin">'+(s.win==null?'—':s.win+'% right')+' · '+s.n+' picks · avg '+(s.avg==null?'—':s.avg+'%')+'</span></div>';}).join(""))
+        +((wd.tail&&wd.tail.length)?'<div class="labsub" style="color:var(--red);opacity:.85">Tail losses beyond -15%: '+wd.tail.map(function(t){return t.ticker+' '+t.adj+'%';}).join(', ')+' — autopsies filed.</div>':'')
+        +'<div class="labsub" style="opacity:.6">Hard rule in force: premarket names are watch-only unless confirmed by the plays panel or a same-day catalyst.</div>';
     }
     if(!html){el.innerHTML="";return;}
     el.innerHTML=html+'<div class="labsub" style="opacity:.6;margin-top:4px">Weights, calibration and market weather are recomputed nightly from real outcomes. Paper only, not advice.</div>';
