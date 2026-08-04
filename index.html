@@ -136,6 +136,8 @@
   body[data-tab="premkt"] .masonry>.panel:not(.sec-premkt){display:none}
   body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
+  body[data-tab="swing"] .masonry>.panel:not(.sec-swing){display:none}
+  body[data-tab="swing"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
   body[data-tab="lab"] .masonry>.panel:not(.sec-lab){display:none}
   /* strategy lab */
@@ -551,6 +553,20 @@
   body[data-tab="premkt"]{--acc:#ff9a2e;--acc-soft:rgba(255,154,46,.30)}
   body[data-tab="plays"]{--acc:#c589ff;--acc-soft:rgba(197,137,255,.30)}
   body[data-tab="crypto"]{--acc:#ffc24b;--acc-soft:rgba(255,194,75,.30)}
+  body[data-tab="swing"]{--acc:#4be08a;--acc-soft:rgba(75,224,138,.30)}
+  .swrow{padding:9px 2px;border-bottom:1px solid rgba(86,140,210,.10)}
+  .swrow:last-child{border-bottom:none}
+  .swtop{display:flex;align-items:center;gap:8px}
+  .swtier{font-size:10px;font-weight:700;letter-spacing:.05em;border-radius:9px;padding:2px 8px;white-space:nowrap}
+  .swtier.t3{background:rgba(75,224,138,.16);color:#4be08a;border:1px solid rgba(75,224,138,.45)}
+  .swtier.t2{background:rgba(54,224,255,.12);color:var(--cyan);border:1px solid rgba(54,224,255,.4)}
+  .swtier.tw{background:rgba(255,194,75,.10);color:#ffc24b;border:1px solid rgba(255,194,75,.35)}
+  .swsym{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:14px}
+  .swpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--txt)}
+  .swwhy{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .swtf{font-size:10.5px;color:var(--cyan-dim);margin-top:2px;font-variant-numeric:tabular-nums}
+  .swregime{font-size:11.5px;color:var(--muted);margin:2px 0 8px;line-height:1.5}
+  .swregime b{color:var(--txt)}
   body[data-tab="property"]{--acc:#33e6a0;--acc-soft:rgba(51,230,160,.30)}
   body[data-tab="lab"]{--acc:#8b7dff;--acc-soft:rgba(139,125,255,.32)}
   .ph{color:var(--acc)}
@@ -696,6 +712,7 @@
     <button class="tb" id="tb-premkt" onclick="setTab('premkt')"><i data-lucide="sunrise"></i>Pre-Market</button>
     <button class="tb" id="tb-plays" onclick="setTab('plays')"><i data-lucide="target"></i>Possible Plays</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
+    <button class="tb" id="tb-swing" onclick="setTab('swing')"><i data-lucide="zap"></i>Swing</button>
     <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
     <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
   </div>
@@ -740,6 +757,8 @@
     <div class="panel"><div class="ph"><i data-lucide="radar"></i>Early radar <span class="r">pre-mainstream · scored</span></div><div id="radar"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="zap"></i>Unusual volume <span class="r">big money · live</span></div><div id="whale"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="landmark"></i>Congress trades <span class="r">STOCK Act · filings</span></div><div id="poltrades"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-swing"><div class="ph"><i data-lucide="zap"></i>Swing candidates — Crypto <span class="r">1-5 day · panel consensus</span></div><div id="swcrypto"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-swing"><div class="ph"><i data-lucide="candlestick-chart"></i>Swing candidates — Stocks <span class="r">1-5 day · panel consensus</span></div><div id="swstocks"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="radio"></i>Crypto signals <span class="r">RSI · trend · opportunity</span></div><div id="csignals"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="waves"></i>Whale watch <span class="r">volume · turnover</span></div><div id="cwhale"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="layers"></i>DeFi TVL <span class="r">live</span></div><div id="defi"><div class="empty">Loading…</div></div></div>
@@ -754,8 +773,7 @@
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Property calendar <span class="r">dates · phone reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="percent"></i>RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property"><div class="ph"><i data-lucide="home"></i>Mortgage repayment <span class="r">calculator</span></div><div class="calc" id="mcalc"></div></div>
-    <div class="panel sec-property"><div class="ph"><i data-lucide="key"></i>Rental yield <span class="r">calculator</span></div><div class="calc" id="ycalc"></div></div>
+    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy house · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
@@ -1227,7 +1245,7 @@ document.addEventListener('visibilitychange',function(){
 });
 
 /* ---------- sticky mini-header: portfolio total + P/L + active tab ---------- */
-var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',property:'Property',lab:'Strategy Lab'};
+var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',swing:'Swing',property:'Property',lab:'Strategy Lab'};
 function updateMinibar(){try{
   var mt=document.getElementById('mbt'); if(mt)mt.textContent=TABNAMES[document.body.getAttribute('data-tab')]||'';
   var d=lastData; if(!d||!d.portfolio)return;
@@ -1841,6 +1859,41 @@ function cv(id){var e=document.getElementById(id);return e?parseFloat(e.value)||
 function calcM(){var P=cv("m_amt"),r=cv("m_rate")/100/12,n=cv("m_term")*12;var pay=n>0?(r>0?P*r/(1-Math.pow(1+r,-n)):P/n):0;var o=document.getElementById("m_out");if(o)o.innerHTML='<b>A$'+Math.round(pay).toLocaleString("en-AU")+'</b> / month';}
 function calcY(){var rent=cv("y_rent"),val=cv("y_val");var gy=val>0?rent*52/val*100:0;var o=document.getElementById("y_out");if(o)o.innerHTML='<b>'+gy.toFixed(2)+'%</b> gross yield';}
 function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1;m.innerHTML='<label>Loan amount A$</label><input id="m_amt" type="number" value="600000"><label>Interest rate % p.a.</label><input id="m_rate" type="number" step="0.01" value="6.10"><label>Term (years)</label><input id="m_term" type="number" value="30"><div class="calcout" id="m_out">—</div>';["m_amt","m_rate","m_term"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcM);});calcM();}var y=document.getElementById("ycalc");if(y&&!y._b){y._b=1;y.innerHTML='<label>Weekly rent A$</label><input id="y_rent" type="number" value="550"><label>Property value A$</label><input id="y_val" type="number" value="750000"><div class="calcout" id="y_out">—</div>';["y_rent","y_val"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcY);});calcY();}}
+/* ---------- Airbnb hub (Property tab): profit calculator + tabs + bookings ---------- */
+const AIRBNB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/airbnb";
+function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
+function setAbCosts(v){try{localStorage.setItem("ab_costs_monthly",String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
+function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
+function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
+function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
+function abMonths(ym){if(!ym)return 1;var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);var n=new Date();return Math.max(1,(n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+1);}
+function loadAirbnb(){var el=document.getElementById("airbnbhub");if(!el)return;fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;renderAirbnb();}).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
+function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window._AB;if(!el||!j)return;
+  var per=window._abPeriod||"this_month";var P=j.periods||{};var s=j.stats||{};var rt=j.rating||{};var pr=j.pricing||{};var C="A$";
+  var rev=({this_month:P.this_month,m3:P.m3,m6:P.m6,all_time:P.all_time}[per])||0;
+  var months=({this_month:1,m3:3,m6:6,all_time:abMonths(j.hosting_since)}[per])||1;
+  var costs=abCosts();var net=rev-costs*months;
+  var tabs=[["this_month","This month"],["m3","3 mo"],["m6","6 mo"],["all_time","All-time"]].map(function(t){return '<button class="ptab'+(per===t[0]?" on":"")+'" style="padding:3px 10px;font-size:10px" onclick="setAbPeriod(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
+  var partial=(per==="m3"||per==="m6")&&(P.months_known||0)<months;
+  var revblk='<div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+C+money(rev)+'</div>'+(per==="all_time"?'<div class="labsub">Airbnb paid</div>':"")+'</div>'
+    +'<div class="ts"><div class="tsl">Costs</div><div class="tsv">'+C+money(costs*months)+'</div><div class="labsub">'+C+money(costs)+'/mo × '+months+'</div></div>'
+    +'<div class="ts"><div class="tsl">Net profit</div><div class="tsv '+(net>=0?"up":"down")+'">'+C+money(net)+'</div></div>';
+  var statusLine=s.in_house?('<span style="color:var(--green)">●</span> Guest in-house · checks out '+abFmtD(s.in_house.checkout)):(s.next_checkin?("Next check-in "+abFmtD(s.next_checkin)+(s.next_checkout?" · out "+abFmtD(s.next_checkout):"")):"No guest booked right now");
+  var up=(s.upcoming||[]).slice(0,5).map(function(b){return '<div class="trrow"><span class="trk2">'+abFmtD(b.checkin)+' → '+abFmtD(b.checkout)+'</span><span class="trt">'+b.nights+'n</span></div>';}).join("")||'<div class="labsub">No upcoming stays booked.</div>';
+  el.innerHTML='<div class="ptabs" style="margin:0 0 8px">'+tabs+'</div>'
+    +'<div class="trkstat">'+revblk+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:8px 0 2px;flex-wrap:wrap"><span class="labsub">Your monthly costs (cleaning, utilities…)</span><input type="number" value="'+costs+'" onchange="setAbCosts(this.value)" style="width:96px;background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px"></div>'
+    +(partial?'<div class="labsub" style="opacity:.6;margin-bottom:2px">History still filling ('+(P.months_known||0)+' months captured) — grows exact as each month syncs.</div>':"")
+    +'<div class="sec-lbl" style="margin-top:9px">Occupancy &amp; bookings</div>'
+    +'<div class="trkstat"><div class="ts"><div class="tsl">Next 30d</div><div class="tsv">'+(s.occupancy_30||0)+'%</div><div class="labsub">'+(s.booked_nights_30||0)+' nights</div></div>'
+    +'<div class="ts"><div class="tsl">Next 90d</div><div class="tsv">'+(s.occupancy_90||0)+'%</div><div class="labsub">occupancy</div></div>'
+    +'<div class="ts"><div class="tsl">Booked</div><div class="tsv">'+(s.reserved_future||0)+'</div><div class="labsub">upcoming stays</div></div></div>'
+    +'<div class="trsig" style="margin-top:6px"><span>'+statusLine+'</span></div>'
+    +'<div class="sec-lbl" style="margin-top:9px">Upcoming stays</div>'+up
+    +'<div class="sec-lbl" style="margin-top:10px">So far</div>'
+    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+C+money(P.all_time||0)+' · '+C+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
+}
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
 const CCON_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-consensus";
 window.CRYPTOPANEL={};
@@ -1853,6 +1906,32 @@ function cryptoBadge(sym){var c=window.CRYPTOPANEL[sym];if(!c)return "";var v=c.
 function loadCryptoSignals(){
   fetch(CCON_URL).then(function(r){return r.json();}).then(function(j){window.CRYPTOPANEL=(j&&j.consensus)||{};}).catch(function(){}).then(function(){
   fetch(CSIG_URL).then(function(r){return r.json();}).then(function(j){var coins=(j.coins||[]).filter(function(c){return ["USDT","USDC","DAI","BUSD","TUSD","USDE","FDUSD"].indexOf(c.sym)<0;});var el=document.getElementById("csignals");if(!el)return;if(!coins.length){el.innerHTML='<div class="empty">Unavailable.</div>';return;}coins.sort(function(a,b){return (b.opportunity?1:0)-(a.opportunity?1:0);});el.innerHTML=coins.slice(0,14).map(function(c){var rcl=c.rsi==null?"":(c.rsi<35?"down":c.rsi>70?"up":"");var arrow=c.trend==="up"?'<span class="up">&#9650;</span>':'<span class="down">&#9660;</span>';var opp=c.opportunity?'<span class="oppflag">opportunity</span>':"";var s7=c.pct7d==null?"":'<span class="'+(c.pct7d>=0?"up":"down")+'">'+(c.pct7d>=0?"+":"")+c.pct7d+'% 7d</span>';return '<div class="csrow" onclick="togglePlay(this)"><div class="cshead"><img src="'+c.image+'" alt=""><span class="csym">'+c.sym+'</span>'+cryptoBadge(c.sym)+arrow+opp+'<span class="csrsi '+rcl+'">RSI '+(c.rsi==null?"—":c.rsi)+'</span><span class="cs7">'+s7+'</span></div></div><div class="pl-sig">'+(c.series?spark(c.series,260,40):"")+'<div class="sigchips">'+(c.signals||[]).map(function(s){return '<span class="sigchip">'+s+'</span>';}).join("")+'</div></div>';}).join("");}).catch(function(){});});}
+/* ---------- Swing tab: most likely 1-5 day candidates, stocks + crypto ---------- */
+const SWING_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/swing-candidates";
+function swTierBadge(t){if(t==="3of3")return '<span class="swtier t3">ALL AGREE</span>';if(t==="2of3")return '<span class="swtier t2">MAJORITY BUY</span>';return '<span class="swtier tw">WATCH</span>';}
+function swRow(c,isCrypto){var px=isCrypto?(c.price_aud!=null?("A$"+c.price_aud.toLocaleString()):""):(c.price!=null?((c.ccy==="AUD"?"A$":"US$")+c.price.toLocaleString()):"");
+  return '<div class="swrow"><div class="swtop">'+swTierBadge(c.tier)+'<span class="swsym">'+c.sym+'</span><span class="swpx">'+px+'</span></div>'+
+    '<div class="swwhy">'+(c.why||"")+'</div>'+
+    '<div class="swtf">'+(c.timeframe||"")+(c.review_by?(' · review by '+c.review_by):'')+'</div></div>';}
+function swSection(elId,list,isCrypto,dateStr,head){var el=document.getElementById(elId);if(!el)return;
+  if(!list||!list.length){el.innerHTML='<div class="empty">No candidates right now — most days most names are a pass.</div>';return;}
+  var top=list.filter(function(c){return c.tier==="3of3"||c.tier==="2of3";});
+  var watch=list.filter(function(c){return c.tier==="watch";});
+  var h=head||"";
+  if(top.length)h+=top.map(function(c){return swRow(c,isCrypto);}).join("");
+  else h+='<div class="empty" style="padding:6px 2px">No buy-tier candidates today.</div>';
+  if(watch.length)h+='<div class="swregime" style="margin-top:10px"><b>Watching</b> (setup not ready yet)</div>'+watch.map(function(c){return swRow(c,isCrypto);}).join("");
+  h+='<div class="swtf" style="margin-top:8px;opacity:.75">Panel date '+(dateStr||"—")+' · paper-trade consensus · not financial advice</div>';
+  el.innerHTML=h;}
+function loadSwing(){
+  fetch(SWING_URL).then(function(r){return r.json();}).then(function(j){
+    var reg=j.regime?('<div class="swregime"><b>Market check:</b> BTC is '+(j.regime.btc_above_ma20?'above':'below')+' its 20-day average ('+(j.regime.btc_ma20_dist_pct>=0?'+':'')+j.regime.btc_ma20_dist_pct+'%) — regime <b>'+j.regime.label+'</b>. Alts mostly follow BTC over 1-5 days.</div>'):"";
+    swSection("swcrypto",(j.crypto&&j.crypto.candidates)||[],true,j.crypto&&j.crypto.date,reg);
+    swSection("swstocks",(j.stocks&&j.stocks.candidates)||[],false,j.stocks&&j.stocks.date,"");
+  }).catch(function(){
+    var a=document.getElementById("swcrypto"),b=document.getElementById("swstocks");
+    if(a)a.innerHTML='<div class="empty">Unavailable.</div>';if(b)b.innerHTML='<div class="empty">Unavailable.</div>';
+  });}
 /* ---------- Early radar: attention accelerating before price moves ---------- */
 const WHALE_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/whale-stocks";
 const RADAR_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/early-radar";
@@ -2244,7 +2323,7 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadCal();}catch(e){}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadAirbnb();}catch(e){} try{loadCal();}catch(e){}
   try{loadFund();}catch(e){} try{loadEcon();}catch(e){} try{loadPanelWatch();}catch(e){} try{loadCgt();}catch(e){} try{loadLearn();}catch(e){} try{buildPosCalc();}catch(e){}
   if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
@@ -2294,7 +2373,7 @@ function staggerReveal(){try{
   var ps=[].filter.call(document.querySelectorAll('.masonry>.panel'),function(p){return p.offsetParent!==null;});
   ps.forEach(function(p,i){p.classList.remove('reveal');p.style.animation='none';void p.offsetWidth;p.style.animation='';p.style.animationDelay=(i*40)+'ms';p.classList.add('reveal');});
 }catch(e){}}
-function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','premkt','plays','crypto','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','premkt','plays','crypto','swing','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','swing','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(t==='swing'&&!window._swInit){window._swInit=1;loadSwing();}if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
   f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit){loadPremarket();loadScorecard();}}catch(e){}});}
