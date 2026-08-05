@@ -1864,6 +1864,8 @@ function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1
 const AIRBNB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/airbnb";
 function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
 function setAbCosts(v){try{localStorage.setItem("ab_costs_monthly",String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
+function abTenant(){try{var v=parseFloat(localStorage.getItem("ab_tenant_wk")||"491");return isNaN(v)?491:v;}catch(e){return 491;}}
+function setAbTenant(v){try{localStorage.setItem("ab_tenant_wk",String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
 function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
 function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
 function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
@@ -1880,6 +1882,10 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
   var rev=({this_month:P.this_month,m3:P.m3,m6:P.m6,all_time:P.all_time}[per])||0;
   var months=({this_month:1,m3:3,m6:6,all_time:abMonths(j.hosting_since)}[per])||1;
   var costs=abCosts();var net=rev-costs*months;
+  var tenantWk=abTenant();var tenantYr=Math.round(tenantWk*52);
+  var annAirbnb=Math.round((P.m3>0?P.m3/3*12:(P.this_month||0)*12));
+  var base=(pr.base||150);var breakeven=Math.round(tenantYr/(base*365)*100);
+  var abAhead=annAirbnb>=tenantYr;
   var tabs=[["this_month","This month"],["m3","3 mo"],["m6","6 mo"],["all_time","All-time"]].map(function(t){return '<button class="ptab'+(per===t[0]?" on":"")+'" style="padding:3px 10px;font-size:10px" onclick="setAbPeriod(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
   var partial=(per==="m3"||per==="m6")&&(P.months_known||0)<months;
   var revblk='<div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+money(rev)+'</div>'+(per==="all_time"?'<div class="labsub">Airbnb paid</div>':"")+'</div>'
@@ -1899,6 +1905,12 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div class="sec-lbl" style="margin-top:9px">Upcoming stays</div>'+up
     +'<div class="sec-lbl" style="margin-top:10px">So far</div>'
     +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<div class="sec-lbl" style="margin-top:10px">Airbnb vs long-term tenant</div>'
+    +'<div class="trkstat"><div class="ts"><div class="tsl">Airbnb / yr</div><div class="tsv '+(abAhead?"up":"")+'">'+money(annAirbnb)+'</div><div class="labsub">run-rate</div></div>'
+    +'<div class="ts"><div class="tsl">Tenant / yr</div><div class="tsv">'+money(tenantYr)+'</div><div class="labsub">'+money(tenantWk)+'/wk</div></div>'
+    +'<div class="ts"><div class="tsl">Break-even</div><div class="tsv">~'+breakeven+'%</div><div class="labsub">occupancy</div></div></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:6px 0 2px;flex-wrap:wrap"><span class="labsub">Weekly rent if tenanted</span><input type="number" value="'+tenantWk+'" onchange="setAbTenant(this.value)" style="width:90px;background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px"></div>'
+    +'<div class="labsub" style="opacity:.8">'+(abAhead?("Airbnb is ahead of a "+money(tenantWk)+"/wk tenant by ~"+money(annAirbnb-tenantYr)+"/yr at this run-rate.") : ("A "+money(tenantWk)+"/wk tenant would earn ~"+money(tenantYr-annAirbnb)+"/yr more than the current Airbnb run-rate — lift occupancy toward ~"+breakeven+"% to flip it. Airbnb also carries cleaning + your time; a tenant is hands-off."))+'</div>'
     +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
 }
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
