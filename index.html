@@ -1871,9 +1871,9 @@ var AB_RATE_ALLIN=300, AB_RATE_RENTONLY=233;
 function abVerdict(ab,allin,rent){var best=Math.max(ab,allin,rent);var base=((window._AB&&window._AB.pricing&&window._AB.pricing.base)||156);
   var win=(allin>=rent)?["you covering bills",allin]:["them paying bills",rent];
   var hybrid="Best play may be BOTH: teacher tenants through the ~40 school-term weeks, then Airbnb the ~12 empty holiday weeks at peak nightly rates — you capture the rent floor plus holiday upside.";
-  if(best===ab)return "Airbnb is ahead of both tenant options at this run-rate. "+hybrid;
+  if(best===ab)return "On this projection Airbnb out-earns both tenant options — because it's earning strongly for the little it's been open. The catch: it only pays if you keep occupancy and nightly rates up across those weeks. "+hybrid;
   var be=Math.round(win[1]/(base*365)*100);
-  return "Teacher tenants ("+win[0]+") earn ~"+money(win[1]-ab)+"/yr more than Airbnb's current run-rate, and it's hands-off. Airbnb would need ~"+be+"% occupancy at $"+base+"/night to match it. "+hybrid;}
+  return "Teacher tenants ("+win[0]+") earn ~"+money(win[1]-ab)+"/yr more than Airbnb's projected year, and it's hands-off. Airbnb would need ~"+be+"% occupancy at $"+base+"/night to match it. "+hybrid;}
 function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
 function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
 function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
@@ -1891,7 +1891,9 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
   var months=({this_month:1,m3:3,m6:6,all_time:abMonths(j.hosting_since)}[per])||1;
   var costs=abCosts();var net=rev-costs*months;
   var rooms=abNum("ab_rooms",3);var billsWk=abNum("ab_bills_wk",40);var paidWks=abNum("ab_paid_weeks",40);
-  var annAirbnb=Math.round((P.m3>0?P.m3/3*12:(P.this_month||0)*12));
+  var openWks=abNum("ab_open_wks",7);var runWks=abNum("ab_run_wks",52);
+  var perWk=openWks>0?Math.round((P.all_time||0)/openWks):0;
+  var annAirbnb=Math.round(perWk*runWks);
   var allinYr=Math.round(rooms*AB_RATE_ALLIN*paidWks-billsWk*52);
   var rentonlyYr=Math.round(rooms*AB_RATE_RENTONLY*paidWks);
   var bestYr=Math.max(annAirbnb,allinYr,rentonlyYr);
@@ -1917,12 +1919,13 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
     +'<div class="sec-lbl" style="margin-top:10px">Airbnb vs tenants <span style="opacity:.55;font-weight:400">(per year)</span></div>'
     +'<div class="trkstat">'
-    +'<div class="ts"><div class="tsl">Airbnb</div><div class="tsv '+(annAirbnb===bestYr?"up":"")+'">'+money(annAirbnb)+'</div><div class="labsub">run-rate</div></div>'
+    +'<div class="ts"><div class="tsl">Airbnb</div><div class="tsv '+(annAirbnb===bestYr?"up":"")+'">'+money(annAirbnb)+'</div><div class="labsub">'+money(perWk)+'/open wk × '+runWks+'wk</div></div>'
     +'<div class="ts"><div class="tsl">Tenants · you pay bills</div><div class="tsv '+(allinYr===bestYr?"up":"")+'">'+money(allinYr)+'</div><div class="labsub">'+rooms+'rm × $'+AB_RATE_ALLIN+' × '+paidWks+'wk − bills</div></div>'
     +'<div class="ts"><div class="tsl">Tenants · they pay bills</div><div class="tsv '+(rentonlyYr===bestYr?"up":"")+'">'+money(rentonlyYr)+'</div><div class="labsub">'+rooms+'rm × $'+AB_RATE_RENTONLY+' × '+paidWks+'wk</div></div>'
     +'</div>'
     +'<div style="display:flex;align-items:center;gap:10px;margin:6px 0 2px;flex-wrap:wrap"><span class="labsub">Rooms</span><input type="number" value="'+rooms+'" onchange="abSet(\'ab_rooms\',this.value)" style="width:56px;'+ABIN+'"><span class="labsub">Paid weeks/yr</span><input type="number" value="'+paidWks+'" onchange="abSet(\'ab_paid_weeks\',this.value)" style="width:56px;'+ABIN+'"><span class="labsub">Bills $/wk</span><input type="number" value="'+billsWk+'" onchange="abSet(\'ab_bills_wk\',this.value)" style="width:68px;'+ABIN+'"></div>'
-    +'<div class="labsub" style="opacity:.6;margin-bottom:2px">Teacher tenants don\'t pay ~12 school-holiday weeks (VIC: 3 × 2wk breaks + 6wk summer) — hence ~40 paid weeks. Those empty holiday weeks are prime Airbnb windows.</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin:2px 0;flex-wrap:wrap"><span class="labsub">Airbnb: weeks open so far</span><input type="number" value="'+openWks+'" onchange="abSet(\'ab_open_wks\',this.value)" style="width:56px;'+ABIN+'"><span class="labsub">weeks/yr you\'d run it</span><input type="number" value="'+runWks+'" onchange="abSet(\'ab_run_wks\',this.value)" style="width:56px;'+ABIN+'"></div>'
+    +'<div class="labsub" style="opacity:.6;margin-bottom:2px">Airbnb is projected off actual open time ('+money(P.all_time||0)+' over ~'+openWks+'wk = '+money(perWk)+'/wk), not the calendar — it\'s only been open in short bursts. Teacher tenants don\'t pay ~12 school-holiday weeks (VIC: 3 × 2wk + 6wk summer) → ~40 paid weeks; those empty holiday weeks are prime Airbnb windows.</div>'
     +'<div class="labsub" style="opacity:.8">'+abVerdict(annAirbnb,allinYr,rentonlyYr)+'</div>'
     +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
 }
