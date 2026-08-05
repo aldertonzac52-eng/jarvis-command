@@ -426,6 +426,12 @@
   .top .fresh:active{opacity:.6}
   /* pre-market report rendering */
   body[data-tab="premkt"] .masonry{column-count:1!important;max-width:860px;margin-left:auto;margin-right:auto}
+  body[data-tab="property"] .masonry{column-count:1!important;max-width:900px;margin-left:auto;margin-right:auto}
+  /* Property tab: collapsible "Full breakdown" bar in the Airbnb hub */
+  details.abmore>summary::-webkit-details-marker{display:none}
+  details.abmore>summary{cursor:pointer;list-style:none}
+  details.abmore[open]>summary .abmore-x{transform:rotate(45deg)}
+  details.abmore>summary .abmore-x{display:inline-block;transition:transform .2s ease;font-size:15px;line-height:1}
   .pmmd{font-size:13px;line-height:1.6;color:#d5e3f8}
   .pmmd h1{font-size:17px;margin:4px 0 2px;color:var(--txt)}
   .pmmd h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin:18px 0 6px;padding-top:10px;border-top:1px solid rgba(86,140,210,.14)}
@@ -770,9 +776,9 @@
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="flame"></i>Trending coins <span class="r">most searched</span></div><div id="ctrend"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="coins"></i>Crypto · top 10 <span class="r">live (AUD)</span></div><div id="crypto"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="gem"></i>Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Property calendar <span class="r">dates · phone reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy house · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy home · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
@@ -1916,14 +1922,17 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div class="trkstat">'+revblk+'</div>'
     +'<div style="display:flex;align-items:center;gap:8px;margin:8px 0 2px;flex-wrap:wrap"><span class="labsub">Your monthly costs (cleaning, utilities…)</span><input type="number" value="'+costs+'" onchange="setAbCosts(this.value)" style="width:96px;background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px"></div>'
     +(partial?'<div class="labsub" style="opacity:.6;margin-bottom:2px">History still filling ('+(P.months_known||0)+' months captured) — grows exact as each month syncs.</div>':"")
-    +'<div class="sec-lbl" style="margin-top:9px">Occupancy &amp; bookings</div>'
+    +'<div class="trsig" style="margin-top:8px"><span>'+statusLine+'</span></div>'
+    +'<div class="sec-lbl" style="margin-top:9px">So far</div>'
+    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<details class="abmore" style="margin-top:11px">'
+    +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Full breakdown — occupancy · Airbnb vs tenants · on track</span><span class="abmore-x">＋</span></summary>'
+    +'<div style="margin-top:11px">'
+    +'<div class="sec-lbl">Occupancy &amp; bookings</div>'
     +'<div class="trkstat"><div class="ts"><div class="tsl">Next 30d</div><div class="tsv">'+(s.occupancy_30||0)+'%</div><div class="labsub">'+(s.booked_nights_30||0)+' nights</div></div>'
     +'<div class="ts"><div class="tsl">Next 90d</div><div class="tsv">'+(s.occupancy_90||0)+'%</div><div class="labsub">occupancy</div></div>'
     +'<div class="ts"><div class="tsl">Booked</div><div class="tsv">'+(s.reserved_future||0)+'</div><div class="labsub">upcoming stays</div></div></div>'
-    +'<div class="trsig" style="margin-top:6px"><span>'+statusLine+'</span></div>'
     +'<div class="sec-lbl" style="margin-top:9px">Upcoming stays</div>'+up
-    +'<div class="sec-lbl" style="margin-top:10px">So far</div>'
-    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
     +'<div class="sec-lbl" style="margin-top:10px">Airbnb vs tenants <span style="opacity:.55;font-weight:400">(per year)</span></div>'
     +'<div class="trkstat">'
     +'<div class="ts"><div class="tsl">Airbnb</div><div class="tsv '+(annAirbnb===bestYr?"up":"")+'">'+money(annAirbnb)+'</div><div class="labsub">'+money(perWk)+'/open wk × '+runWks+'wk</div></div>'
@@ -1942,6 +1951,7 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +abBar("Teachers · they pay bills",rentonlyYr,maxV,"#8aa0c6")
     +abBar("Hybrid — both",hybridYr,maxV,"#ffc24b")
     +'<div class="labsub" style="opacity:.85;margin-top:5px">Airbnb is <b style="color:'+trackCol+'">'+trackPct+'%</b> of the teacher benchmark ('+money(trackBench)+'/yr). '+(trackPct>=100?("Ahead by ~"+money(annAirbnb-trackBench)+"/yr at "+runWks+" open weeks.") : ("~"+money(trackBench-annAirbnb)+"/yr behind — add open weeks or lift the nightly rate to close it. The hybrid clears both at "+money(hybridYr)+"/yr."))+'</div>'
+    +'</div></details>'
     +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
 }
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
