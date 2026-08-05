@@ -1868,6 +1868,7 @@ function abNum(key,def){try{var v=parseFloat(localStorage.getItem(key));return i
 function abSet(key,v){try{localStorage.setItem(key,String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
 /* Zac's rent-system rates (per person/room): all-in $300 (he pays bills), rent-only $233 (they pay) */
 var AB_RATE_ALLIN=300, AB_RATE_RENTONLY=233;
+function abBar(label,val,max,col){var w=max>0?Math.round(Math.max(0,val)/max*100):0;return '<div style="margin:4px 0"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:2px"><span>'+label+'</span><span style="color:'+col+';font-weight:700">'+money(val)+'</span></div><div style="background:rgba(86,140,210,.12);border-radius:6px;height:13px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:'+col+';border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div></div></div>';}
 function abVerdict(ab,allin,rent){var best=Math.max(ab,allin,rent);var base=((window._AB&&window._AB.pricing&&window._AB.pricing.base)||156);
   var win=(allin>=rent)?["you covering bills",allin]:["them paying bills",rent];
   var hybrid="Best play may be BOTH: teacher tenants through the ~40 school-term weeks, then Airbnb the ~12 empty holiday weeks at peak nightly rates — you capture the rent floor plus holiday upside.";
@@ -1896,6 +1897,12 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
   var annAirbnb=Math.round(perWk*runWks);
   var allinYr=Math.round(rooms*AB_RATE_ALLIN*paidWks-billsWk*52);
   var rentonlyYr=Math.round(rooms*AB_RATE_RENTONLY*paidWks);
+  var holidayWks=Math.max(0,52-paidWks);
+  var hybridYr=Math.round(allinYr+perWk*holidayWks);
+  var trackBench=Math.max(allinYr,rentonlyYr);
+  var trackPct=trackBench>0?Math.round(annAirbnb/trackBench*100):0;
+  var trackCol=trackPct>=100?"var(--green)":(trackPct>=60?"var(--amber)":"var(--red)");
+  var maxV=Math.max(annAirbnb,allinYr,rentonlyYr,hybridYr,1);
   var bestYr=Math.max(annAirbnb,allinYr,rentonlyYr);
   var ABIN="background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px";
   var tabs=[["this_month","This month"],["m3","3 mo"],["m6","6 mo"],["all_time","All-time"]].map(function(t){return '<button class="ptab'+(per===t[0]?" on":"")+'" style="padding:3px 10px;font-size:10px" onclick="setAbPeriod(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
@@ -1927,6 +1934,14 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div style="display:flex;align-items:center;gap:10px;margin:2px 0;flex-wrap:wrap"><span class="labsub">Airbnb: weeks open so far</span><input type="number" value="'+openWks+'" onchange="abSet(\'ab_open_wks\',this.value)" style="width:56px;'+ABIN+'"><span class="labsub">weeks/yr you\'d run it</span><input type="number" value="'+runWks+'" onchange="abSet(\'ab_run_wks\',this.value)" style="width:56px;'+ABIN+'"></div>'
     +'<div class="labsub" style="opacity:.6;margin-bottom:2px">Airbnb is projected off actual open time ('+money(P.all_time||0)+' over ~'+openWks+'wk = '+money(perWk)+'/wk), not the calendar — it\'s only been open in short bursts. Teacher tenants don\'t pay ~12 school-holiday weeks (VIC: 3 × 2wk + 6wk summer) → ~40 paid weeks; those empty holiday weeks are prime Airbnb windows.</div>'
     +'<div class="labsub" style="opacity:.8">'+abVerdict(annAirbnb,allinYr,rentonlyYr)+'</div>'
+    +'<div class="sec-lbl" style="margin-top:10px">Hybrid — teachers + holiday Airbnb</div>'
+    +'<div class="trkstat"><div class="ts" style="flex:1"><div class="tsl">Best of both</div><div class="tsv up">'+money(hybridYr)+'</div><div class="labsub">teachers '+paidWks+'wk + Airbnb the '+holidayWks+' holiday wks</div></div></div>'
+    +'<div class="sec-lbl" style="margin-top:10px">On track vs teachers</div>'
+    +abBar("Airbnb — open "+runWks+"wk/yr",annAirbnb,maxV,"#36e0ff")
+    +abBar("Teachers · you pay bills",allinYr,maxV,"#33e6a0")
+    +abBar("Teachers · they pay bills",rentonlyYr,maxV,"#8aa0c6")
+    +abBar("Hybrid — both",hybridYr,maxV,"#ffc24b")
+    +'<div class="labsub" style="opacity:.85;margin-top:5px">Airbnb is <b style="color:'+trackCol+'">'+trackPct+'%</b> of the teacher benchmark ('+money(trackBench)+'/yr). '+(trackPct>=100?("Ahead by ~"+money(annAirbnb-trackBench)+"/yr at "+runWks+" open weeks.") : ("~"+money(trackBench-annAirbnb)+"/yr behind — add open weeks or lift the nightly rate to close it. The hybrid clears both at "+money(hybridYr)+"/yr."))+'</div>'
     +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
 }
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
