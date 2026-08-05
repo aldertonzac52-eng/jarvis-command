@@ -772,7 +772,6 @@
     <div class="panel sec-crypto"><div class="ph"><i data-lucide="gem"></i>Commodities <span class="r">live (USD)</span></div><div id="commods"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="calendar-days"></i>Property calendar <span class="r">dates · phone reminders</span></div><div id="calbox"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-property"><div class="ph"><i data-lucide="percent"></i>RBA cash rate <span class="r">official</span></div><div id="rba"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy house · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
@@ -1814,7 +1813,7 @@ function loadCal(){if(document.getElementById("calbox")&&window.CURRENT)calAct("
 var CAL_ICON={rent:"🏠",bill:"⚡",inspection:"🔍",market:"📈",personal:"📅"};
 function calColor(k){return k==='rent'?'var(--green)':k==='bill'?'var(--amber)':k==='inspection'?'var(--cyan)':'var(--muted)';}
 function calInjectCss(){if(document.getElementById("calcss"))return;var st=document.createElement("style");st.id="calcss";
-  st.textContent=".calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.calhead .calm{font-weight:700;font-size:14px}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.caldow{text-align:center;font-size:10px;color:var(--muted);padding:1px 0}.calcell{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;padding-top:4px;cursor:pointer;transition:.12s;min-height:32px}.calcell:hover{border-color:rgba(54,224,255,.5);background:rgba(54,224,255,.07)}.calcell.blank{border:none;cursor:default;background:none}.calcell.today{border-color:var(--cyan);background:rgba(54,224,255,.12)}.calcell.has .caln{font-weight:700}.caln{font-size:12px;color:var(--txt);line-height:1}.caldots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center}.caldot{width:5px;height:5px;border-radius:50%}.calup{margin-top:11px;display:flex;flex-direction:column;gap:6px}.calupr{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px}.calupd{color:var(--muted);font-size:11px;white-space:nowrap}";
+  st.textContent=".calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.calhead .calm{font-weight:700;font-size:14px}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.caldow{text-align:center;font-size:10px;color:var(--muted);padding:1px 0}.calcell{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;padding-top:4px;cursor:pointer;transition:.12s;min-height:32px}.calcell:hover{border-color:rgba(54,224,255,.5);background:rgba(54,224,255,.07)}.calcell.blank{border:none;cursor:default;background:none}.calcell.today{border-color:var(--cyan);background:rgba(54,224,255,.12)}.calcell.booked{background:rgba(255,93,114,.22);border-color:rgba(255,93,114,.55)}.calcell.booked .caln{color:#ffd6dc;font-weight:700}.calcell.today.booked{box-shadow:0 0 0 1px var(--cyan) inset}.calcell.has .caln{font-weight:700}.caln{font-size:12px;color:var(--txt);line-height:1}.caldots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center}.caldot{width:5px;height:5px;border-radius:50%}.calup{margin-top:11px;display:flex;flex-direction:column;gap:6px}.calupr{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px}.calupd{color:var(--muted);font-size:11px;white-space:nowrap}";
   document.head.appendChild(st);}
 function renderCal(j){window.CAL_EVENTS=(j&&j.events)||[];if(!window.calCursor){var n=new Date();window.calCursor={y:n.getFullYear(),m:n.getMonth()};}drawCal();}
 function calShift(d){if(!window.calCursor)return;var m=window.calCursor.m+d,y=window.calCursor.y;if(m<0){m=11;y--;}if(m>11){m=0;y++;}window.calCursor={y:y,m:m};drawCal();}
@@ -1829,9 +1828,11 @@ function drawCal(){var el=document.getElementById("calbox");if(!el)return;calInj
   var h='<div class="calhead"><button class="ptab" style="padding:3px 11px" onclick="calShift(-1)">‹</button><div class="calm">'+mName+'</div><button class="ptab" style="padding:3px 11px" onclick="calShift(1)">›</button></div>';
   h+='<div class="calgrid">';["M","T","W","T","F","S","S"].forEach(function(d){h+='<div class="caldow">'+d+'</div>';});
   for(var i=0;i<start;i++)h+='<div class="calcell blank"></div>';
+  var boo=window._ABDAYS||{};
   for(var day=1;day<=dim;day++){var k=c.y+"-"+pad(c.m+1)+"-"+pad(day);var de=byDay[k]||[];
     var dots=de.slice(0,3).map(function(e){return '<span class="caldot" style="background:'+calColor(e.kind)+'"></span>';}).join('');
-    h+='<div class="calcell'+(k===todayStr?' today':'')+(de.length?' has':'')+'" title="'+de.map(function(e){return pmEsc(e.title);}).join(", ")+'" onclick="calAdd(\''+k+'\')"><span class="caln">'+day+'</span><div class="caldots">'+dots+'</div></div>';}
+    var bk=boo[k]?" booked":"";var ttl=de.map(function(e){return pmEsc(e.title);}).join(", ")+(boo[k]?(de.length?" · ":"")+"Airbnb guest in":"");
+    h+='<div class="calcell'+(k===todayStr?' today':'')+bk+(de.length?' has':'')+'" title="'+ttl+'" onclick="calAdd(\''+k+'\')"><span class="caln">'+day+'</span><div class="caldots">'+dots+'</div></div>';}
   h+='</div>';
   var up=evs.filter(function(e){return new Date(e.at)>=new Date(todayStr+"T00:00:00");}).sort(function(a,b){return new Date(a.at)-new Date(b.at);}).slice(0,6);
   if(up.length){h+='<div class="calup">'+up.map(function(e){var d=new Date(e.at);var ds=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
@@ -1867,7 +1868,13 @@ function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
 function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
 function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
 function abMonths(ym){if(!ym)return 1;var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);var n=new Date();return Math.max(1,(n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+1);}
-function loadAirbnb(){var el=document.getElementById("airbnbhub");if(!el)return;fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;renderAirbnb();}).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
+function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;
+    var days={};var ups=((j.stats&&j.stats.upcoming)||[]).slice();if(j.stats&&j.stats.in_house)ups.push(j.stats.in_house);
+    ups.forEach(function(b){try{var d=new Date(b.checkin+"T00:00:00"),end=new Date(b.checkout+"T00:00:00");for(;d<end;d.setDate(d.getDate()+1))days[d.toLocaleDateString("en-CA")]=1;}catch(e){}});
+    window._ABDAYS=days;
+    var el=document.getElementById("airbnbhub");if(el)renderAirbnb();
+    try{if(document.getElementById("calbox")&&window.calCursor)drawCal();}catch(e){}
+  }).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
 function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window._AB;if(!el||!j)return;
   var per=window._abPeriod||"this_month";var P=j.periods||{};var s=j.stats||{};var rt=j.rating||{};var pr=j.pricing||{};var C="A$";
   var rev=({this_month:P.this_month,m3:P.m3,m6:P.m6,all_time:P.all_time}[per])||0;
@@ -1875,9 +1882,9 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
   var costs=abCosts();var net=rev-costs*months;
   var tabs=[["this_month","This month"],["m3","3 mo"],["m6","6 mo"],["all_time","All-time"]].map(function(t){return '<button class="ptab'+(per===t[0]?" on":"")+'" style="padding:3px 10px;font-size:10px" onclick="setAbPeriod(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
   var partial=(per==="m3"||per==="m6")&&(P.months_known||0)<months;
-  var revblk='<div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+C+money(rev)+'</div>'+(per==="all_time"?'<div class="labsub">Airbnb paid</div>':"")+'</div>'
-    +'<div class="ts"><div class="tsl">Costs</div><div class="tsv">'+C+money(costs*months)+'</div><div class="labsub">'+C+money(costs)+'/mo × '+months+'</div></div>'
-    +'<div class="ts"><div class="tsl">Net profit</div><div class="tsv '+(net>=0?"up":"down")+'">'+C+money(net)+'</div></div>';
+  var revblk='<div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+money(rev)+'</div>'+(per==="all_time"?'<div class="labsub">Airbnb paid</div>':"")+'</div>'
+    +'<div class="ts"><div class="tsl">Costs</div><div class="tsv">'+money(costs*months)+'</div><div class="labsub">'+money(costs)+'/mo × '+months+'</div></div>'
+    +'<div class="ts"><div class="tsl">Net profit</div><div class="tsv '+(net>=0?"up":"down")+'">'+money(net)+'</div></div>';
   var statusLine=s.in_house?('<span style="color:var(--green)">●</span> Guest in-house · checks out '+abFmtD(s.in_house.checkout)):(s.next_checkin?("Next check-in "+abFmtD(s.next_checkin)+(s.next_checkout?" · out "+abFmtD(s.next_checkout):"")):"No guest booked right now");
   var up=(s.upcoming||[]).slice(0,5).map(function(b){return '<div class="trrow"><span class="trk2">'+abFmtD(b.checkin)+' → '+abFmtD(b.checkout)+'</span><span class="trt">'+b.nights+'n</span></div>';}).join("")||'<div class="labsub">No upcoming stays booked.</div>';
   el.innerHTML='<div class="ptabs" style="margin:0 0 8px">'+tabs+'</div>'
@@ -1891,7 +1898,7 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div class="trsig" style="margin-top:6px"><span>'+statusLine+'</span></div>'
     +'<div class="sec-lbl" style="margin-top:9px">Upcoming stays</div>'+up
     +'<div class="sec-lbl" style="margin-top:10px">So far</div>'
-    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+C+money(P.all_time||0)+' · '+C+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
     +'<div class="playsdis" style="margin-top:8px">Bookings &amp; occupancy auto-sync from your Airbnb calendar every few hours; check-ins/outs flow into your calendar. Earnings refresh on a logged-in pull. Not advice.</div>';
 }
 const CSIG_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/crypto-signals";
