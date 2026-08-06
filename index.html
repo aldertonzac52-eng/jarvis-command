@@ -218,9 +218,9 @@
   .defitot .defisub{display:block;font-family:"Inter",sans-serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-top:2px}
   /* track record */
   .trkstat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
-  .trkstat .ts{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
+  .trkstat .ts{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:11px;padding:9px 7px;text-align:center;min-width:0}
   .trkstat .tsl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-  .trkstat .tsv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;margin-top:2px}
+  .trkstat .tsv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(13px,3.4vw,17px);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;line-height:1.15}
   .trsig{display:flex;justify-content:space-between;font-size:11px;padding:4px 1px;color:var(--muted);border-bottom:1px solid rgba(86,140,210,.08)}
   .trsig .trwin{color:var(--cyan);font-weight:700;font-variant-numeric:tabular-nums}
   .trrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 1px;border-bottom:1px solid rgba(86,140,210,.08);font-variant-numeric:tabular-nums}
@@ -426,7 +426,10 @@
   .top .fresh:active{opacity:.6}
   /* pre-market report rendering */
   body[data-tab="premkt"] .masonry{column-count:1!important;max-width:860px;margin-left:auto;margin-right:auto}
-  /* Property tab uses the default masonry (3 columns side by side on wide screens) */
+  /* Property tab: calendar + Airbnb hub side by side, centered pair; other panels below */
+  body[data-tab="property"] .masonry{column-count:auto!important;column-gap:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1060px;margin-left:auto;margin-right:auto;align-items:start}
+  body[data-tab="property"] .masonry>.panel{width:auto;margin:0}
+  @media(max-width:760px){body[data-tab="property"] .masonry{grid-template-columns:1fr}}
   /* Property tab: collapsible "Full breakdown" bar in the Airbnb hub */
   details.abmore>summary::-webkit-details-marker{display:none}
   details.abmore>summary{cursor:pointer;list-style:none}
@@ -1924,7 +1927,7 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +(partial?'<div class="labsub" style="opacity:.6;margin-bottom:2px">History still filling ('+(P.months_known||0)+' months captured) — grows exact as each month syncs.</div>':"")
     +'<div class="trsig" style="margin-top:8px"><span>'+statusLine+'</span></div>'
     +'<div class="sec-lbl" style="margin-top:9px">So far</div>'
-    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(P.upcoming_est?' <span style="opacity:.6">(est · '+(P.upcoming_nights||0)+'n booked)</span>':"")+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
     +'<details class="abmore" style="margin-top:11px">'
     +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Full breakdown — occupancy · Airbnb vs tenants · on track</span><span class="abmore-x">＋</span></summary>'
     +'<div style="margin-top:11px">'
