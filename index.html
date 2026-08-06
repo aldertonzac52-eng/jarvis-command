@@ -221,6 +221,14 @@
   .trkstat .ts{background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:11px;padding:9px 7px;text-align:center;min-width:0}
   .trkstat .tsl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
   .trkstat .tsv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(13px,3.4vw,17px);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;line-height:1.15}
+  /* Airbnb payments click-through chart */
+  .payrow{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .payrow .payd{font-size:11px;color:var(--muted);min-width:64px;white-space:nowrap}
+  .payrow .paybar{flex:1;height:8px;border-radius:6px;background:rgba(86,140,210,.10);overflow:hidden;min-width:0}
+  .payrow .payfill{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#36e0ff,#33e6a0)}
+  .payrow.pd .payfill{background:linear-gradient(90deg,#33e6a0,#8aa0c6)}
+  .payrow .payv{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;min-width:74px;text-align:right;white-space:nowrap}
+  .paylist{max-height:none;margin-top:2px}
   .trsig{display:flex;justify-content:space-between;font-size:11px;padding:4px 1px;color:var(--muted);border-bottom:1px solid rgba(86,140,210,.08)}
   .trsig .trwin{color:var(--cyan);font-weight:700;font-variant-numeric:tabular-nums}
   .trrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 1px;border-bottom:1px solid rgba(86,140,210,.08);font-variant-numeric:tabular-nums}
@@ -1895,6 +1903,8 @@ function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then
     var el=document.getElementById("airbnbhub");if(el)renderAirbnb();
     try{if(document.getElementById("calbox")&&window.calCursor)drawCal();}catch(e){}
   }).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
+function abPayRows(list,cls){list=list||[];if(!list.length)return '<div class="labsub">None yet.</div>';var mx=1;for(var i=0;i<list.length;i++){if(list[i].amount>mx)mx=list[i].amount;}var out="";for(var k=0;k<list.length;k++){var x=list[k];var pct=Math.max(5,Math.round(x.amount/mx*100));out+='<div class="payrow '+(cls||"")+'"><span class="payd">'+abFmtD(x.date)+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(x.amount)+'</span></div>';}return out;}
+function abPayTab(btn,which){var p=btn.parentNode;var bs=p.getElementsByClassName("ptab");for(var i=0;i<bs.length;i++)bs[i].classList.remove("on");btn.classList.add("on");var up=document.getElementById("abpay_up"),pd=document.getElementById("abpay_pd");if(up)up.style.display=which==="up"?"":"none";if(pd)pd.style.display=which==="pd"?"":"none";}
 function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window._AB;if(!el||!j)return;
   var per=window._abPeriod||"this_month";var P=j.periods||{};var s=j.stats||{};var rt=j.rating||{};var pr=j.pricing||{};var C="A$";
   var rev=({this_month:P.this_month,m3:P.m3,m6:P.m6,all_time:P.all_time}[per])||0;
@@ -1928,6 +1938,10 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
     +'<div class="trsig" style="margin-top:8px"><span>'+statusLine+'</span></div>'
     +'<div class="sec-lbl" style="margin-top:9px">So far</div>'
     +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(P.upcoming_est?' <span style="opacity:.6">(est · '+(P.upcoming_nights||0)+'n booked)</span>':"")+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
+    +'<div class="sec-lbl" style="margin-top:11px">Payments</div>'
+    +'<div class="ptabs" style="margin:0 0 7px"><button class="ptab on" onclick="abPayTab(this,\'up\')">Upcoming '+money(P.upcoming||0)+'</button><button class="ptab" onclick="abPayTab(this,\'pd\')">Paid '+money(P.all_time||0)+'</button></div>'
+    +'<div id="abpay_up" class="paylist">'+abPayRows((j.earnings&&j.earnings.upcoming_list)||[],"")+'</div>'
+    +'<div id="abpay_pd" class="paylist" style="display:none">'+abPayRows((j.earnings&&j.earnings.paid_list)||[],"pd")+'</div>'
     +'<details class="abmore" style="margin-top:11px">'
     +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Full breakdown — occupancy · Airbnb vs tenants · on track</span><span class="abmore-x">＋</span></summary>'
     +'<div style="margin-top:11px">'
