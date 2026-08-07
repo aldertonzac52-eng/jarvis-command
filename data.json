@@ -6,10 +6,10 @@
   "audusd": 0.6899
  },
  "portfolio": {
-  "total_value_aud": 36631.2,
-  "total_cost_aud": 39831.49,
-  "total_pl_aud": -3200.29,
-  "total_pl_pct": -8.03,
+  "total_value_aud": 37782.27,
+  "total_cost_aud": 40835.56,
+  "total_pl_aud": -3053.29,
+  "total_pl_pct": -7.48,
   "holdings": [
    {
     "ticker": "WTC.AX",
@@ -30,7 +30,7 @@
      31.55,
      33.14
     ],
-    "blurb": "FY26 revenue guided US$1.39\u20131.44b (79\u201385% growth). AI-wide efficiency pivot, ~2,000 job cuts and e2open integration weighing on near-term margins.",
+    "blurb": "FY26 revenue guided US$1.39–1.44b (79–85% growth). AI-wide efficiency pivot, ~2,000 job cuts and e2open integration weighing on near-term margins.",
     "news": [
      {
       "t": "AI pivot & reaffirmed FY26 guidance reframe execution risk",
@@ -76,7 +76,7 @@
       "u": "https://www.marketwatch.com/story/servicenow-salesforce-and-other-software-stocks-surge-as-the-openai-threat-weakens-bb1eacfb"
      },
      {
-      "t": "The market rotation is on \u2014 software tops chips",
+      "t": "The market rotation is on — software tops chips",
       "s": "Barron's",
       "u": "https://www.barrons.com/articles/servicenow-applovin-software-chips-on-semiconductor-4496e4be"
      }
@@ -85,19 +85,20 @@
    {
     "ticker": "V500",
     "name": "Vanguard S&P 500",
-    "units": 75,
-    "avg_cost": 52.42,
+    "units": 93,
+    "avg_cost": 53.07,
     "ccy": "AUD",
-    "price": 54.7,
-    "value_aud": 4102.5,
-    "pl_aud": 170.96,
-    "pl_pct": 4.35,
+    "price": 56.49,
+    "value_aud": 5253.57,
+    "pl_aud": 317.96,
+    "pl_pct": 6.44,
     "buy_below": null,
     "estimate": false,
-    "note": "estimate \u00b7 Vanguard app: +9.6% all-time",
+    "note": "Vanguard app: +13.3% all-time (incl. $8.59 income)",
     "series": [
      52.42,
-     54.7
+     54.7,
+     56.49
     ],
     "blurb": "Dollar-cost average ~A$1,000/month into the US S&P 500. Tracks the index daily move; long-term core.",
     "news": []
@@ -193,7 +194,7 @@
     0.41,
     0.41
    ],
-   "blurb": "Price reading unverified today \u2014 confirm before acting.",
+   "blurb": "Price reading unverified today — confirm before acting.",
    "news": []
   },
   {
@@ -236,7 +237,7 @@
   "tone": "Mixed into the weekend",
   "leaders": "Consumer Cyclical, Healthcare, Industrials",
   "laggards": "Energy, Communication Services",
-  "standout": "Microsoft +5.7%, Apple +3.1%; Micron \u22126.7%",
+  "standout": "Microsoft +5.7%, Apple +3.1%; Micron −6.7%",
   "movers": {
    "gainers": [
     {
@@ -330,7 +331,7 @@
  "briefing": {
   "audio": "briefing.mp3",
   "voice": "Alistair",
-  "focus": "Push the Nomad hostel proposal forward \u2014 the single item that genuinely moves the business.",
-  "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox \u2014 mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it \u2014 that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close \u2014 consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
+  "focus": "Push the Nomad hostel proposal forward — the single item that genuinely moves the business.",
+  "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox — mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it — that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close — consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
  }
 }
