@@ -1908,13 +1908,16 @@ function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then
   }).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
 function abPayRows(list,cls,stays){list=list||[];if(!list.length)return '<div class="labsub">None yet.</div>';stays=stays||[];var mx=1;for(var i=0;i<list.length;i++){if(list[i].amount>mx)mx=list[i].amount;}var out="";for(var k=0;k<list.length;k++){var x=list[k];var pct=Math.max(5,Math.round(x.amount/mx*100));var sub="";for(var q=0;q<stays.length;q++){if(stays[q].checkin===x.date){sub='<span class="paystay">'+abFmtD(stays[q].checkin)+'–'+abFmtD(stays[q].checkout)+'</span>';break;}}out+='<div class="payrow '+(cls||"")+'"><span class="payd">'+abFmtD(x.date)+sub+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(x.amount)+'</span></div>';}return out;}
 function abMonLbl(k){var p=String(k).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short"})+" '"+String(p[0]).slice(2);}
-function abMonthBars(monthly,upList){monthly=monthly||{};upList=upList||[];var m={};Object.keys(monthly).forEach(function(k){m[k]=(m[k]||0)+(Number(monthly[k])||0);});upList.forEach(function(x){var k=(x.date||"").slice(0,7);if(k)m[k]=(m[k]||0)+(Number(x.amount)||0);});var keys=Object.keys(m).sort();if(!keys.length)return '<div class="labsub">No monthly data yet.</div>';keys=keys.slice(-8);var mx=1;keys.forEach(function(k){if(m[k]>mx)mx=m[k];});var out="";keys.forEach(function(k){var t=m[k];var pct=Math.max(5,Math.round(t/mx*100));out+='<div class="payrow mo"><span class="payd">'+abMonLbl(k)+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(t)+'</span></div>';});return out;}
-function abPayTab(btn,which){var p=btn.parentNode;var bs=p.getElementsByClassName("ptab");for(var i=0;i<bs.length;i++)bs[i].classList.remove("on");btn.classList.add("on");["up","pd","mo"].forEach(function(w){var e=document.getElementById("abpay_"+w);if(e)e.style.display=(w===which)?"":"none";});}
+function abMonthBars(monthly,upList,maxN){monthly=monthly||{};upList=upList||[];var m={};Object.keys(monthly).forEach(function(k){m[k]=(m[k]||0)+(Number(monthly[k])||0);});upList.forEach(function(x){var k=(x.date||"").slice(0,7);if(k)m[k]=(m[k]||0)+(Number(x.amount)||0);});var keys=Object.keys(m).sort();if(!keys.length)return '<div class="labsub">No monthly data yet.</div>';keys=keys.slice(-(maxN||8));var mx=1;keys.forEach(function(k){if(m[k]>mx)mx=m[k];});var out="";keys.forEach(function(k){var t=m[k];var pct=Math.max(5,Math.round(t/mx*100));out+='<div class="payrow mo"><span class="payd">'+abMonLbl(k)+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(t)+'</span></div>';});return out;}
+function abPaidWindow(monthly,n){monthly=monthly||{};var now=new Date();var sum=0;for(var i=0;i<n;i++){var dt=new Date(now.getFullYear(),now.getMonth()-i,1);var k=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0");sum+=Number(monthly[k]||0);}return Math.round(sum*100)/100;}
+function abTab(w){window._abTab=w;renderAirbnb();}
+function abPaidWin(n){window._abPaidWin=n;renderAirbnb();}
 function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window._AB;if(!el||!j)return;
-  var per=window._abPeriod||"this_month";var P=j.periods||{};var s=j.stats||{};var rt=j.rating||{};var pr=j.pricing||{};var C="A$";
-  var rev=({this_month:P.this_month,m3:P.m3,m6:P.m6,all_time:P.all_time}[per])||0;
-  var months=({this_month:1,m3:3,m6:6,all_time:abMonths(j.hosting_since)}[per])||1;
-  var costs=abCosts();var net=rev-costs*months;
+  var P=j.periods||{};var s=j.stats||{};var rt=j.rating||{};var pr=j.pricing||{};var C="A$";
+  var tab=window._abTab||"month";var pw=window._abPaidWin||12;
+  var costs=abCosts();
+  var monthRev=P.this_month||0;var monthNet=monthRev-costs;
+  var upTotal=P.upcoming||0;var paidWin=abPaidWindow((j.earnings&&j.earnings.monthly)||{},pw);
   var rooms=abNum("ab_rooms",3);var billsWk=abNum("ab_bills_wk",40);var paidWks=abNum("ab_paid_weeks",40);
   var openWks=abNum("ab_open_wks",7);var runWks=abNum("ab_run_wks",52);
   var perWk=openWks>0?Math.round((P.all_time||0)/openWks):0;
@@ -1929,27 +1932,26 @@ function renderAirbnb(){var el=document.getElementById("airbnbhub");var j=window
   var maxV=Math.max(annAirbnb,allinYr,rentonlyYr,hybridYr,1);
   var bestYr=Math.max(annAirbnb,allinYr,rentonlyYr);
   var ABIN="background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px";
-  var tabs=[["this_month","This month"],["m3","3 mo"],["m6","6 mo"],["all_time","All-time"]].map(function(t){return '<button class="ptab'+(per===t[0]?" on":"")+'" style="padding:3px 10px;font-size:10px" onclick="setAbPeriod(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
-  var partial=(per==="m3"||per==="m6")&&(P.months_known||0)<months;
   var asof=(j.earnings&&j.earnings.as_of)||"";
-  var revblk='<div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+money(rev)+'</div><div class="labsub">'+(per==="this_month"?"paid + upcoming":"Airbnb paid")+'</div></div>'
-    +'<div class="ts"><div class="tsl">Costs</div><div class="tsv">'+money(costs*months)+'</div><div class="labsub">'+money(costs)+'/mo × '+months+'</div></div>'
-    +'<div class="ts"><div class="tsl">Net profit</div><div class="tsv '+(net>=0?"up":"down")+'">'+money(net)+'</div></div>';
+  var tabbtns=[["month","This month"],["up","Upcoming"],["paid","Paid"]].map(function(t){return '<button class="ptab'+(tab===t[0]?" on":"")+'" style="padding:4px 13px;font-size:11px" onclick="abTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join("");
+  var monthBlk='<div class="trkstat"><div class="ts"><div class="tsl">Revenue</div><div class="tsv up">'+money(monthRev)+'</div><div class="labsub">paid + upcoming</div></div>'
+    +'<div class="ts"><div class="tsl">Costs</div><div class="tsv">'+money(costs)+'</div><div class="labsub">this month</div></div>'
+    +'<div class="ts"><div class="tsl">Net</div><div class="tsv '+(monthNet>=0?"up":"down")+'">'+money(monthNet)+'</div></div></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:8px 0 2px;flex-wrap:wrap"><span class="labsub">Your monthly costs (cleaning, utilities…)</span><input type="number" value="'+costs+'" onchange="setAbCosts(this.value)" style="width:96px;'+ABIN+'"></div>';
+  var upBlk='<div class="trkstat"><div class="ts" style="flex:1"><div class="tsl">Total upcoming</div><div class="tsv up">'+money(upTotal)+'</div><div class="labsub">'+(((j.earnings&&j.earnings.upcoming_list)||[]).length)+' payouts booked</div></div></div>'
+    +'<div class="paylist" style="margin-top:7px">'+abPayRows((j.earnings&&j.earnings.upcoming_list)||[],"",(s.upcoming||[]).concat(s.in_house?[s.in_house]:[]))+'</div>';
+  var pwbtns=[3,6,12].map(function(n){return '<button class="ptab'+(pw===n?" on":"")+'" style="padding:3px 11px;font-size:10px" onclick="abPaidWin('+n+')">'+n+' mo</button>';}).join("");
+  var paidBlk='<div class="ptabs" style="margin:0 0 7px">'+pwbtns+'</div>'
+    +'<div class="trkstat"><div class="ts" style="flex:1"><div class="tsl">Paid · last '+pw+' mo</div><div class="tsv up">'+money(paidWin)+'</div><div class="labsub">all-time paid '+money(P.all_time||0)+'</div></div></div>'
+    +'<div class="paylist" style="margin-top:7px">'+abMonthBars((j.earnings&&j.earnings.monthly)||{},[],pw)+'</div>';
   var statusLine=s.in_house?('<span style="color:var(--green)">●</span> Guest in-house · checks out '+abFmtD(s.in_house.checkout)):(s.next_checkin?("Next check-in "+abFmtD(s.next_checkin)+(s.next_checkout?" · out "+abFmtD(s.next_checkout):"")):"No guest booked right now");
   var up=(s.upcoming||[]).slice(0,5).map(function(b){return '<div class="trrow"><span class="trk2">'+abFmtD(b.checkin)+' → '+abFmtD(b.checkout)+'</span><span class="trt">'+b.nights+'n</span></div>';}).join("")||'<div class="labsub">No upcoming stays booked.</div>';
-  el.innerHTML='<div class="ptabs" style="margin:0 0 8px">'+tabs+'</div>'
-    +'<div class="trkstat">'+revblk+'</div>'
-    +'<div style="display:flex;align-items:center;gap:8px;margin:8px 0 2px;flex-wrap:wrap"><span class="labsub">Your monthly costs (cleaning, utilities…)</span><input type="number" value="'+costs+'" onchange="setAbCosts(this.value)" style="width:96px;background:rgba(86,140,210,.08);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:3px 7px;font-size:12px"></div>'
-    +'<div class="labsub" style="opacity:.7;margin-top:5px">💵 Earnings as of '+(asof?abFmtD(asof):"—")+' · <span style="color:var(--green)">●</span> bookings live</div>'
-    +(partial?'<div class="labsub" style="opacity:.6;margin-bottom:2px">History still filling ('+(P.months_known||0)+' months captured) — grows exact as each month syncs.</div>':"")
+  el.innerHTML='<div class="ptabs" style="margin:0 0 9px">'+tabbtns+'</div>'
+    +(tab==="up"?upBlk:tab==="paid"?paidBlk:monthBlk)
+    +'<div class="labsub" style="opacity:.7;margin-top:6px">💵 Earnings as of '+(asof?abFmtD(asof):"—")+' · <span style="color:var(--green)">●</span> bookings live</div>'
     +'<div class="trsig" style="margin-top:8px"><span>'+statusLine+'</span></div>'
     +'<div class="sec-lbl" style="margin-top:9px">So far</div>'
     +'<div class="labsub" style="line-height:1.75">'+(j.superhost?"⭐ Superhost · ":"")+(rt.overall||"—")+"★ ("+(rt.count||0)+' reviews) · hosting since '+abSince(j.hosting_since)+'<br>Nightly '+C+(pr.base||"")+"–"+C+(pr.peak||"")+' · '+(pr.weekly_discount||0)+'% weekly / '+(pr.monthly_discount||0)+'% monthly discount<br>All-time paid '+money(P.all_time||0)+' · '+money(P.upcoming||0)+' upcoming'+(P.upcoming_est?' <span style="opacity:.6">(est · '+(P.upcoming_nights||0)+'n booked)</span>':"")+(j.second_listing?"<br>2nd listing "+j.second_listing:"")+'</div>'
-    +'<div class="sec-lbl" style="margin-top:11px">Payments</div>'
-    +'<div class="ptabs" style="margin:0 0 7px"><button class="ptab on" onclick="abPayTab(this,\'up\')">Upcoming '+money(P.upcoming||0)+'</button><button class="ptab" onclick="abPayTab(this,\'pd\')">Paid '+money(P.all_time||0)+'</button><button class="ptab" onclick="abPayTab(this,\'mo\')">Monthly</button></div>'
-    +'<div id="abpay_up" class="paylist">'+abPayRows((j.earnings&&j.earnings.upcoming_list)||[],"",(s.upcoming||[]).concat(s.in_house?[s.in_house]:[]))+'</div>'
-    +'<div id="abpay_pd" class="paylist" style="display:none">'+abPayRows((j.earnings&&j.earnings.paid_list)||[],"pd")+'</div>'
-    +'<div id="abpay_mo" class="paylist" style="display:none">'+abMonthBars((j.earnings&&j.earnings.monthly)||{},(j.earnings&&j.earnings.upcoming_list)||[])+'</div>'
     +'<details class="abmore" style="margin-top:11px">'
     +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Full breakdown — occupancy · Airbnb vs tenants · on track</span><span class="abmore-x">＋</span></summary>'
     +'<div style="margin-top:11px">'
