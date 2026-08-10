@@ -797,10 +797,7 @@
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy home · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-nest owneronly"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">pod-bed hostel sales</span></div><div id="nestpanel">
-      <div class="labsub" style="line-height:1.75">Tab's live — this is where the Nest pod-bed sales pipeline will sit, separate from your personal portfolio/property tabs.</div>
-      <div class="labsub" style="opacity:.7;margin-top:8px">Next step: wire this up to the leads &amp; proposal data already sitting in Supabase (hostel outreach leads, statuses, proposal sends) so this becomes a live pipeline view — same pattern as the Airbnb hub.</div>
-    </div></div>
+    <div class="panel sec-nest owneronly"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">pod-bed hostel sales</span></div><div id="nestpanel"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
@@ -1890,6 +1887,38 @@ function calcY(){var rent=cv("y_rent"),val=cv("y_val");var gy=val>0?rent*52/val*
 function buildCalcs(){var m=document.getElementById("mcalc");if(m&&!m._b){m._b=1;m.innerHTML='<label>Loan amount A$</label><input id="m_amt" type="number" value="600000"><label>Interest rate % p.a.</label><input id="m_rate" type="number" step="0.01" value="6.10"><label>Term (years)</label><input id="m_term" type="number" value="30"><div class="calcout" id="m_out">—</div>';["m_amt","m_rate","m_term"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcM);});calcM();}var y=document.getElementById("ycalc");if(y&&!y._b){y._b=1;y.innerHTML='<label>Weekly rent A$</label><input id="y_rent" type="number" value="550"><label>Property value A$</label><input id="y_val" type="number" value="750000"><div class="calcout" id="y_out">—</div>';["y_rent","y_val"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",calcY);});calcY();}}
 /* ---------- Airbnb hub (Property tab): profit calculator + tabs + bookings ---------- */
 const AIRBNB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/airbnb";
+const NEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/nest";
+function nestMoney(n){n=Number(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2)+"m";if(Math.abs(n)>=1e3)return "$"+Math.round(n/1e3)+"k";return "$"+Math.round(n);}
+function nestDate(s){if(!s)return "—";var d=new Date(s);return d.toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});}
+function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;renderNest();})
+  .catch(function(){var e=document.getElementById("nestpanel");if(e)e.innerHTML='<div class="empty" style="animation:none">Nest data unavailable right now.</div>';});}
+function renderNest(){var el=document.getElementById("nestpanel");var j=window._NEST;if(!el||!j||!j.ok)return;
+  var statBlk='<div class="trkstat">'
+    +'<div class="ts"><div class="tsl">Leads</div><div class="tsv up">'+j.total+'</div><div class="labsub">researched hostels</div></div>'
+    +'<div class="ts"><div class="tsl">Hot (P9-10)</div><div class="tsv up">'+j.hot+'</div><div class="labsub">worst bed complaints</div></div>'
+    +'<div class="ts"><div class="tsl">Proposals ready</div><div class="tsv">'+j.proposals_built+'</div><div class="labsub">built, not sent</div></div>'
+    +'<div class="ts"><div class="tsl">Contacted</div><div class="tsv '+(j.contacted<10?"down":"up")+'">'+j.contacted+'</div><div class="labsub">of '+j.total+' total</div></div></div>'
+    +'<div class="labsub" style="opacity:.7;margin-top:6px">Total addressable ~'+nestMoney(j.total_deal)+' across '+(j.by_region||[]).length+' regions · updated '+nestDate(j.generated)+'</div>';
+  var q=(j.queue||[]);var mxDeal=1;q.forEach(function(x){if(x.deal>mxDeal)mxDeal=x.deal;});
+  var queueBlk=!q.length?'<div class="labsub">Queue clear — every hot lead has been contacted.</div>':q.slice(0,10).map(function(x){
+    var pct=Math.max(8,Math.round((x.deal||0)/mxDeal*100));
+    return '<div class="payrow"><span class="payd">'+x.name+' <span class="labsub" style="opacity:.65">'+(x.city||"")+' · '+x.priority+(x.proposal_ready?' · proposal ready':'')+'</span></span>'
+      +'<span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+nestMoney(x.deal)+'</span></div>'
+      +'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+(x.complaint||"")+'</div>';
+  }).join("");
+  var out=(j.outreach||[]);
+  var outreachBlk=!out.length?'<div class="labsub">No outreach logged yet.</div>':out.map(function(x){
+    return '<div class="trrow"><span class="trk2">'+x.name+' <span class="labsub" style="opacity:.6">'+(x.city||"")+'</span></span><span class="trt">'+x.stage+' · '+nestDate(x.stage_date)+'</span></div>'
+      +(x.notes?'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+x.notes+'</div>':"");
+  }).join("");
+  el.innerHTML=statBlk
+    +'<div class="sec-lbl" style="margin-top:11px">Next to contact <span style="opacity:.55;font-weight:400">— hot leads, biggest deal first</span></div>'
+    +queueBlk
+    +'<details class="abmore" style="margin-top:11px">'
+    +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Outreach so far ('+j.contacted+')</span><span class="abmore-x">＋</span></summary>'
+    +'<div style="margin-top:9px">'+outreachBlk+'</div></details>'
+    +'<div class="playsdis" style="margin-top:8px">Leads researched by the Nest hostel-research skill (public reviews + business info). Contact info is business-public, not personal data. Not advice.</div>';
+}
 function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
 function setAbCosts(v){try{localStorage.setItem("ab_costs_monthly",String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
 function abNum(key,def){try{var v=parseFloat(localStorage.getItem(key));return isNaN(v)?def:v;}catch(e){return def;}}
@@ -2439,7 +2468,7 @@ function loadTrack(){var el=document.getElementById("track");if(!el)return;var p
   }).catch(function(e){el.innerHTML='<div class="empty" style="animation:none">'+(e===401?"Unlock with your PIN.":"Track record unavailable right now.")+'</div>';});}
 function heatColor(p){p=Math.max(-8,Math.min(8,p||0));var a=Math.min(1,Math.abs(p)/8*0.55+0.12);return p>=0?'rgba(51,230,160,'+a.toFixed(2)+')':'rgba(255,93,114,'+a.toFixed(2)+')';}
 function loadHeatmap(){fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=aud&order=market_cap_desc&per_page=24&page=1&price_change_percentage=24h").then(function(r){return r.json();}).then(function(rows){if(!Array.isArray(rows))return;var el=document.getElementById("heat");if(!el)return;var max=Math.max.apply(null,rows.map(function(c){return c.market_cap||0;}));el.innerHTML='<div class="heatgrid">'+rows.map(function(c){var ch=c.price_change_percentage_24h||0;var fg=Math.max(1,Math.round((c.market_cap||0)/max*12));return '<div class="heattile" style="flex-grow:'+fg+';background:'+heatColor(ch)+'"><span class="htsym">'+c.symbol.toUpperCase()+'</span><span class="htpct">'+(ch>=0?"+":"")+ch.toFixed(1)+'%</span></div>';}).join("")+'</div>';}).catch(function(){});}
-function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadAirbnb();}catch(e){} try{loadCal();}catch(e){}
+function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadProperty(); loadAsxMovers(); loadBuzz(); loadPlays(); loadCryptoGlobal(); loadFng(); loadCryptoMovers(); loadTrending(); loadCryptoSignals(); loadCryptoWhale(); loadDefi(); loadHeatmap(); loadCryptoBuzz(); loadWhale(); try{loadRadar();}catch(e){} loadPoliticians(); loadSectorBoard(); loadTrack(); loadRba(); buildCalcs(); try{loadRentRoll();}catch(e){} try{loadAirbnb();}catch(e){} try{loadNest();}catch(e){} try{loadCal();}catch(e){}
   try{loadFund();}catch(e){} try{loadEcon();}catch(e){} try{loadPanelWatch();}catch(e){} try{loadCgt();}catch(e){} try{loadLearn();}catch(e){} try{buildPosCalc();}catch(e){}
   if(!window._secInit){window._secInit=1;loadSectors();} }
 function fetchData(){
