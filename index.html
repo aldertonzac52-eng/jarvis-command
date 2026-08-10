@@ -131,17 +131,26 @@
   .tb{font-family:inherit;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:8px 16px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:.15s}
   .tb:hover{border-color:var(--cyan-dim);color:var(--txt)}
   .tb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
-  body[data-tab="stocks"] .sec-plays,body[data-tab="stocks"] .sec-crypto,body[data-tab="stocks"] .sec-property,body[data-tab="stocks"] .sec-lab,body[data-tab="stocks"] .sec-premkt,body[data-tab="stocks"] .sec-port{display:none}
   body[data-tab="port"] .masonry>.panel:not(.sec-port){display:none}
-  body[data-tab="premkt"] .masonry>.panel:not(.sec-premkt){display:none}
-  body[data-tab="plays"] .masonry>.panel:not(.sec-plays){display:none}
   body[data-tab="crypto"] .masonry>.panel:not(.sec-crypto){display:none}
-  body[data-tab="swing"] .masonry>.panel:not(.sec-swing){display:none}
-  body[data-tab="swing"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
   body[data-tab="lab"] .masonry>.panel:not(.sec-lab){display:none}
   body[data-tab="nest"] .masonry>.panel:not(.sec-nest){display:none}
   body[data-tab="nest"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
+  /* Stocks tab: umbrella for Overview / Pre-Market / Possible Plays / Swing, switched via data-ssub */
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-plays,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-crypto,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-property,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-lab,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-premkt,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-port,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-swing,
+  body[data-tab="stocks"][data-ssub="overview"] .masonry>.panel.sec-nest{display:none}
+  body[data-tab="stocks"][data-ssub="premkt"] .masonry>.panel:not(.sec-premkt){display:none}
+  body[data-tab="stocks"][data-ssub="plays"] .masonry>.panel:not(.sec-plays){display:none}
+  body[data-tab="stocks"][data-ssub="swing"] .masonry>.panel:not(.sec-swing){display:none}
+  body[data-tab="stocks"][data-ssub="swing"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
+  body[data-tab="stocks"][data-ssub="premkt"] .masonry{column-count:1!important;max-width:860px;margin-left:auto;margin-right:auto}
   /* strategy lab */
   .labrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(54,224,255,.06)}
   .labrk{width:18px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
@@ -436,8 +445,6 @@
   /* tappable freshness stamp */
   .top .fresh{cursor:pointer}
   .top .fresh:active{opacity:.6}
-  /* pre-market report rendering */
-  body[data-tab="premkt"] .masonry{column-count:1!important;max-width:860px;margin-left:auto;margin-right:auto}
   /* Property tab: calendar + Airbnb hub side by side, centered pair; other panels below */
   body[data-tab="property"] .masonry{column-count:auto!important;column-gap:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1060px;margin-left:auto;margin-right:auto;align-items:start}
   body[data-tab="property"] .masonry>.panel{width:auto;margin:0}
@@ -571,10 +578,10 @@
 
   /* ---------- section accent colours: each tab carries a signature hue ---------- */
   body{--acc:var(--cyan);--acc-soft:rgba(54,224,255,.26)}
-  body[data-tab="premkt"]{--acc:#ff9a2e;--acc-soft:rgba(255,154,46,.30)}
-  body[data-tab="plays"]{--acc:#c589ff;--acc-soft:rgba(197,137,255,.30)}
+  body[data-tab="stocks"][data-ssub="premkt"]{--acc:#ff9a2e;--acc-soft:rgba(255,154,46,.30)}
+  body[data-tab="stocks"][data-ssub="plays"]{--acc:#c589ff;--acc-soft:rgba(197,137,255,.30)}
   body[data-tab="crypto"]{--acc:#ffc24b;--acc-soft:rgba(255,194,75,.30)}
-  body[data-tab="swing"]{--acc:#4be08a;--acc-soft:rgba(75,224,138,.30)}
+  body[data-tab="stocks"][data-ssub="swing"]{--acc:#4be08a;--acc-soft:rgba(75,224,138,.30)}
   .swrow{padding:9px 2px;border-bottom:1px solid rgba(86,140,210,.10)}
   .swrow:last-child{border-bottom:none}
   .swtop{display:flex;align-items:center;gap:8px}
@@ -731,13 +738,16 @@
   <div class="tabbar">
     <button class="tb on" id="tb-port" onclick="setTab('port')"><i data-lucide="wallet"></i>Portfolio</button>
     <button class="tb" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
-    <button class="tb" id="tb-premkt" onclick="setTab('premkt')"><i data-lucide="sunrise"></i>Pre-Market</button>
-    <button class="tb" id="tb-plays" onclick="setTab('plays')"><i data-lucide="target"></i>Possible Plays</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
-    <button class="tb" id="tb-swing" onclick="setTab('swing')"><i data-lucide="zap"></i>Swing</button>
     <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
     <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
     <button class="tb" id="tb-nest" onclick="setTab('nest')"><i data-lucide="package"></i>Nest</button>
+  </div>
+  <div class="tabbar" id="stocksub" style="display:none">
+    <button class="tb on" id="ssb-overview" onclick="setStockSub('overview')"><i data-lucide="line-chart"></i>Overview</button>
+    <button class="tb" id="ssb-premkt" onclick="setStockSub('premkt')"><i data-lucide="sunrise"></i>Pre-Market</button>
+    <button class="tb" id="ssb-plays" onclick="setStockSub('plays')"><i data-lucide="target"></i>Possible Plays</button>
+    <button class="tb" id="ssb-swing" onclick="setStockSub('swing')"><i data-lucide="zap"></i>Swing</button>
   </div>
   <div class="masonry">
     <div class="panel sec-port pm-wide">
@@ -1243,7 +1253,7 @@ if(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches){(f
     if(el&&el!==p){ el.style.transform=''; el=null; }
     if(!p)return;
     /* no tilt on the Pre-Market tab (the big report tile swings too much) or on any very tall panel */
-    if(document.body.getAttribute('data-tab')==='premkt'){ el=null; return; }
+    if(document.body.getAttribute('data-tab')==='stocks'&&document.body.getAttribute('data-ssub')==='premkt'){ el=null; return; }
     el=p;
     if(raf)return;
     raf=requestAnimationFrame(function(){ raf=null; if(!el)return;
@@ -1269,7 +1279,7 @@ document.addEventListener('visibilitychange',function(){
 });
 
 /* ---------- sticky mini-header: portfolio total + P/L + active tab ---------- */
-var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',swing:'Swing',property:'Property',lab:'Strategy Lab',nest:'Nest'};
+var TABNAMES={port:'Portfolio',stocks:'Stocks',crypto:'Crypto',property:'Property',lab:'Strategy Lab',nest:'Nest'};
 function updateMinibar(){try{
   var mt=document.getElementById('mbt'); if(mt)mt.textContent=TABNAMES[document.body.getAttribute('data-tab')]||'';
   var d=lastData; if(!d||!d.portfolio)return;
@@ -1902,9 +1912,12 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var q=(j.queue||[]);var mxDeal=1;q.forEach(function(x){if(x.deal>mxDeal)mxDeal=x.deal;});
   var queueBlk=!q.length?'<div class="labsub">Queue clear — every hot lead has been contacted.</div>':q.slice(0,10).map(function(x){
     var pct=Math.max(8,Math.round((x.deal||0)/mxDeal*100));
+    var quotes=(x.quotes||[]).slice(0,2).map(function(qt){return '<div class="labsub" style="opacity:.55;margin:2px 0 0 2px">"'+(qt.q||"")+'" <span style="opacity:.8">— '+(qt.s||"")+'</span></div>';}).join("");
     return '<div class="payrow"><span class="payd">'+x.name+' <span class="labsub" style="opacity:.65">'+(x.city||"")+' · '+x.priority+(x.proposal_ready?' · proposal ready':'')+'</span></span>'
       +'<span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+nestMoney(x.deal)+'</span></div>'
-      +'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+(x.complaint||"")+'</div>';
+      +'<div class="labsub" style="opacity:.6;margin:-2px 0 0 2px">'+(x.complaint||"")+(x.phone?' · <span style="opacity:.85">'+x.phone+'</span>':"")+(x.email?' · '+x.email:"")+'</div>'
+      +quotes
+      +'<div style="margin:2px 0 8px 2px"></div>';
   }).join("");
   var out=(j.outreach||[]);
   var outreachBlk=!out.length?'<div class="labsub">No outreach logged yet.</div>':out.map(function(x){
@@ -2518,7 +2531,8 @@ function staggerReveal(){try{
   var ps=[].filter.call(document.querySelectorAll('.masonry>.panel'),function(p){return p.offsetParent!==null;});
   ps.forEach(function(p,i){p.classList.remove('reveal');p.style.animation='none';void p.offsetWidth;p.style.animation='';p.style.animationDelay=(i*40)+'ms';p.classList.add('reveal');});
 }catch(e){}}
-function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','premkt','plays','crypto','swing','property','lab','nest'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','swing','property','lab','nest'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(t==='swing'&&!window._swInit){window._swInit=1;loadSwing();}if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','crypto','property','lab','nest'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','crypto','property','lab','nest'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}var ss=document.getElementById('stocksub');if(ss)ss.style.display=(t==='stocks')?'flex':'none';if(t==='stocks')setStockSub(window._stockSub||'overview');if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setStockSub(s){if(['overview','premkt','plays','swing'].indexOf(s)<0)s='overview';window._stockSub=s;document.body.setAttribute('data-ssub',s);['overview','premkt','plays','swing'].forEach(function(x){var b=document.getElementById('ssb-'+x);if(b)b.classList.toggle('on',x===s);});if(s==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(s==='swing'&&!window._swInit){window._swInit=1;loadSwing();}try{staggerReveal();}catch(e){}}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
   f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit){loadPremarket();loadScorecard();}}catch(e){}});}
