@@ -140,6 +140,8 @@
   body[data-tab="swing"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
   body[data-tab="property"] .masonry>.panel:not(.sec-property){display:none}
   body[data-tab="lab"] .masonry>.panel:not(.sec-lab){display:none}
+  body[data-tab="nest"] .masonry>.panel:not(.sec-nest){display:none}
+  body[data-tab="nest"] .masonry{column-count:1!important;max-width:760px;margin-left:auto;margin-right:auto}
   /* strategy lab */
   .labrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(54,224,255,.06)}
   .labrk{width:18px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
@@ -588,6 +590,7 @@
   .swregime b{color:var(--txt)}
   body[data-tab="property"]{--acc:#33e6a0;--acc-soft:rgba(51,230,160,.30)}
   body[data-tab="lab"]{--acc:#8b7dff;--acc-soft:rgba(139,125,255,.32)}
+  body[data-tab="nest"]{--acc:#ff6b6b;--acc-soft:rgba(255,107,107,.30)}
   .ph{color:var(--acc)}
   .ph::before{background:var(--acc);box-shadow:0 0 8px var(--acc)}
   .masonry>.panel{border-left:2px solid var(--acc-soft)}
@@ -734,6 +737,7 @@
     <button class="tb" id="tb-swing" onclick="setTab('swing')"><i data-lucide="zap"></i>Swing</button>
     <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
     <button class="tb" id="tb-lab" onclick="setTab('lab')"><i data-lucide="flask-conical"></i>Strategy Lab</button>
+    <button class="tb" id="tb-nest" onclick="setTab('nest')"><i data-lucide="package"></i>Nest</button>
   </div>
   <div class="masonry">
     <div class="panel sec-port pm-wide">
@@ -793,6 +797,10 @@
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy home · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-nest owneronly"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">pod-bed hostel sales</span></div><div id="nestpanel">
+      <div class="labsub" style="line-height:1.75">Tab's live — this is where the Nest pod-bed sales pipeline will sit, separate from your personal portfolio/property tabs.</div>
+      <div class="labsub" style="opacity:.7;margin-top:8px">Next step: wire this up to the leads &amp; proposal data already sitting in Supabase (hostel outreach leads, statuses, proposal sends) so this becomes a live pipeline view — same pattern as the Airbnb hub.</div>
+    </div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
@@ -1264,7 +1272,7 @@ document.addEventListener('visibilitychange',function(){
 });
 
 /* ---------- sticky mini-header: portfolio total + P/L + active tab ---------- */
-var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',swing:'Swing',property:'Property',lab:'Strategy Lab'};
+var TABNAMES={port:'Portfolio',stocks:'Stocks',premkt:'Pre-Market',plays:'Possible Plays',crypto:'Crypto',swing:'Swing',property:'Property',lab:'Strategy Lab',nest:'Nest'};
 function updateMinibar(){try{
   var mt=document.getElementById('mbt'); if(mt)mt.textContent=TABNAMES[document.body.getAttribute('data-tab')]||'';
   var d=lastData; if(!d||!d.portfolio)return;
@@ -2481,7 +2489,7 @@ function staggerReveal(){try{
   var ps=[].filter.call(document.querySelectorAll('.masonry>.panel'),function(p){return p.offsetParent!==null;});
   ps.forEach(function(p,i){p.classList.remove('reveal');p.style.animation='none';void p.offsetWidth;p.style.animation='';p.style.animationDelay=(i*40)+'ms';p.classList.add('reveal');});
 }catch(e){}}
-function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','premkt','plays','crypto','swing','property','lab'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','swing','property','lab'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(t==='swing'&&!window._swInit){window._swInit=1;loadSwing();}if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','premkt','plays','crypto','swing','property','lab','nest'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','premkt','plays','crypto','swing','property','lab','nest'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}if(t==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(t==='swing'&&!window._swInit){window._swInit=1;loadSwing();}if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
   f.addEventListener('click',function(){var t=document.getElementById('fresh');if(t)t.textContent='refreshing…';try{refreshPortfolio();}catch(e){}try{loadExtras();}catch(e){}try{if(window._pmInit){loadPremarket();loadScorecard();}}catch(e){}});}
