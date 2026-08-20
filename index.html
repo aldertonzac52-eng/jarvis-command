@@ -2070,6 +2070,39 @@ function nestSheet(enc){try{var j=window._NEST;if(!j)return;var o=decodeURICompo
   document.getElementById('sheet').innerHTML=html;document.getElementById('modal').classList.add('open');
 }catch(e){}}
 function nestConfetti(){try{var cols=['#8b3a3a','#b8a183','#3d2b1f','#f5f0e6','#36e0ff'];for(var i=0;i<44;i++){var d=document.createElement('div');d.className='cf';d.style.left=(Math.random()*100)+'vw';d.style.background=cols[i%cols.length];d.style.animationDuration=(2.2+Math.random()*2)+'s';d.style.animationDelay=(Math.random()*0.8)+'s';document.body.appendChild(d);setTimeout(function(el){return function(){el.remove();};}(d),5200);}}catch(e){}}
+function hmArea(series,w,h,color){try{
+  if(!series||series.length<2)return '';
+  var mn=Math.min.apply(null,series),mx=Math.max.apply(null,series);if(mx-mn<1e-9)mx=mn+1;
+  var pad=3,iw=w-2*pad,ih=h-2*pad;
+  var pts=series.map(function(v,i){return [(pad+i/(series.length-1)*iw).toFixed(1),(pad+ih-(v-mn)/(mx-mn)*ih).toFixed(1)];});
+  var line=pts.map(function(p){return p.join(',');}).join(' ');
+  var area='M'+pts[0][0]+','+(h-pad)+' L'+pts.map(function(p){return p[0]+','+p[1];}).join(' L')+' L'+pts[pts.length-1][0]+','+(h-pad)+' Z';
+  var up=series[series.length-1]>=series[0];
+  var c=color||(up?'#33e6a0':'#ff5d72');
+  var dots=pts.map(function(pt,i){return '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="6" fill="transparent"><title>'+hmMoney(series[i])+'</title></circle>';}).join('');
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block;margin:6px 0 2px" preserveAspectRatio="none">'
+    +'<path d="'+area+'" fill="'+c+'" opacity="0.12"/>'
+    +'<polyline points="'+line+'" fill="none" stroke="'+c+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<circle cx="'+pts[pts.length-1][0]+'" cy="'+pts[pts.length-1][1]+'" r="3" fill="'+c+'"/>'+dots+'</svg>';
+}catch(e){return '';}}
+function hmBars(pairs,h,color){try{
+  if(!pairs||!pairs.length)return '';
+  var mx=1;pairs.forEach(function(p){if(p[1]>mx)mx=p[1];});
+  return '<div style="display:flex;align-items:flex-end;gap:3px;height:'+h+'px;margin:6px 0 2px">'+pairs.map(function(p){
+    var bh=Math.max(2,Math.round(p[1]/mx*(h-16)));
+    return '<div style="flex:1;min-width:0;text-align:center" title="'+p[0]+': '+(p[2]||p[1])+'"><div style="height:'+bh+'px;background:'+(p[3]||color)+';border-radius:3px 3px 0 0"></div><div style="font-size:8px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden">'+p[0]+'</div></div>';
+  }).join('')+'</div>';
+}catch(e){return '';}}
+function hmOccStrip(ab){try{
+  var days={};var ups=((ab.stats&&ab.stats.upcoming)||[]).slice();if(ab.stats&&ab.stats.in_house)ups.push(ab.stats.in_house);
+  ups.forEach(function(b){var d=new Date(b.checkin+'T00:00:00'),end=new Date(b.checkout+'T00:00:00');for(;d<end;d.setDate(d.getDate()+1))days[d.toLocaleDateString('en-CA')]=1;});
+  var out='<div style="display:flex;gap:2px;margin:7px 0 2px">';
+  var t=new Date();
+  for(var i=0;i<30;i++){var k=t.toLocaleDateString('en-CA');var on=days[k];
+    out+='<span title="'+k+(on?' · booked':' · free')+'" style="flex:1;height:12px;border-radius:3px;background:'+(on?'linear-gradient(180deg,#36e0ff,#33e6a0)':'rgba(86,140,210,.15)')+'"></span>';
+    t.setDate(t.getDate()+1);}
+  return out+'</div><div style="display:flex;justify-content:space-between;font-size:8.5px;color:var(--muted)"><span>today</span><span>+30d</span></div>';
+}catch(e){return '';}}
 function hmAgo(ts){if(!ts)return '';var m=Math.round((Date.now()-Date.parse(ts))/60000);if(m<1)return 'just now';if(m<60)return m+'m ago';var h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
 function updateTabBadges(){try{
   var n=window._NEST,b=document.getElementById('tb-nest');
@@ -2133,6 +2166,10 @@ function renderHome(){
           +(inb?'<div class="hm-row"><span>Latest inbound</span><span>'+inb.org+'</span></div>':'')
           +(j.deal_per_school?'<div class="hm-row"><span>Est. school pipeline</span><span>'+hmMoney(j.deal_per_school*sIn)+' live · '+hmMoney(j.deal_per_school*204)+' max <span style="opacity:.5;font-size:9px">EST</span></span></div>':'')
           +(j.won_count?'<div class="hm-row"><span>🏆 Won</span><span>'+j.won_count+'</span></div>':'')
+          +(function(){try{var byday={};(j.email_log||[]).forEach(function(e){var t=Date.parse(e.sent_at);if(Date.now()-t<=14*864e5){var k=e.sent_at;byday[k]=(byday[k]||0)+1;}});
+            var bars=[];var t2=new Date(Date.now()-13*864e5);for(var q2=0;q2<14;q2++){var k2=t2.toLocaleDateString('en-CA');bars.push([t2.getDate(),byday[k2]||0,(byday[k2]||0)+' emails','#b8a183']);t2.setDate(t2.getDate()+1);}
+            var any=bars.some(function(b){return b[1]>0;});
+            return any?'<div class="hm-stamp" style="margin-top:8px;color:#9b8d7a;opacity:.95">Outreach — last 14 days</div>'+hmBars(bars,44,'#b8a183'):'';}catch(e4){return '';}})()
           +'<span class="hm-go">Open the Nest hub →</span><div class="hm-stamp">mail sync '+hmAgo(j.generated)+'</div>';
       } else n.innerHTML='<div class="empty">Nest data loading…</div>';
     }
@@ -2144,9 +2181,17 @@ function renderHome(){
         var pl=Number(p.total_pl_aud||0);var cls=pl>=0?'up':'down';
         var hs=(p.holdings||[]).slice().sort(function(a,b){return Math.abs(Number(b.pl_pct||0))-Math.abs(Number(a.pl_pct||0));});
         var top=hs[0];
+        var nw=(p.networth||[]);
+        if(nw.length<2){try{var hs2=p.holdings||[];var ser=hs2.map(function(h){return h.series||[];});var K=Math.min.apply(null,ser.map(function(x){return x.length;}).concat([24]));
+          if(K>=2&&ser.length){nw=[];for(var q=0;q<K;q++){var tot=0;hs2.forEach(function(h,hi){var sr=ser[hi];var v=sr[sr.length-K+q];var last=sr[sr.length-1]||1;tot+=(h.value_aud||0)*(v/last);});nw.push(Math.round(tot));}}}catch(e2){nw=[];}}
+        var dod=(d2.briefing&&d2.briefing.dod)||null;
+        var mkt=(d2.market&&d2.market.standout)||'';
         pEl.innerHTML='<div class="hm-big">'+hmMoney(p.total_value_aud)+'</div>'
-          +'<div class="hm-sub"><span class="'+cls+'">'+(pl>=0?'+':'−')+hmMoney(Math.abs(pl)).slice(2)+' ('+(p.total_pl_pct>=0?'+':'')+p.total_pl_pct+'%)</span> overall</div>'
+          +'<div class="hm-sub"><span class="'+cls+'">'+(pl>=0?'+':'−')+hmMoney(Math.abs(pl)).slice(2)+' ('+(p.total_pl_pct>=0?'+':'')+p.total_pl_pct+'%)</span> overall'
+          +(dod&&dod.pct!=null?' · <span class="'+(dod.pct>=0?'up':'down')+'">'+(dod.pct>=0?'+':'')+dod.pct+'% vs yesterday</span>':'')+'</div>'
+          +(nw.length>1?hmArea(nw,300,64):'')
           +(p.holdings||[]).map(function(h){return '<div class="hm-row"><span>'+(h.name||h.ticker)+'</span><span class="'+(Number(h.pl_pct)>=0?'up':'down')+'">'+(Number(h.pl_pct)>=0?'+':'')+h.pl_pct+'%</span></div>';}).join('')
+          +(mkt?'<div class="hm-stamp" style="opacity:.85;margin-top:6px">'+mkt+'</div>':'')
           +'<span class="hm-go" onclick="setTab(\'port\')">Full portfolio →</span><div class="hm-stamp">prices '+hmAgo(d2.generated_at)+'</div>';
       } else pEl.innerHTML='<div class="empty">Portfolio loading…</div>';
     }
@@ -2156,8 +2201,12 @@ function renderHome(){
     if(a){var ab=window._AB;
       if(ab){var st=ab.stats||{};var er=ab.earnings||{};var rt=ab.rating||{};
         var line=st.in_house?('Guest in-house · out '+(st.in_house.checkout||'')):(st.next_checkin?('Next check-in '+st.next_checkin):'No bookings ahead');
+        var mo=(er.monthly||{});var mkeys=Object.keys(mo).sort().slice(-7);
+        var mbars=mkeys.map(function(k){var pr=String(k).split('-');var lbl=new Date(+pr[0],(+pr[1]||1)-1,1).toLocaleDateString('en-AU',{month:'short'});return [lbl,Math.round(Number(mo[k])||0),'A$'+Math.round(Number(mo[k])||0),(k===mkeys[mkeys.length-1]?'linear-gradient(180deg,#36e0ff,#33e6a0)':'rgba(54,224,255,.45)')];});
         a.innerHTML='<div class="hm-big">'+(st.occupancy_30!=null?st.occupancy_30+'%':'—')+' <span style="font-size:14px;font-weight:600">30-day occ</span></div>'
           +'<div class="hm-sub">'+line+'</div>'
+          +hmOccStrip(ab)
+          +(mbars.length>1?'<div class="hm-stamp" style="margin-top:8px;opacity:.85">Monthly takings</div>'+hmBars(mbars,58,'rgba(54,224,255,.45)'):'')
           +(er.this_month?'<div class="hm-row"><span>This month</span><span>'+hmMoney(er.this_month.total)+'</span></div>':'')
           +(er.this_month&&er.this_month.upcoming!=null?'<div class="hm-row"><span>Still to come</span><span>'+hmMoney(er.this_month.upcoming)+'</span></div>':'')
           +(rt.overall?'<div class="hm-row"><span>Rating</span><span>★ '+rt.overall+'</span></div>':'')
