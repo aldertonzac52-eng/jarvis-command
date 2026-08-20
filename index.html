@@ -2403,17 +2403,12 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   (j.overdue||[]).forEach(function(o){acts.push({t:o.name+(o.org?' · '+o.org:''),s:(o.next_action||'Follow up')+' — this was due '+o.days+(o.days===1?' day':' days')+' ago.',p:o.days+'d overdue',cls:'hot',org:o.name});});
   (j.inbound||[]).slice(0,3).forEach(function(e){if(['replied','meeting'].indexOf(e.status)>=0&&inSeg(e.segment)){acts.push({t:e.org+(e.contact?' · '+e.contact:''),s:'They came back to you'+(e.notes?': '+e.notes:'.')+' Keep the ball moving.',p:e.status,cls:'ok',org:e.org});}});
   (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){
-    var first=r.contact?' '+String(r.contact).split(' ')[0]:'';
-    var bodies={nudge:'Hi'+first+',\n\nJust floating my earlier note back to the top of your inbox. Happy to answer any questions or send more detail whenever suits.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
-      case_study:'Hi'+first+',\n\nThought this might be worth a look — we refitted Bayside House in St Kilda with Nest pods: $35-50 a night per bed, 50-70% occupancy, 6-8 night average stays, and revenue up 42%. The fitout paid for itself in the first season. Case study: https://nestaus.com.au/case-study\n\nWorth 15 minutes with Shane and I to run your numbers?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
-      yield:'Hi'+first+',\n\nLast note from me. We do a free yield report from your floor plan — your beds, your rates, what pods would return per night, week and year. Bayside House did $35-50 a night per bed at 50-70% occupancy and lifted revenue 42%; most properties pay the fitout off inside the first year.\n\nWorth 15 minutes with Shane and I?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU'};
-    var subs={nudge:'Following up - Nest',case_study:'The Bayside House numbers - Nest',yield:'Free 48-hour yield report - Nest'};
     var labels={nudge:'nudge due',case_study:'case study due',yield:'final touch: yield offer'};
-    var m='';if(r.email){m='mailto:'+r.email+'?subject='+encodeURIComponent(subs[r.touch]||subs.nudge)+'&body='+encodeURIComponent(bodies[r.touch]||bodies.nudge);}
+    var m='';if(r.email){m='mailto:'+r.email;}
     var opened=(j.opens||{})[r.org];
     acts.push({t:r.org+(r.contact?' · '+r.contact:''),s:(opened?'👁 Opened your email '+hmAgo(opened)+' but hasn\'t replied — worth a call. ':'No reply in '+r.days+' days. ')+'Next touch: '+(labels[r.touch]||'nudge')+'. '+nestEsc(r.subject||''),p:r.days+'d · '+(r.touch==='case_study'?'case study':r.touch),cls:r.days>=10?'hot':'',mail:m,org:r.org});});
   var actBlk=acts.length?acts.slice(0,8).map(function(a){
-    return '<div class="nw-card nw-act"'+(a.org?' style="cursor:pointer" onclick="nestSheet(\''+encodeURIComponent(a.org).replace(/'/g,'%27')+'\')"':'')+'><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div>'+(a.mail?'<a class="nw-nudge" href="'+a.mail+'" onclick="event.stopPropagation()">✉ Draft '+(a.p.indexOf('case')>=0?'case study':(a.p.indexOf('yield')>=0?'yield offer':'nudge'))+'</a>':'')+'</div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
+    return '<div class="nw-card nw-act"'+(a.org?' style="cursor:pointer" onclick="nestSheet(\''+encodeURIComponent(a.org).replace(/'/g,'%27')+'\')"':'')+'><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div>'+(a.mail?'<a class="nw-nudge" href="'+a.mail+'" onclick="event.stopPropagation()">✉ Email them</a>':'')+'</div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
   }).join(''):'<div class="empty">All clear — nothing waiting on you right now.</div>';
   /* ---- ABSA flagship ---- */
   var absaBlk='';
@@ -2497,7 +2492,7 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var parkedBlk=!PK.length?'':'<details class="nw-more"><summary><span>💤 Dead lead box ('+PK.length+') — parked after 14 days quiet</span><span class="x">＋</span></summary><div class="bd">'
     +'<div class="labsub" style="margin-bottom:7px">No pressure on these — revive any of them down the track with one email.</div>'
     +PK.map(function(x){
-      var m='';if(x.email){m='mailto:'+x.email+'?subject='+encodeURIComponent('Checking back in - Nest')+'&body='+encodeURIComponent('Hi'+(x.contact?' '+String(x.contact).split(' ')[0]:'')+',\n\nIt has been a while since I reached out about your bunk rooms — things may have changed at your end. Since then we refitted Bayside House in St Kilda: revenue up 42% and the fitout paid off in the first season. If upgrades are back on the radar, worth 15 minutes with Shane and I?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU');}
+      var m='';if(x.email){m='mailto:'+x.email;}
       return '<div class="trrow"><span class="trk2" style="min-width:0;flex:1;opacity:.75">'+nestEsc(x.org)+(x.contact?' <span class="labsub">'+nestEsc(x.contact)+'</span>':'')+'</span><span class="trt">'+x.days+'d quiet</span></div>'
         +'<div class="labsub" style="margin:-2px 0 7px 2px;opacity:.7">'+nestEsc(x.subject||'')+(m?' · <a href="'+m+'" style="color:#4e4034">revive ↻</a>':'')+'</div>';
     }).join('')+'</div></details>';
