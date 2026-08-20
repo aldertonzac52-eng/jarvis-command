@@ -775,6 +775,29 @@
   .hm-play{display:inline-flex;align-items:center;gap:7px;background:rgba(54,224,255,.10);border:1px solid var(--cyan-dim);color:var(--cyan);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:9px}
   .hm-play:active{background:var(--cyan);color:#04121a}
 
+
+  /* ==================== COMPACT COMMAND BAR ==================== */
+  .hero{flex-direction:row;align-items:center;gap:14px;padding:8px 4px 4px;text-align:left;max-width:1240px;margin:0 auto;width:100%}
+  .hero .reactor{--s:52px;margin-bottom:0;flex:none}
+  .hero .halo{inset:-16%}
+  .hero .r3{display:none}
+  .hero .hello{font-size:10.5px;letter-spacing:.16em;white-space:nowrap;flex:none}
+  .hero .askwrap{margin:0;flex:1;max-width:none}
+  .hero .askbar{padding:4px 4px 4px 8px}
+  .hero .askbar input{padding:6px 4px;font-size:13.5px}
+  .hero .iconbtn{width:32px;height:32px;font-size:14px}
+  .hero .qchips,.hero .hint{display:none}
+  .hero .answer{margin:8px 0 0}
+  @media(max-width:700px){.hero{flex-wrap:wrap;gap:10px}.hero .hello{order:2}.hero .askwrap{order:3;flex-basis:100%}}
+  .tabbar{margin:10px auto 2px;max-width:1240px}
+  .shell{max-width:1240px}
+  .masonry{max-width:1240px;margin-left:auto;margin-right:auto}
+  @media(min-width:1400px){.masonry{column-count:3}}
+  body[data-tab="home"] .masonry{max-width:1240px}
+  body[data-tab="property"] .masonry{max-width:1240px}
+  body[data-tab="nest"] .masonry{max-width:860px!important}
+  .top{padding:10px 4px 4px;max-width:1240px;margin:0 auto}
+
 </style>
 </head>
 <body>
@@ -801,7 +824,7 @@
 
 <div class="shell" id="app" style="display:none">
   <div class="top"><span class="mk">J A R V I S</span><span>· Command</span><span class="sp"></span>
-    <span class="fresh"><span class="livedot"></span><span id="fresh">live</span></span><span class="clk" id="clk"></span></div>
+    <span class="fresh"><span class="livedot"></span><span id="fresh">live</span></span><span class="clk" id="clk"></span><span style="letter-spacing:.06em;text-transform:none;font-size:10px">· <a onclick="playBriefing()" style="cursor:pointer;color:var(--cyan-dim)">brief</a> · <a onclick="enableAlerts()" style="cursor:pointer;color:var(--cyan-dim)">alerts</a></span></div>
 
   <div class="hero">
     <div class="reactor" id="reactor" onclick="orbTap()" title="Tap to talk to JARVIS">
