@@ -798,6 +798,26 @@
   body[data-tab="nest"] .masonry{max-width:860px!important}
   .top{padding:10px 4px 4px;max-width:1240px;margin:0 auto}
 
+
+  /* ==================== TEN UPGRADES ==================== */
+  .tb{position:relative}
+  .tbadge{position:absolute;top:-6px;right:-4px;background:#ff5d72;color:#fff;font-size:9.5px;font-weight:800;border-radius:9px;padding:1px 6px;line-height:1.4;box-shadow:0 2px 8px rgba(255,93,114,.5)}
+  .tdot{position:absolute;top:-3px;right:-1px;width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+  .nw-nudge{display:inline-block;margin-top:6px;font-family:'Barlow Condensed','Inter',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.06em;color:#8b3a3a;border:1px solid #8b3a3a;border-radius:9px;padding:3px 11px;text-decoration:none}
+  .nw-nudge:active{background:#8b3a3a;color:#f5f0e6}
+  .hm-stamp{font-size:9.5px;color:var(--muted);opacity:.7;margin-top:8px;letter-spacing:.04em}
+  .panel.hm-nest .hm-stamp{color:#9b8d7a}
+  .hm-searchp{grid-column:1/-1;order:-1;padding:10px 14px!important}
+  .hm-searchin{width:100%;background:rgba(54,224,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px 13px;color:var(--txt);font-family:inherit;font-size:14px}
+  .hm-searchin:focus{outline:none;border-color:var(--cyan-dim)}
+  .hm-sres{cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid rgba(86,140,210,.10);font-size:12.5px}
+  .hm-sres:hover{background:rgba(54,224,255,.05)}
+  .hm-sres .k{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan-dim);white-space:nowrap}
+  .nw-digest{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  .nw-digest b{font-family:'Barlow Condensed','Inter',sans-serif;font-size:19px}
+  .cf{position:fixed;top:-14px;z-index:99;width:9px;height:14px;pointer-events:none;animation:cfall linear forwards}
+  @keyframes cfall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
 </style>
 </head>
 <body>
@@ -863,6 +883,7 @@
     <button class="tb" id="ssb-swing" onclick="setStockSub('swing')"><i data-lucide="zap"></i>Swing</button>
   </div>
   <div class="masonry">
+    <div class="panel sec-home owneronly hm-searchp"><input class="hm-searchin" id="hmq" placeholder="Search everything — leads, emails, partners, stocks…" oninput="hmSearch()" autocomplete="off"/><div id="hm-sres"></div></div>
     <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="sunrise"></i>Morning brief <span class="r" id="hm-brief-when"></span></div><div id="hm-brief"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-home hm-nest owneronly" onclick="setTab('nest')"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">the business</span></div><div id="hm-nest"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="wallet"></i>Portfolio</div><div id="hm-port"><div class="empty">Loading…</div></div></div>
@@ -2025,14 +2046,52 @@ function nestSegOf(x){var s=x||'other';return ['school','hostel','camp','worker'
 function nestEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function nestInit(n){return String(n||'?').split(/\s+/).slice(0,2).map(function(w){return w.charAt(0);}).join('').toUpperCase();}
 
+function nestConfetti(){try{var cols=['#8b3a3a','#b8a183','#3d2b1f','#f5f0e6','#36e0ff'];for(var i=0;i<44;i++){var d=document.createElement('div');d.className='cf';d.style.left=(Math.random()*100)+'vw';d.style.background=cols[i%cols.length];d.style.animationDuration=(2.2+Math.random()*2)+'s';d.style.animationDelay=(Math.random()*0.8)+'s';document.body.appendChild(d);setTimeout(function(el){return function(){el.remove();};}(d),5200);}}catch(e){}}
+function hmAgo(ts){if(!ts)return '';var m=Math.round((Date.now()-Date.parse(ts))/60000);if(m<1)return 'just now';if(m<60)return m+'m ago';var h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
+function updateTabBadges(){try{
+  var n=window._NEST,b=document.getElementById('tb-nest');
+  if(b&&n&&n.ok){var c=(n.overdue||[]).length+(n.radar||[]).length;var sp=b.querySelector('.tbadge');
+    if(c){if(!sp){sp=document.createElement('span');sp.className='tbadge';b.appendChild(sp);}sp.textContent=c>99?'99+':c;}else if(sp)sp.remove();}
+  var ab=window._AB,pb=document.getElementById('tb-property');
+  if(pb&&ab){var st=ab.stats||{};var today=new Date(new Date().toLocaleString('en-US',{timeZone:'Australia/Melbourne'}));var ds=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    var hot=(st.in_house&&st.in_house.checkout===ds)||(st.next_checkin===ds);var d=pb.querySelector('.tdot');
+    if(hot){if(!d){d=document.createElement('span');d.className='tdot';pb.appendChild(d);}}else if(d)d.remove();}
+}catch(e){}}
+(function(){var sx=0,sy=0;
+  document.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchend',function(e){try{var t=e.changedTouches[0];var dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<75||Math.abs(dy)>55)return;
+    if(e.target&&e.target.closest&&e.target.closest('input,textarea,details,.modal,.sheet,.paybar,.askbar'))return;
+    var order=['home','port','stocks','crypto','property','lab','nest'];var cur=document.body.getAttribute('data-tab');var i=order.indexOf(cur);if(i<0)return;
+    var ni=dx<0?i+1:i-1;if(ni<0||ni>=order.length)return;setTab(order[ni]);}catch(err){}},{passive:true});})();
+function hmSearch(){try{
+  var q=(document.getElementById('hmq').value||'').toLowerCase().trim();var out=document.getElementById('hm-sres');if(!out)return;
+  if(q.length<2){out.innerHTML='';return;}
+  var res=[];var n=window._NEST||{};var d=window._DASH||{};
+  function hit(txt){return txt&&String(txt).toLowerCase().indexOf(q)>=0;}
+  (n.partners||[]).forEach(function(p){if(hit(p.name)||hit(p.org)||hit(p.email))res.push({k:'Partner',t:p.name+' — '+(p.org||''),s:p.stage||'',tab:'nest'});});
+  (n.email_log||[]).forEach(function(e){if(hit(e.org)||hit(e.contact)||hit(e.subject)||hit(e.email))res.push({k:'Email',t:e.org+(e.contact?' · '+e.contact:''),s:(e.subject||'')+' · '+e.status,tab:'nest'});});
+  (n.queue||[]).forEach(function(l){if(hit(l.name)||hit(l.city)||hit(l.email))res.push({k:'Hostel',t:l.name+' · '+(l.city||''),s:(l.complaint||'').slice(0,70),tab:'nest'});});
+  ((d.portfolio||{}).holdings||[]).forEach(function(h){if(hit(h.ticker)||hit(h.name))res.push({k:'Holding',t:h.name+' ('+h.ticker+')',s:(h.pl_pct>=0?'+':'')+h.pl_pct+'% overall',tab:'port'});});
+  (d.watchlist||[]).forEach(function(w){if(hit(w.ticker)||hit(w.name))res.push({k:'Watch',t:w.name+' ('+w.ticker+')',s:w.price!=null?('$'+w.price):'',tab:'stocks'});});
+  out.innerHTML=res.slice(0,8).map(function(r){return '<div class="hm-sres" onclick="setTab(\''+r.tab+'\')"><span><span class="k">'+r.k+'</span> '+r.t+' <span class="labsub" style="opacity:.6">'+r.s+'</span></span><span style="opacity:.4">→</span></div>';}).join('')||'<div class="labsub" style="padding:7px 2px">Nothing matches "'+q+'".</div>';
+}catch(e){}}
 function hmMoney(n){n=Number(n||0);return "A$"+Math.round(n).toLocaleString("en-AU");}
 function renderHome(){
   try{
     var b=document.getElementById("hm-brief");
     if(b){var t=window.__briefingText||"";var d=window._DASH||{};var f=(d.briefing&&d.briefing.focus)||"";
+      var hrM=+new Date().toLocaleString('en-US',{timeZone:'Australia/Melbourne',hour12:false,hour:'2-digit'});
+      var evening=(hrM>=18||hrM<5);var evBlk='';
+      if(evening){var nx=window._NEST||{};var first=(nx.overdue||[])[0]||(nx.radar||[]).slice(-1)[0];var mkt=((d.market||{}).standout)||'';
+        evBlk='<div class="fchip"><b>Tomorrow\'s setup</b>'
+          +(first?'First Nest move: '+(first.next_action||('chase '+first.org))+'. ':'Nest radar is clear for the morning. ')
+          +(mkt?'Overnight watch: '+mkt+'.':'')+'</div>';}
       b.innerHTML='<span class="hm-play" onclick="playBriefing()"><i data-lucide="play"></i>Play the brief</span>'
-        +(f?'<div class="fchip"><b>Today\'s focus</b>'+f+'</div>':'')
-        +(t?'<div class="briefing">'+(t.length>420?t.slice(0,420)+'…':t)+'</div>':'<div class="empty">No brief yet today.</div>');
+        +evBlk
+        +(!evening&&f?'<div class="fchip"><b>Today\'s focus</b>'+f+'</div>':'')
+        +(t?'<div class="briefing"'+(evening?' style="opacity:.75;font-size:12px"':'')+'>'+(t.length>(evening?220:420)?t.slice(0,(evening?220:420))+'…':t)+'</div>':'<div class="empty">No brief yet today.</div>')
+        +'<div class="hm-stamp">brief '+hmAgo((d.briefing||{}).generated_at)+'</div>';
       try{lucide.createIcons();}catch(e){}}
   }catch(e){}
   try{
@@ -2049,7 +2108,9 @@ function renderHome(){
           +'<div class="hm-row"><span>ABSA — 204 schools</span><span>'+(days!=null?days+'d since one-pager':'in play')+'</span></div>'
           +'<div class="hm-row"><span>School replies</span><span>'+sIn+'</span></div>'
           +(inb?'<div class="hm-row"><span>Latest inbound</span><span>'+inb.org+'</span></div>':'')
-          +'<span class="hm-go">Open the Nest hub →</span>';
+          +(j.deal_per_school?'<div class="hm-row"><span>Est. school pipeline</span><span>'+hmMoney(j.deal_per_school*sIn)+' live · '+hmMoney(j.deal_per_school*204)+' max <span style="opacity:.5;font-size:9px">EST</span></span></div>':'')
+          +(j.won_count?'<div class="hm-row"><span>🏆 Won</span><span>'+j.won_count+'</span></div>':'')
+          +'<span class="hm-go">Open the Nest hub →</span><div class="hm-stamp">mail sync '+hmAgo(j.generated)+'</div>';
       } else n.innerHTML='<div class="empty">Nest data loading…</div>';
     }
   }catch(e){}
@@ -2063,7 +2124,7 @@ function renderHome(){
         pEl.innerHTML='<div class="hm-big">'+hmMoney(p.total_value_aud)+'</div>'
           +'<div class="hm-sub"><span class="'+cls+'">'+(pl>=0?'+':'−')+hmMoney(Math.abs(pl)).slice(2)+' ('+(p.total_pl_pct>=0?'+':'')+p.total_pl_pct+'%)</span> overall</div>'
           +(p.holdings||[]).map(function(h){return '<div class="hm-row"><span>'+(h.name||h.ticker)+'</span><span class="'+(Number(h.pl_pct)>=0?'up':'down')+'">'+(Number(h.pl_pct)>=0?'+':'')+h.pl_pct+'%</span></div>';}).join('')
-          +'<span class="hm-go" onclick="setTab(\'port\')">Full portfolio →</span>';
+          +'<span class="hm-go" onclick="setTab(\'port\')">Full portfolio →</span><div class="hm-stamp">prices '+hmAgo(d2.generated_at)+'</div>';
       } else pEl.innerHTML='<div class="empty">Portfolio loading…</div>';
     }
   }catch(e){}
@@ -2077,10 +2138,11 @@ function renderHome(){
           +(er.this_month?'<div class="hm-row"><span>This month</span><span>'+hmMoney(er.this_month.total)+'</span></div>':'')
           +(er.this_month&&er.this_month.upcoming!=null?'<div class="hm-row"><span>Still to come</span><span>'+hmMoney(er.this_month.upcoming)+'</span></div>':'')
           +(rt.overall?'<div class="hm-row"><span>Rating</span><span>★ '+rt.overall+'</span></div>':'')
-          +'<span class="hm-go" onclick="setTab(\'property\')">Property hub →</span>';
+          +'<span class="hm-go" onclick="setTab(\'property\')">Property hub →</span><div class="hm-stamp">airbnb '+hmAgo(ab.generated||ab.generated_at)+'</div>';
       } else a.innerHTML='<div class="empty">Airbnb loading…</div>';
     }
   }catch(e){}
+  try{updateTabBadges();}catch(e){}
 }
 
 function renderNest(){var el=document.getElementById("nestpanel");var j=window._NEST;if(!el||!j||!j.ok)return;
@@ -2093,9 +2155,9 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var acts=[];
   (j.overdue||[]).forEach(function(o){acts.push({t:o.name+(o.org?' · '+o.org:''),s:(o.next_action||'Follow up')+' — this was due '+o.days+(o.days===1?' day':' days')+' ago.',p:o.days+'d overdue',cls:'hot'});});
   (j.inbound||[]).slice(0,3).forEach(function(e){if(['replied','meeting'].indexOf(e.status)>=0&&inSeg(e.segment)){acts.push({t:e.org+(e.contact?' · '+e.contact:''),s:'They came back to you'+(e.notes?': '+e.notes:'.')+' Keep the ball moving.',p:e.status,cls:'ok'});}});
-  (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){acts.push({t:r.org+(r.contact?' · '+r.contact:''),s:'No reply in '+r.days+' days — a short nudge usually lands. '+nestEsc(r.subject||''),p:r.days+'d quiet',cls:r.days>=10?'hot':''});});
+  (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){var m='';if(r.email){m='mailto:'+r.email+'?subject='+encodeURIComponent('Following up - Nest')+'&body='+encodeURIComponent('Hi'+(r.contact?' '+String(r.contact).split(' ')[0]:'')+',\n\nJust floating my earlier note back to the top of your inbox. Happy to answer any questions or send more detail whenever suits.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU');}acts.push({t:r.org+(r.contact?' · '+r.contact:''),s:'No reply in '+r.days+' days — a short nudge usually lands. '+nestEsc(r.subject||''),p:r.days+'d quiet',cls:r.days>=10?'hot':'',mail:m});});
   var actBlk=acts.length?acts.slice(0,8).map(function(a){
-    return '<div class="nw-card nw-act"><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div></div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
+    return '<div class="nw-card nw-act"><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div>'+(a.mail?'<a class="nw-nudge" href="'+a.mail+'">✉ Draft nudge</a>':'')+'</div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
   }).join(''):'<div class="empty">All clear — nothing waiting on you right now.</div>';
   /* ---- ABSA flagship ---- */
   var absaBlk='';
@@ -2103,13 +2165,16 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
     var days=absa.stage_date?Math.floor((Date.now()-Date.parse(absa.stage_date))/864e5):null;
     var sIn=EL.filter(function(e){return e.segment==='school'&&['replied','meeting','won'].indexOf(e.status)>=0;}).length;
     var sAll=EL.filter(function(e){return e.segment==='school';}).length;
+    var cd='';var nd=absa.next_date?Date.parse(absa.next_date):null;
+    if(nd&&nd>Date.now()&&/circulat/i.test((absa.next_action||'')+' '+(absa.stage||''))){var dl=Math.ceil((nd-Date.now())/864e5);cd='<div class="bs" style="margin-top:8px;font-weight:700">📨 Docs land with 204 schools in ~'+dl+' day'+(dl===1?'':'s')+'</div>';}
+    else if(sIn>0&&days!=null&&days>0){cd='<div class="bs" style="margin-top:8px">Reply pace: '+(Math.round(sIn/days*10)/10)+'/day since the one-pager went out.</div>';}
     absaBlk='<div class="nw-kick">The big one</div><div class="nw-absa">'
       +'<div class="bt">ABSA — Australian Boarding Schools</div>'
       +'<div class="bs">'+nestEsc(absa.stage||'')+' Richard Stokes is your channel into every member school in the country.</div>'
       +'<div class="chips"><div class="c"><div class="cv">204</div><div class="cl">Schools</div></div>'
       +'<div class="c"><div class="cv">'+sIn+'</div><div class="cl">Replies</div></div>'
       +'<div class="c"><div class="cv">'+sAll+'</div><div class="cl">Threads</div></div>'
-      +(days!=null?'<div class="c"><div class="cv">'+days+'d</div><div class="cl">Since sent</div></div>':'')+'</div>'
+      +(days!=null?'<div class="c"><div class="cv">'+days+'d</div><div class="cl">Since sent</div></div>':'')+'</div>'+cd
       +(absa.next_action?'<div class="nx">Next: '+nestEsc(absa.next_action)+(absa.next_date?' · by '+nestDate(absa.next_date):'')+'</div>':'')
       +'</div>';
   }
@@ -2137,6 +2202,14 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
     return '<div class="trrow"><span class="trk2" style="min-width:0;flex:1">'+nestEsc(e.org)+(e.contact?' <span class="labsub">'+nestEsc(e.contact)+'</span>':'')+'</span><span class="trt" style="min-width:0">'+st+' · '+nestDate(e.sent_at)+'</span></div>'
       +'<div class="labsub" style="margin:-2px 0 7px 2px">'+nestEsc(e.subject||'')+(e.notes?' — '+nestEsc(e.notes):'')+'</div>';
   }).join('');
+  var wonBlk='';
+  if(j.won_count){wonBlk='<div class="nw-card" style="background:linear-gradient(140deg,#3f5c3f,#2e462e);border-color:#3f5c3f;color:#f5f0e6"><b style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px">🏆 '+j.won_count+' won</b> <span style="font-size:11.5px;opacity:.85">'+(j.won||[]).slice(0,3).map(function(w){return nestEsc(w.org);}).join(' · ')+'</span></div>';
+    try{var seen=+(localStorage.getItem('nest_won_seen')||0);if(j.won_count>seen){nestConfetti();localStorage.setItem('nest_won_seen',String(j.won_count));}}catch(e){}}
+  var wk1=Date.now()-7*864e5,wk2=Date.now()-14*864e5;
+  var s7=0,sPrev=0,r7=0;
+  EL.forEach(function(e){var t=Date.parse(e.sent_at);if(t>=wk1)s7++;else if(t>=wk2)sPrev++;var lu=Date.parse(e.last_update||0);if(lu>=wk1&&['replied','meeting','won'].indexOf(e.status)>=0)r7++;});
+  var arrow=s7>sPrev?'<span style="color:#4e6e4e">▲</span>':(s7<sPrev?'<span style="color:#8b3a3a">▼</span>':'—');
+  var digestBlk='<div class="nw-kick">This week</div><div class="nw-card nw-digest"><span><b>'+s7+'</b> <span class="labsub">emails out</span> '+arrow+' <span class="labsub" style="opacity:.6">'+sPrev+' last wk</span></span><span><b>'+r7+'</b> <span class="labsub">replies in</span></span><span><b>'+(s7?Math.round(r7/s7*100):0)+'%</b> <span class="labsub">reply rate</span></span></div>';
   var mailWrap='<details class="nw-more"><summary><span>Every email — hello@nestaus.com.au ('+ELF.length+')</span><span class="x">＋</span></summary><div class="bd">'+(mailBlk||'<div class="empty">No emails in this view yet.</div>')+'</div></details>';
   /* ---- hostel pipeline (All + Hostels) ---- */
   var hostelWrap='';
@@ -2158,9 +2231,9 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
       +'<details class="nw-more"'+(seg==='hostel'?' open':'')+'><summary><span>Next to contact — biggest deals first</span><span class="x">＋</span></summary><div class="bd">'+queueBlk+'</div></details>'
       +'<details class="nw-more"><summary><span>Hostel outreach so far ('+j.contacted+')</span><span class="x">＋</span></summary><div class="bd">'+outreachBlk+'</div></details>';
   }
-  el.innerHTML=head
+  el.innerHTML=head+wonBlk
     +'<div class="nw-kick">Do this now</div>'+actBlk
-    +absaBlk+chips+pplBlk+mailWrap+hostelWrap
+    +absaBlk+chips+digestBlk+pplBlk+mailWrap+hostelWrap
     +'<div class="playsdis" style="margin-top:10px">Live from the hello@nestaus.com.au mailbox (daily sync) + Nest research. Business-public contact info only. Not advice.</div>';
 }
 function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
