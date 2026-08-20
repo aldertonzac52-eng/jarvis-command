@@ -753,6 +753,28 @@
   .sec-nest .playsdis{color:#9b8d7a}
   body[data-tab="nest"]{--acc:#8b3a3a;--acc-soft:rgba(139,58,58,.30)}
 
+
+  /* ==================== HOME TAB ==================== */
+  body[data-tab="home"] .masonry>.panel:not(.sec-home){display:none}
+  body[data-tab="home"] .masonry{column-count:auto!important;column-gap:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1060px;margin-left:auto;margin-right:auto;align-items:start}
+  body[data-tab="home"] .masonry>.panel{width:auto;margin:0}
+  @media(max-width:760px){body[data-tab="home"] .masonry{grid-template-columns:1fr}}
+  body[data-tab="port"] .masonry>.panel.sec-home,body[data-tab="stocks"] .masonry>.panel.sec-home,body[data-tab="crypto"] .masonry>.panel.sec-home,body[data-tab="property"] .masonry>.panel.sec-home,body[data-tab="lab"] .masonry>.panel.sec-home,body[data-tab="nest"] .masonry>.panel.sec-home{display:none}
+  .hm-big{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1.1}
+  .hm-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .hm-row{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .hm-row:first-of-type{border-top:none}
+  .hm-go{display:inline-block;margin-top:11px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--cyan);cursor:pointer}
+  .panel.hm-nest{background:linear-gradient(180deg,#f5f0e6,#ebe6d3);border-color:#d8cbb8;color:#3d2b1f;cursor:pointer}
+  .panel.hm-nest .ph{color:#8a7a67}
+  .panel.hm-nest .ph::before{background:#8b3a3a;box-shadow:none}
+  .panel.hm-nest .hm-sub{color:#8a7a67}
+  .panel.hm-nest .hm-big{color:#3d2b1f}
+  .panel.hm-nest .hm-row{border-top:1px solid #e2d7c4;color:#4e4034}
+  .panel.hm-nest .hm-go{color:#8b3a3a}
+  .hm-play{display:inline-flex;align-items:center;gap:7px;background:rgba(54,224,255,.10);border:1px solid var(--cyan-dim);color:var(--cyan);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:9px}
+  .hm-play:active{background:var(--cyan);color:#04121a}
+
 </style>
 </head>
 <body>
@@ -803,7 +825,8 @@
   </div>
 
   <div class="tabbar">
-    <button class="tb on" id="tb-port" onclick="setTab('port')"><i data-lucide="wallet"></i>Portfolio</button>
+    <button class="tb on" id="tb-home" onclick="setTab('home')"><i data-lucide="layout-dashboard"></i>Home</button>
+    <button class="tb" id="tb-port" onclick="setTab('port')"><i data-lucide="wallet"></i>Portfolio</button>
     <button class="tb" id="tb-stocks" onclick="setTab('stocks')"><i data-lucide="line-chart"></i>Stocks</button>
     <button class="tb" id="tb-crypto" onclick="setTab('crypto')"><i data-lucide="bitcoin"></i>Crypto</button>
     <button class="tb" id="tb-property" onclick="setTab('property')"><i data-lucide="home"></i>Property</button>
@@ -817,6 +840,10 @@
     <button class="tb" id="ssb-swing" onclick="setStockSub('swing')"><i data-lucide="zap"></i>Swing</button>
   </div>
   <div class="masonry">
+    <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="sunrise"></i>Morning brief <span class="r" id="hm-brief-when"></span></div><div id="hm-brief"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-home hm-nest owneronly" onclick="setTab('nest')"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">the business</span></div><div id="hm-nest"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="wallet"></i>Portfolio</div><div id="hm-port"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="home"></i>Airbnb</div><div id="hm-ab"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-port pm-wide">
       <div class="ph"><i data-lucide="wallet"></i>Portfolio <span class="r" id="pstamp"></span></div>
       <div class="ptot"><span class="v" id="pv">—</span><span class="pl" id="ppl">—</span></div>
@@ -1346,7 +1373,7 @@ document.addEventListener('visibilitychange',function(){
 });
 
 /* ---------- sticky mini-header: portfolio total + P/L + active tab ---------- */
-var TABNAMES={port:'Portfolio',stocks:'Stocks',crypto:'Crypto',property:'Property',lab:'Strategy Lab',nest:'Nest'};
+var TABNAMES={home:'Home',port:'Portfolio',stocks:'Stocks',crypto:'Crypto',property:'Property',lab:'Strategy Lab',nest:'Nest'};
 function updateMinibar(){try{
   var mt=document.getElementById('mbt'); if(mt)mt.textContent=TABNAMES[document.body.getAttribute('data-tab')]||'';
   var d=lastData; if(!d||!d.portfolio)return;
@@ -1536,7 +1563,7 @@ function render(d){
 
   document.getElementById("briefing").textContent=d.briefing.text||"";
   document.getElementById("vlabel").textContent=d.briefing.voice||"";
-  window.__briefingText=d.briefing.text;
+  window.__briefingText=d.briefing.text;window._DASH=d;try{renderHome();}catch(e){}
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
   try{ loadSparks(); }catch(e){}
@@ -1967,13 +1994,72 @@ const AIRBNB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/airbnb";
 const NEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/nest";
 function nestMoney(n){n=Number(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2)+"m";if(Math.abs(n)>=1e3)return "$"+Math.round(n/1e3)+"k";return "$"+Math.round(n);}
 function nestDate(s){if(!s)return "—";var d=new Date(s);return d.toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});}
-function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;renderNest();})
+function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;renderNest();try{renderHome();}catch(e){}})
   .catch(function(){var e=document.getElementById("nestpanel");if(e)e.innerHTML='<div class="empty" style="animation:none">Nest data unavailable right now.</div>';});}
 function nestSeg(){return window._nestSeg||'all';}
 function setNestSeg(s){window._nestSeg=(nestSeg()===s)?'all':s;renderNest();}
 function nestSegOf(x){var s=x||'other';return ['school','hostel','camp','worker','park'].indexOf(s)>=0?s:'other';}
 function nestEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function nestInit(n){return String(n||'?').split(/\s+/).slice(0,2).map(function(w){return w.charAt(0);}).join('').toUpperCase();}
+
+function hmMoney(n){n=Number(n||0);return "A$"+Math.round(n).toLocaleString("en-AU");}
+function renderHome(){
+  try{
+    var b=document.getElementById("hm-brief");
+    if(b){var t=window.__briefingText||"";var d=window._DASH||{};var f=(d.briefing&&d.briefing.focus)||"";
+      b.innerHTML='<span class="hm-play" onclick="playBriefing()"><i data-lucide="play"></i>Play the brief</span>'
+        +(f?'<div class="fchip"><b>Today\'s focus</b>'+f+'</div>':'')
+        +(t?'<div class="briefing">'+(t.length>420?t.slice(0,420)+'…':t)+'</div>':'<div class="empty">No brief yet today.</div>');
+      try{lucide.createIcons();}catch(e){}}
+  }catch(e){}
+  try{
+    var n=document.getElementById("hm-nest");
+    if(n){var j=window._NEST;
+      if(j&&j.ok){
+        var todo=(j.overdue||[]).length+(j.radar||[]).length;
+        var inb=(j.inbound||[])[0];
+        var P=(j.partners||[]);var absa=null;for(var i=0;i<P.length;i++){if(((P[i].org||'')+' '+(P[i].name||'')).toUpperCase().indexOf('ABSA')>=0)absa=P[i];}
+        var days=(absa&&absa.stage_date)?Math.floor((Date.now()-Date.parse(absa.stage_date))/864e5):null;
+        var sIn=(j.email_log||[]).filter(function(e){return e.segment==='school'&&['replied','meeting','won'].indexOf(e.status)>=0;}).length;
+        n.innerHTML='<div class="hm-big">'+todo+' <span style="font-size:14px;font-weight:600">to do</span></div>'
+          +'<div class="hm-sub">'+((j.overdue||[]).length?(j.overdue||[]).length+' overdue · ':'')+(j.radar||[]).length+' waiting on a chase</div>'
+          +'<div class="hm-row"><span>ABSA — 204 schools</span><span>'+(days!=null?days+'d since one-pager':'in play')+'</span></div>'
+          +'<div class="hm-row"><span>School replies</span><span>'+sIn+'</span></div>'
+          +(inb?'<div class="hm-row"><span>Latest inbound</span><span>'+inb.org+'</span></div>':'')
+          +'<span class="hm-go">Open the Nest hub →</span>';
+      } else n.innerHTML='<div class="empty">Nest data loading…</div>';
+    }
+  }catch(e){}
+  try{
+    var pEl=document.getElementById("hm-port");
+    if(pEl){var d2=window._DASH||{};var p=d2.portfolio||{};
+      if(p.total_value_aud!=null){
+        var pl=Number(p.total_pl_aud||0);var cls=pl>=0?'up':'down';
+        var hs=(p.holdings||[]).slice().sort(function(a,b){return Math.abs(Number(b.pl_pct||0))-Math.abs(Number(a.pl_pct||0));});
+        var top=hs[0];
+        pEl.innerHTML='<div class="hm-big">'+hmMoney(p.total_value_aud)+'</div>'
+          +'<div class="hm-sub"><span class="'+cls+'">'+(pl>=0?'+':'−')+hmMoney(Math.abs(pl)).slice(2)+' ('+(p.total_pl_pct>=0?'+':'')+p.total_pl_pct+'%)</span> overall</div>'
+          +(p.holdings||[]).map(function(h){return '<div class="hm-row"><span>'+(h.name||h.ticker)+'</span><span class="'+(Number(h.pl_pct)>=0?'up':'down')+'">'+(Number(h.pl_pct)>=0?'+':'')+h.pl_pct+'%</span></div>';}).join('')
+          +'<span class="hm-go" onclick="setTab(\'port\')">Full portfolio →</span>';
+      } else pEl.innerHTML='<div class="empty">Portfolio loading…</div>';
+    }
+  }catch(e){}
+  try{
+    var a=document.getElementById("hm-ab");
+    if(a){var ab=window._AB;
+      if(ab){var st=ab.stats||{};var er=ab.earnings||{};var rt=ab.rating||{};
+        var line=st.in_house?('Guest in-house · out '+(st.in_house.checkout||'')):(st.next_checkin?('Next check-in '+st.next_checkin):'No bookings ahead');
+        a.innerHTML='<div class="hm-big">'+(st.occupancy_30!=null?st.occupancy_30+'%':'—')+' <span style="font-size:14px;font-weight:600">30-day occ</span></div>'
+          +'<div class="hm-sub">'+line+'</div>'
+          +(er.this_month?'<div class="hm-row"><span>This month</span><span>'+hmMoney(er.this_month.total)+'</span></div>':'')
+          +(er.this_month&&er.this_month.upcoming!=null?'<div class="hm-row"><span>Still to come</span><span>'+hmMoney(er.this_month.upcoming)+'</span></div>':'')
+          +(rt.overall?'<div class="hm-row"><span>Rating</span><span>★ '+rt.overall+'</span></div>':'')
+          +'<span class="hm-go" onclick="setTab(\'property\')">Property hub →</span>';
+      } else a.innerHTML='<div class="empty">Airbnb loading…</div>';
+    }
+  }catch(e){}
+}
+
 function renderNest(){var el=document.getElementById("nestpanel");var j=window._NEST;if(!el||!j||!j.ok)return;
   var seg=nestSeg();var inSeg=function(s){return seg==='all'||nestSegOf(s)===seg;};
   var EL=(j.email_log||[]);var P=(j.partners||[]);
@@ -2071,7 +2157,7 @@ function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
 function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
 function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
 function abMonths(ym){if(!ym)return 1;var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);var n=new Date();return Math.max(1,(n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+1);}
-function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;
+function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;try{setTimeout(renderHome,60);}catch(e){}
     var days={};var ups=((j.stats&&j.stats.upcoming)||[]).slice();if(j.stats&&j.stats.in_house)ups.push(j.stats.in_house);
     ups.forEach(function(b){try{var d=new Date(b.checkin+"T00:00:00"),end=new Date(b.checkout+"T00:00:00");for(;d<end;d.setDate(d.getDate()+1))days[d.toLocaleDateString("en-CA")]=1;}catch(e){}});
     window._ABDAYS=days;
@@ -2640,7 +2726,7 @@ function submitPin(pin,viaGesture){
 function applySession(j,viaGesture){
   CURRENT={name:j.name,owner:j.owner}; window.CURRENT=CURRENT;
   document.body.classList.toggle('guest',!CURRENT.owner);
-  var savedTab='port'; try{savedTab=sessionStorage.getItem('jv_tab')||'port';}catch(e){}
+  var _defTab=(typeof CURRENT!=='undefined'&&CURRENT&&CURRENT.owner)?'home':'port';var savedTab=_defTab; try{savedTab=sessionStorage.getItem('jv_tab')||_defTab;}catch(e){}
   setTab(savedTab);
   if(!CURRENT.owner){ var _ht=document.querySelector('.hint'); if(_ht)_ht.innerHTML='Tap the orb to talk to JARVIS · <a onclick="playBriefing()" style="cursor:pointer;text-decoration:underline">replay briefing</a>'; }
   document.getElementById('lock').style.display='none'; document.getElementById('app').style.display='block';
@@ -2653,7 +2739,7 @@ function staggerReveal(){try{
   var ps=[].filter.call(document.querySelectorAll('.masonry>.panel'),function(p){return p.offsetParent!==null;});
   ps.forEach(function(p,i){p.classList.remove('reveal');p.style.animation='none';void p.offsetWidth;p.style.animation='';p.style.animationDelay=(i*40)+'ms';p.classList.add('reveal');});
 }catch(e){}}
-function setTab(t){var was=document.body.getAttribute('data-tab');if(['port','stocks','crypto','property','lab','nest'].indexOf(t)<0)t='port';document.body.setAttribute('data-tab',t);['port','stocks','crypto','property','lab','nest'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}var ss=document.getElementById('stocksub');if(ss)ss.style.display=(t==='stocks')?'flex':'none';if(t==='stocks')setStockSub(window._stockSub||'overview');if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
+function setTab(t){var was=document.body.getAttribute('data-tab');if(['home','port','stocks','crypto','property','lab','nest'].indexOf(t)<0)t=(typeof CURRENT!=='undefined'&&CURRENT&&CURRENT.owner)?'home':'port';document.body.setAttribute('data-tab',t);['home','port','stocks','crypto','property','lab','nest'].forEach(function(x){var b=document.getElementById('tb-'+x);if(b)b.classList.toggle('on',x===t);});try{sessionStorage.setItem('jv_tab',t);}catch(e){}if(t==='lab'&&!window._labInit){window._labInit=1;loadSim();loadLab();}var ss=document.getElementById('stocksub');if(ss)ss.style.display=(t==='stocks')?'flex':'none';if(t==='stocks')setStockSub(window._stockSub||'overview');if(was!==t)staggerReveal();try{updateMinibar();}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},140);}
 function setStockSub(s){if(['overview','premkt','plays','swing'].indexOf(s)<0)s='overview';window._stockSub=s;document.body.setAttribute('data-ssub',s);['overview','premkt','plays','swing'].forEach(function(x){var b=document.getElementById('ssb-'+x);if(b)b.classList.toggle('on',x===s);});if(s==='premkt'&&!window._pmInit){window._pmInit=1;loadPremarket();loadScorecard();}if(s==='swing'&&!window._swInit){window._swInit=1;loadSwing();}try{staggerReveal();}catch(e){}}
 /* tap the "updated Xm ago" stamp to force a refresh */
 function wireFreshTap(){var f=document.querySelector('.top .fresh');if(!f||f._r)return;f._r=1;f.title='Tap to refresh';
