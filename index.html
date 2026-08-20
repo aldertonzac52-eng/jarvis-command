@@ -1034,6 +1034,7 @@
   </div>
   <div class="masonry">
     <div class="panel sec-home owneronly hm-searchp"><input class="hm-searchin" id="hmq" placeholder="Search everything — leads, emails, partners, stocks…" oninput="hmSearch()" autocomplete="off"/><div id="hm-sres"></div></div>
+    <div class="panel sec-home owneronly" style="grid-column:1/-1"><div class="ph"><i data-lucide="list-checks"></i>Needs you <span class="r" id="hm-needs-n"></span></div><div id="hm-needs"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="sunrise"></i>Morning brief <span class="r" id="hm-brief-when"></span></div><div id="hm-brief"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-home hm-nest owneronly" onclick="setTab('nest')"><div class="hm-nesthead"><span class="nw-logo">nest.</span><span class="nw-tag">Smarter Spaces. Better Stays.</span><span class="go">→</span></div><div id="hm-nest"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-home owneronly"><div class="ph"><i data-lucide="wallet"></i>Portfolio</div><div id="hm-port"><div class="empty">Loading…</div></div></div>
@@ -2364,6 +2365,30 @@ function renderHome(){
       } else a.innerHTML='<div class="empty">Airbnb loading…</div>';
     }
   }catch(e){}
+  try{
+    var q=document.getElementById('hm-needs');
+    if(q){var items=[];var N=window._NEST;var AB=window._AB;var DD=window._DASH||{};
+      var meltoday=new Date(new Date().toLocaleString('en-US',{timeZone:'Australia/Melbourne'}));
+      var ds=meltoday.getFullYear()+'-'+String(meltoday.getMonth()+1).padStart(2,'0')+'-'+String(meltoday.getDate()).padStart(2,'0');
+      if(N&&N.ok){
+        (N.overdue||[]).forEach(function(o){items.push({i:'🔥',t:o.name+' — '+(o.next_action||'follow up'),s:o.days+'d overdue',tab:'nest',w:0});});
+        (N.inbound||[]).slice(0,2).forEach(function(e){if(['replied','meeting'].indexOf(e.status)>=0)items.push({i:'📩',t:e.org+' came back to you',s:e.status,tab:'nest',w:1});});
+        (N.radar||[]).slice(0,3).forEach(function(r){items.push({i:'📦',t:'Chase '+r.org,s:r.days+'d quiet · '+(r.touch==='yield'?'yield offer':'nudge'),tab:'nest',w:2});});
+      }
+      if(AB&&AB.stats){var st=AB.stats;
+        if(st.in_house&&st.in_house.checkout===ds)items.push({i:'🧹',t:'Guest checks out today — turnover clean',s:'Airbnb',tab:'property',w:0});
+        if(st.next_checkin===ds)items.push({i:'🛎️',t:'Guest checks in today',s:'Airbnb',tab:'property',w:0});
+      }
+      var ph=(DD.portfolio||{}).holdings||[];var wl=DD.watchlist||[];
+      ph.concat(wl).forEach(function(h){if(h.buy_below!=null&&h.price!=null&&h.price<=h.buy_below)items.push({i:'🎯',t:h.ticker+' in your buy zone',s:'at '+h.price+' (level '+h.buy_below+')',tab:'port',w:3});});
+      wl.forEach(function(w){if(typeof w.pct==='number'&&Math.abs(w.pct)>=5)items.push({i:w.pct>=0?'📈':'📉',t:w.ticker+' '+(w.pct>=0?'+':'')+w.pct+'% today',s:w.name||'',tab:'stocks',w:4});});
+      items.sort(function(a,b){return a.w-b.w;});
+      var nEl=document.getElementById('hm-needs-n');if(nEl)nEl.textContent=items.length?items.length+' item'+(items.length===1?'':'s'):'all clear';
+      q.innerHTML=items.length?items.slice(0,8).map(function(x){
+        return '<div class="hm-sres" onclick="setTab(\''+x.tab+'\')"><span>'+x.i+' <b>'+x.t+'</b> <span class="labsub" style="opacity:.65">'+x.s+'</span></span><span style="opacity:.4">→</span></div>';
+      }).join(''):'<div class="empty">Nothing needs you right now — all clear.</div>';
+    }
+  }catch(e){}
   try{updateTabBadges();}catch(e){}
 }
 
@@ -2380,8 +2405,8 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){
     var first=r.contact?' '+String(r.contact).split(' ')[0]:'';
     var bodies={nudge:'Hi'+first+',\n\nJust floating my earlier note back to the top of your inbox. Happy to answer any questions or send more detail whenever suits.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
-      case_study:'Hi'+first+',\n\nThought this might be useful context — we refitted Bayside House in St Kilda with Nest pods and the property lifted revenue about 42%. Guests call out the privacy and the reading lights in reviews. Case study: https://nestaus.com.au/case-study\n\nHappy to talk through what the numbers would look like for your rooms.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
-      yield:'Hi'+first+',\n\nLast note from me — if it helps, we do a free 48-hour yield report: your beds, your rates, and what pod bunks would return per night, week and year. No obligation, no sales call. You can also run rough numbers yourself: https://nestaus.com.au/yield-calculator\n\nWorth 15 minutes?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU'};
+      case_study:'Hi'+first+',\n\nThought this might be worth a look — we refitted Bayside House in St Kilda with Nest pods: $35-50 a night per bed, 50-70% occupancy, 6-8 night average stays, and revenue up 42%. The fitout paid for itself in the first season. Case study: https://nestaus.com.au/case-study\n\nWorth 15 minutes with Shane and I to run your numbers?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
+      yield:'Hi'+first+',\n\nLast note from me. We do a free yield report from your floor plan — your beds, your rates, what pods would return per night, week and year. Bayside House did $35-50 a night per bed at 50-70% occupancy and lifted revenue 42%; most properties pay the fitout off inside the first year.\n\nWorth 15 minutes with Shane and I?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU'};
     var subs={nudge:'Following up - Nest',case_study:'The Bayside House numbers - Nest',yield:'Free 48-hour yield report - Nest'};
     var labels={nudge:'nudge due',case_study:'case study due',yield:'final touch: yield offer'};
     var m='';if(r.email){m='mailto:'+r.email+'?subject='+encodeURIComponent(subs[r.touch]||subs.nudge)+'&body='+encodeURIComponent(bodies[r.touch]||bodies.nudge);}
@@ -2472,7 +2497,7 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var parkedBlk=!PK.length?'':'<details class="nw-more"><summary><span>💤 Dead lead box ('+PK.length+') — parked after 14 days quiet</span><span class="x">＋</span></summary><div class="bd">'
     +'<div class="labsub" style="margin-bottom:7px">No pressure on these — revive any of them down the track with one email.</div>'
     +PK.map(function(x){
-      var m='';if(x.email){m='mailto:'+x.email+'?subject='+encodeURIComponent('Checking back in - Nest')+'&body='+encodeURIComponent('Hi'+(x.contact?' '+String(x.contact).split(' ')[0]:'')+',\n\nIt has been a while since I reached out about your bunk rooms — things may have changed at your end. If accommodation upgrades are back on the radar, happy to pick the conversation up.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU');}
+      var m='';if(x.email){m='mailto:'+x.email+'?subject='+encodeURIComponent('Checking back in - Nest')+'&body='+encodeURIComponent('Hi'+(x.contact?' '+String(x.contact).split(' ')[0]:'')+',\n\nIt has been a while since I reached out about your bunk rooms — things may have changed at your end. Since then we refitted Bayside House in St Kilda: revenue up 42% and the fitout paid off in the first season. If upgrades are back on the radar, worth 15 minutes with Shane and I?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU');}
       return '<div class="trrow"><span class="trk2" style="min-width:0;flex:1;opacity:.75">'+nestEsc(x.org)+(x.contact?' <span class="labsub">'+nestEsc(x.contact)+'</span>':'')+'</span><span class="trt">'+x.days+'d quiet</span></div>'
         +'<div class="labsub" style="margin:-2px 0 7px 2px;opacity:.7">'+nestEsc(x.subject||'')+(m?' · <a href="'+m+'" style="color:#4e4034">revive ↻</a>':'')+'</div>';
     }).join('')+'</div></details>';
