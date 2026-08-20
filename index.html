@@ -807,7 +807,7 @@
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="bed-double"></i>Airbnb hub <span class="r">Tidy home · Shepparton</span></div><div id="airbnbhub"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property owneronly"><div class="ph"><i data-lucide="key-round"></i>Rent roll <span class="r">3 Varcoe St, Shepparton</span></div><div id="rentroll"><div class="empty">Loading…</div></div></div>
     <div class="panel sec-property"><div class="ph"><i data-lucide="building-2"></i>VIC property watch <span class="r">market news</span></div><div class="hl" id="property"><div class="empty">Loading…</div></div></div>
-    <div class="panel sec-nest owneronly"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">pod-bed hostel sales</span></div><div id="nestpanel"><div class="empty">Loading…</div></div></div>
+    <div class="panel sec-nest owneronly"><div class="ph"><i data-lucide="package"></i>Nest <span class="r">pod beds · schools · camps · hostels</span></div><div id="nestpanel"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calendar-clock"></i>Economic calendar <span class="r">US + AU · high impact</span></div><div id="econ"><div class="empty">Loading…</div></div></div>
     <div class="panel"><div class="ph"><i data-lucide="calculator"></i>Position sizer <span class="r">risk per trade</span></div><div class="calc" id="poscalc"></div></div>
     <div class="panel"><div class="ph"><i data-lucide="globe"></i>Markets</div><div class="mkt" id="mkt"></div></div>
@@ -1902,35 +1902,113 @@ function nestMoney(n){n=Number(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFi
 function nestDate(s){if(!s)return "—";var d=new Date(s);return d.toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});}
 function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;renderNest();})
   .catch(function(){var e=document.getElementById("nestpanel");if(e)e.innerHTML='<div class="empty" style="animation:none">Nest data unavailable right now.</div>';});}
+function nestSeg(){return window._nestSeg||'all';}
+function setNestSeg(s){window._nestSeg=(nestSeg()===s)?'all':s;renderNest();}
+function nestSegOf(x){var s=x||'other';return ['school','hostel','camp','worker','park'].indexOf(s)>=0?s:'other';}
 function renderNest(){var el=document.getElementById("nestpanel");var j=window._NEST;if(!el||!j||!j.ok)return;
-  var statBlk='<div class="trkstat">'
-    +'<div class="ts"><div class="tsl">Leads</div><div class="tsv up">'+j.total+'</div><div class="labsub">researched hostels</div></div>'
-    +'<div class="ts"><div class="tsl">Hot (P9-10)</div><div class="tsv up">'+j.hot+'</div><div class="labsub">worst bed complaints</div></div>'
-    +'<div class="ts"><div class="tsl">Proposals ready</div><div class="tsv">'+j.proposals_built+'</div><div class="labsub">built, not sent</div></div>'
-    +'<div class="ts"><div class="tsl">Contacted</div><div class="tsv '+(j.contacted<10?"down":"up")+'">'+j.contacted+'</div><div class="labsub">of '+j.total+' total</div></div></div>'
-    +'<div class="labsub" style="opacity:.7;margin-top:6px">Total addressable ~'+nestMoney(j.total_deal)+' across '+(j.by_region||[]).length+' regions · updated '+nestDate(j.generated)+'</div>';
-  var q=(j.queue||[]);var mxDeal=1;q.forEach(function(x){if(x.deal>mxDeal)mxDeal=x.deal;});
-  var queueBlk=!q.length?'<div class="labsub">Queue clear — every hot lead has been contacted.</div>':q.slice(0,10).map(function(x){
-    var pct=Math.max(8,Math.round((x.deal||0)/mxDeal*100));
-    var quotes=(x.quotes||[]).slice(0,2).map(function(qt){return '<div class="labsub" style="opacity:.55;margin:2px 0 0 2px">"'+(qt.q||"")+'" <span style="opacity:.8">— '+(qt.s||"")+'</span></div>';}).join("");
-    return '<div class="payrow"><span class="payd">'+x.name+' <span class="labsub" style="opacity:.65">'+(x.city||"")+' · '+x.priority+(x.proposal_ready?' · proposal ready':'')+'</span></span>'
-      +'<span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+nestMoney(x.deal)+'</span></div>'
-      +'<div class="labsub" style="opacity:.6;margin:-2px 0 0 2px">'+(x.complaint||"")+(x.phone?' · <span style="opacity:.85">'+x.phone+'</span>':"")+(x.email?' · '+x.email:"")+'</div>'
-      +quotes
-      +'<div style="margin:2px 0 8px 2px"></div>';
+  var seg=nestSeg();
+  var inSeg=function(s){return seg==='all'||nestSegOf(s)===seg;};
+  var EL=(j.email_log||[]);
+  /* ---- segment chips ---- */
+  var segDefs=[['all','All'],['school','Schools · ABSA'],['hostel','Hostels'],['camp','Camps'],['worker','Worker'],['park','Parks'],['other','Other']];
+  var cnt={all:(j.emails_sent||0)};EL.forEach(function(e){var k=nestSegOf(e.segment);cnt[k]=(cnt[k]||0)+1;});cnt.hostel=(cnt.hostel||0)+(j.total||0);cnt.all+=(j.total||0);
+  var chips='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px">'+segDefs.map(function(d){
+    var on=seg===d[0];
+    return '<button onclick="setNestSeg(\''+d[0]+'\')" style="cursor:pointer;font:inherit;background:'+(on?'rgba(255,107,107,.28)':'rgba(255,107,107,.08)')+';border:1px solid '+(on?'var(--acc,#ff6b6b)':'var(--line)')+';border-radius:9px;padding:5px 11px;font-size:11.5px;font-weight:600;color:var(--txt)">'+d[1]+' <span style="opacity:.55;font-weight:400">'+(cnt[d[0]]||0)+'</span></button>';
+  }).join("")+'</div>';
+  /* ---- ABSA hero ---- */
+  var P=(j.partners||[]);
+  var absa=P.find(function(p){return ((p.org||'')+' '+(p.name||'')).toUpperCase().indexOf('ABSA')>=0;});
+  var hero='';
+  if(absa&&(seg==='all'||seg==='school')){
+    var days=absa.stage_date?Math.floor((Date.now()-Date.parse(absa.stage_date))/864e5):null;
+    var schoolIn=EL.filter(function(e){return e.segment==='school'&&['replied','meeting','won'].indexOf(e.status)>=0;}).length;
+    hero='<div style="background:linear-gradient(135deg,rgba(255,107,107,.16),rgba(255,107,107,.05));border:1px solid rgba(255,107,107,.35);border-radius:12px;padding:13px 14px;margin-bottom:11px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:13px;font-weight:700">ABSA — 204 boarding schools</span><span class="labsub" style="opacity:.7">'+(days!=null?(days===0?'today':days+'d ago'):'')+'</span></div>'
+      +'<div class="labsub" style="opacity:.85;margin-top:4px">'+(absa.stage||'')+'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:9px">'
+      +'<span><b style="font-size:16px">'+schoolIn+'</b> <span class="labsub" style="opacity:.6">school replies</span></span>'
+      +'<span><b style="font-size:16px">'+EL.filter(function(e){return e.segment==='school';}).length+'</b> <span class="labsub" style="opacity:.6">school threads</span></span>'
+      +'</div>'
+      +(absa.next_action?'<div class="labsub" style="opacity:.7;margin-top:8px">Next: '+absa.next_action+(absa.next_date?' · by '+nestDate(absa.next_date):'')+' <span style="opacity:.6">· '+(absa.name||'')+' · '+(absa.email||'')+'</span></div>':'')
+      +'</div>';
+  }
+  /* ---- follow-up radar ---- */
+  var R=(j.radar||[]).filter(function(r){return inSeg(r.segment);});
+  var OD=(j.overdue||[]);
+  var radarRows=OD.map(function(o){
+    return '<div class="trrow"><span class="trk2" style="color:#ff6b6b">'+o.name+' <span class="labsub" style="opacity:.6">'+(o.org||'')+'</span></span><span class="trt" style="color:#ff6b6b">'+o.days+'d overdue</span></div>'
+      +'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+(o.next_action||'follow up')+'</div>';
+  }).join("")+R.map(function(r){
+    return '<div class="trrow"><span class="trk2">'+r.org+(r.contact?' <span class="labsub" style="opacity:.6">'+r.contact+'</span>':'')+'</span><span class="trt">'+r.days+'d no reply</span></div>'
+      +'<div class="labsub" style="opacity:.55;margin:-2px 0 6px 2px">'+(r.subject||'')+(r.email?' · '+r.email:'')+'</div>';
   }).join("");
-  var out=(j.outreach||[]);
-  var outreachBlk=!out.length?'<div class="labsub">No outreach logged yet.</div>':out.map(function(x){
-    return '<div class="trrow"><span class="trk2">'+x.name+' <span class="labsub" style="opacity:.6">'+(x.city||"")+'</span></span><span class="trt">'+x.stage+' · '+nestDate(x.stage_date)+'</span></div>'
-      +(x.notes?'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+x.notes+'</div>':"");
+  var radarBlk=(OD.length+R.length)?'<div class="sec-lbl">Follow-up radar <span style="opacity:.55;font-weight:400">— chase these</span></div>'+radarRows
+    :'<div class="sec-lbl">Follow-up radar</div><div class="labsub">Nothing needs chasing — clear.</div>';
+  /* ---- scoreboard ---- */
+  var segNames={school:"Schools",camp:"Camps",worker:"Worker",park:"Parks",expo:"Expo",research:"Research",housing:"Housing",supplier:"Suppliers",motel:"Motels",hostel:"Hostels",other:"Other"};
+  var BS=(j.email_by_segment||[]);
+  var segBlk=!BS.length?'':'<div class="sec-lbl" style="margin-top:11px">Reply rate by segment</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+BS.map(function(s){
+    var rr=s.sent?Math.round(s.replied/s.sent*100):0;
+    return '<span onclick="setNestSeg(\''+nestSegOf(s.segment)+'\')" style="cursor:pointer;background:rgba(255,107,107,.10);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:11px">'+(segNames[s.segment]||s.segment)+' <b>'+s.sent+'</b>'+(s.replied?' <span style="color:#5fd08a">'+rr+'%</span>':' <span style="opacity:.45">0%</span>')+(s.declined?' <span style="opacity:.5">'+s.declined+'✕</span>':'')+'</span>';
+  }).join("")+'</div>';
+  /* ---- inbound feed ---- */
+  var IN=(j.inbound||[]).filter(function(e){return inSeg(e.segment);});
+  var inBlk=!IN.length?'':'<div class="sec-lbl" style="margin-top:11px">Inbound — latest replies</div>'+IN.slice(0,8).map(function(e){
+    var st=e.status==='declined'?'<span style="color:#ff6b6b">declined</span>':'<span style="color:#5fd08a">'+e.status+'</span>';
+    return '<div class="trrow"><span class="trk2">'+e.org+(e.contact?' <span class="labsub" style="opacity:.6">'+e.contact+'</span>':'')+'</span><span class="trt">'+st+' · '+nestDate(e.last_update||e.sent_at)+'</span></div>'
+      +(e.notes?'<div class="labsub" style="opacity:.55;margin:-2px 0 6px 2px">'+e.notes+'</div>':'<div style="margin-bottom:6px"></div>');
   }).join("");
-  el.innerHTML=statBlk
-    +'<div class="sec-lbl" style="margin-top:11px">Next to contact <span style="opacity:.55;font-weight:400">— hot leads, biggest deal first</span></div>'
-    +queueBlk
-    +'<details class="abmore" style="margin-top:11px">'
-    +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Outreach so far ('+j.contacted+')</span><span class="abmore-x">＋</span></summary>'
-    +'<div style="margin-top:9px">'+outreachBlk+'</div></details>'
-    +'<div class="playsdis" style="margin-top:8px">Leads researched by the Nest hostel-research skill (public reviews + business info). Contact info is business-public, not personal data. Not advice.</div>';
+  /* ---- partners (non-hero) ---- */
+  var pRest=P.filter(function(p){return p!==absa;});
+  var partnerBlk=(seg!=='all')?'':(!pRest.length?'':'<div class="sec-lbl" style="margin-top:11px">Partners &amp; suppliers</div>'+pRest.map(function(p){
+    return '<div class="trrow"><span class="trk2">'+p.name+' <span class="labsub" style="opacity:.6">'+(p.org||"")+'</span></span><span class="trt">'+(p.stage_date?nestDate(p.stage_date):"")+'</span></div>'
+      +'<div class="labsub" style="opacity:.7;margin:-2px 0 0 2px">'+(p.stage||"")+'</div>'
+      +(p.next_action?'<div class="labsub" style="opacity:.6;margin:1px 0 6px 2px">Next: '+p.next_action+(p.next_date?' · by '+nestDate(p.next_date):'')+'</div>':'<div style="margin-bottom:6px"></div>');
+  }).join(""));
+  /* ---- email log (filtered) ---- */
+  var ELF=EL.filter(function(e){return inSeg(e.segment);});
+  var mailBlk=ELF.slice(0,30).map(function(e){
+    var st=['replied','meeting','won'].indexOf(e.status)>=0?'<span style="color:#5fd08a">'+e.status+'</span>':(e.status==='declined'?'<span style="color:#ff6b6b">declined</span>':'<span style="opacity:.55">'+e.status.replace('_',' ')+'</span>');
+    return '<div class="trrow"><span class="trk2">'+e.org+(e.contact?' <span class="labsub" style="opacity:.6">'+e.contact+'</span>':'')+'</span><span class="trt">'+st+' · '+nestDate(e.sent_at)+'</span></div>'
+      +'<div class="labsub" style="opacity:.55;margin:-2px 0 6px 2px">'+(e.subject||"")+(e.notes?' — '+e.notes:'')+'</div>';
+  }).join("");
+  var mailWrap='<details class="abmore" style="margin-top:11px">'
+    +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,107,107,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Email log ('+ELF.length+')</span><span class="abmore-x">＋</span></summary>'
+    +'<div style="margin-top:9px">'+(mailBlk||'<div class="labsub">No emails in this segment yet.</div>')+'</div></details>';
+  /* ---- hostel pipeline (shown on All + Hostels) ---- */
+  var hostelWrap='';
+  if(seg==='all'||seg==='hostel'){
+    var statBlk='<div class="trkstat">'
+      +'<div class="ts"><div class="tsl">Hostel leads</div><div class="tsv up">'+j.total+'</div><div class="labsub">researched</div></div>'
+      +'<div class="ts"><div class="tsl">Hot (P9-10)</div><div class="tsv up">'+j.hot+'</div><div class="labsub">worst beds</div></div>'
+      +'<div class="ts"><div class="tsl">Proposals</div><div class="tsv">'+j.proposals_built+'</div><div class="labsub">ready</div></div>'
+      +'<div class="ts"><div class="tsl">Contacted</div><div class="tsv '+(j.contacted<10?"down":"up")+'">'+j.contacted+'</div><div class="labsub">outreach</div></div></div>'
+      +'<div class="labsub" style="opacity:.7;margin-top:6px">Hostel pipeline ~'+nestMoney(j.total_deal)+' across '+(j.by_region||[]).length+' regions · updated '+nestDate(j.generated)+'</div>';
+    var q=(j.queue||[]);var mxDeal=1;q.forEach(function(x){if(x.deal>mxDeal)mxDeal=x.deal;});
+    var queueBlk=!q.length?'<div class="labsub">Queue clear — every hot lead has been contacted.</div>':q.slice(0,10).map(function(x){
+      var pct=Math.max(8,Math.round((x.deal||0)/mxDeal*100));
+      var quotes=(x.quotes||[]).slice(0,2).map(function(qt){return '<div class="labsub" style="opacity:.55;margin:2px 0 0 2px">"'+(qt.q||"")+'" <span style="opacity:.8">— '+(qt.s||"")+'</span></div>';}).join("");
+      return '<div class="payrow"><span class="payd">'+x.name+' <span class="labsub" style="opacity:.65">'+(x.city||"")+' · '+x.priority+(x.proposal_ready?' · proposal ready':'')+'</span></span>'
+        +'<span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+nestMoney(x.deal)+'</span></div>'
+        +'<div class="labsub" style="opacity:.6;margin:-2px 0 0 2px">'+(x.complaint||"")+(x.phone?' · <span style="opacity:.85">'+x.phone+'</span>':"")+(x.email?' · '+x.email:"")+'</div>'
+        +quotes+'<div style="margin:2px 0 8px 2px"></div>';
+    }).join("");
+    var out=(j.outreach||[]);
+    var outreachBlk=!out.length?'<div class="labsub">No outreach logged yet.</div>':out.map(function(x){
+      return '<div class="trrow"><span class="trk2">'+x.name+' <span class="labsub" style="opacity:.6">'+(x.city||"")+'</span></span><span class="trt">'+x.stage+' · '+nestDate(x.stage_date)+'</span></div>'
+        +(x.notes?'<div class="labsub" style="opacity:.6;margin:-2px 0 6px 2px">'+x.notes+'</div>':"");
+    }).join("");
+    hostelWrap='<div style="margin-top:12px"></div>'+statBlk
+      +'<details class="abmore" style="margin-top:11px"'+(seg==='hostel'?' open':'')+'>'
+      +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Hostel pipeline — next to contact</span><span class="abmore-x">＋</span></summary>'
+      +'<div style="margin-top:9px">'+queueBlk+'</div></details>'
+      +'<details class="abmore" style="margin-top:9px">'
+      +'<summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(86,140,210,.10);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:var(--txt)"><span>Hostel outreach so far ('+j.contacted+')</span><span class="abmore-x">＋</span></summary>'
+      +'<div style="margin-top:9px">'+outreachBlk+'</div></details>';
+  }
+  el.innerHTML=chips+hero+radarBlk+segBlk+inBlk+partnerBlk+mailWrap+hostelWrap
+    +'<div class="playsdis" style="margin-top:8px">Live from the hello@nestaus.com.au mailbox (daily sync) + Nest research skills. Contact info is business-public, not personal data. Not advice.</div>';
 }
 function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
 function setAbCosts(v){try{localStorage.setItem("ab_costs_monthly",String(Math.max(0,+v||0)));}catch(e){}renderAirbnb();}
