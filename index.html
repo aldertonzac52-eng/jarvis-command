@@ -1607,7 +1607,7 @@ function render(d){
 
   document.getElementById("briefing").textContent=d.briefing.text||"";
   document.getElementById("vlabel").textContent=d.briefing.voice||"";
-  window.__briefingText=d.briefing.text;window._DASH=d;try{renderHome();}catch(e){}
+  window.__briefingText=d.briefing.text;window._DASH=d;try{if(!d._cached)localStorage.setItem('jv_dash_cache',JSON.stringify(d));}catch(e){}try{renderHome();}catch(e){}
   document.getElementById("foot").innerHTML="JARVIS · 24/7 live feed · prices incl. pre/post-market, auto-refreshes every 5 min<br>Private dashboard · not financial advice";
   try{ loadPortfolioExtras(p); }catch(e){}
   try{ loadSparks(); }catch(e){}
@@ -2038,14 +2038,37 @@ const AIRBNB_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/airbnb";
 const NEST_URL="https://liqfekbcoopnelrnkkox.supabase.co/functions/v1/nest";
 function nestMoney(n){n=Number(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2)+"m";if(Math.abs(n)>=1e3)return "$"+Math.round(n/1e3)+"k";return "$"+Math.round(n);}
 function nestDate(s){if(!s)return "—";var d=new Date(s);return d.toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});}
-function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;renderNest();try{renderHome();}catch(e){}})
-  .catch(function(){var e=document.getElementById("nestpanel");if(e)e.innerHTML='<div class="empty" style="animation:none">Nest data unavailable right now.</div>';});}
+function loadNest(){fetch(NEST_URL).then(function(r){return r.json();}).then(function(j){window._NEST=j;try{localStorage.setItem('jv_nest_cache',JSON.stringify(j));}catch(e){}renderNest();try{renderHome();}catch(e){}})
+  .catch(function(){try{var c=JSON.parse(localStorage.getItem('jv_nest_cache'));if(c){c._cached=1;window._NEST=c;renderNest();try{renderHome();}catch(e2){}return;}}catch(e3){}var e=document.getElementById("nestpanel");if(e)e.innerHTML='<div class="empty" style="animation:none">Nest data unavailable right now.</div>';});}
 function nestSeg(){return window._nestSeg||'all';}
 function setNestSeg(s){window._nestSeg=(nestSeg()===s)?'all':s;renderNest();}
 function nestSegOf(x){var s=x||'other';return ['school','hostel','camp','worker','park'].indexOf(s)>=0?s:'other';}
 function nestEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function nestInit(n){return String(n||'?').split(/\s+/).slice(0,2).map(function(w){return w.charAt(0);}).join('').toUpperCase();}
 
+function nestSheet(enc){try{var j=window._NEST;if(!j)return;var o=decodeURIComponent(enc);
+  var mails=(j.email_log||[]).filter(function(e){return e.org===o;});
+  var P=(j.partners||[]);var p=null;for(var i=0;i<P.length;i++){if(P[i].name===o||P[i].org===o)p=P[i];}
+  var lead=(j.queue||[]).find?((j.queue||[]).find(function(x){return x.name===o;})):null;
+  var em='';mails.forEach(function(e){if(!em&&e.email)em=e.email;});if(!em&&p)em=p.email||'';if(!em&&lead)em=lead.email||'';
+  var ph=(p&&p.phone)||(lead&&lead.phone)||'';
+  var opened=(j.opens||{})[o];
+  var hist=mails.sort(function(a,b){return (b.sent_at||'').localeCompare(a.sent_at||'');}).map(function(e){
+    var good=['replied','meeting','won'].indexOf(e.status)>=0;
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px"><b>'+nestDate(e.sent_at)+'</b><span style="color:'+(good?'#33e6a0':(e.status==='declined'?'#ff5d72':'var(--muted)'))+';font-weight:700">'+e.status.replace('_',' ')+'</span></div><div style="font-size:12px;color:var(--muted);margin-top:2px">'+nestEsc(e.subject||'')+'</div>'+(e.notes?'<div style="font-size:11.5px;color:#cfe0f7;margin-top:2px">'+nestEsc(e.notes)+'</div>':'')+'</div>';
+  }).join('');
+  var html='<div class="shx"><div><div class="tt">'+nestEsc(o)+'</div><div class="nm2">'+(mails[0]?mails[0].segment:'')+(p?' · '+nestEsc(p.org||''):'')+'</div></div><button class="x" onclick="closeStock()">✕</button></div>'
+    +'<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">'
+    +(ph?'<a href="tel:'+ph.replace(/\s/g,'')+'" style="background:var(--cyan);color:#04121a;border-radius:20px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none">📞 Call</a>':'')
+    +(em?'<a href="mailto:'+em+'" style="background:rgba(54,224,255,.10);border:1px solid var(--cyan-dim);color:var(--cyan);border-radius:20px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none">✉ Email</a>':'')
+    +'</div>'
+    +((em||ph)?'<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">'+(em?em:'')+(em&&ph?' · ':'')+(ph?ph:'')+'</div>':'')
+    +(opened?'<div style="font-size:12px;color:var(--green);margin-bottom:8px">👁 Last opened your email '+hmAgo(opened)+'</div>':'')
+    +(p?'<div style="font-size:12.5px;background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px"><b>Stage:</b> '+nestEsc(p.stage||'')+(p.next_action?'<br><b>Next:</b> '+nestEsc(p.next_action)+(p.next_date?' by '+nestDate(p.next_date):''):'')+'</div>':'')
+    +(lead?'<div style="font-size:12.5px;background:rgba(54,224,255,.06);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px">'+nestEsc(lead.complaint||'')+' · deal ~'+nestMoney(lead.deal)+'</div>':'')
+    +'<div class="news-lbl">History ('+mails.length+')</div>'+(hist||'<div class="labsub">No logged emails yet.</div>');
+  document.getElementById('sheet').innerHTML=html;document.getElementById('modal').classList.add('open');
+}catch(e){}}
 function nestConfetti(){try{var cols=['#8b3a3a','#b8a183','#3d2b1f','#f5f0e6','#36e0ff'];for(var i=0;i<44;i++){var d=document.createElement('div');d.className='cf';d.style.left=(Math.random()*100)+'vw';d.style.background=cols[i%cols.length];d.style.animationDuration=(2.2+Math.random()*2)+'s';d.style.animationDelay=(Math.random()*0.8)+'s';document.body.appendChild(d);setTimeout(function(el){return function(){el.remove();};}(d),5200);}}catch(e){}}
 function hmAgo(ts){if(!ts)return '';var m=Math.round((Date.now()-Date.parse(ts))/60000);if(m<1)return 'just now';if(m<60)return m+'m ago';var h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
 function updateTabBadges(){try{
@@ -2153,11 +2176,20 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var head='<div class="nw-head"><span class="nw-logo">nest.</span><span class="nw-tag">Smarter Spaces. Better Stays.</span><span class="nw-upd"><i></i>live · '+nestDate(j.generated)+'</span></div>';
   /* ---- DO THIS NOW ---- */
   var acts=[];
-  (j.overdue||[]).forEach(function(o){acts.push({t:o.name+(o.org?' · '+o.org:''),s:(o.next_action||'Follow up')+' — this was due '+o.days+(o.days===1?' day':' days')+' ago.',p:o.days+'d overdue',cls:'hot'});});
-  (j.inbound||[]).slice(0,3).forEach(function(e){if(['replied','meeting'].indexOf(e.status)>=0&&inSeg(e.segment)){acts.push({t:e.org+(e.contact?' · '+e.contact:''),s:'They came back to you'+(e.notes?': '+e.notes:'.')+' Keep the ball moving.',p:e.status,cls:'ok'});}});
-  (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){var m='';if(r.email){m='mailto:'+r.email+'?subject='+encodeURIComponent('Following up - Nest')+'&body='+encodeURIComponent('Hi'+(r.contact?' '+String(r.contact).split(' ')[0]:'')+',\n\nJust floating my earlier note back to the top of your inbox. Happy to answer any questions or send more detail whenever suits.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU');}acts.push({t:r.org+(r.contact?' · '+r.contact:''),s:'No reply in '+r.days+' days — a short nudge usually lands. '+nestEsc(r.subject||''),p:r.days+'d quiet',cls:r.days>=10?'hot':'',mail:m});});
+  (j.overdue||[]).forEach(function(o){acts.push({t:o.name+(o.org?' · '+o.org:''),s:(o.next_action||'Follow up')+' — this was due '+o.days+(o.days===1?' day':' days')+' ago.',p:o.days+'d overdue',cls:'hot',org:o.name});});
+  (j.inbound||[]).slice(0,3).forEach(function(e){if(['replied','meeting'].indexOf(e.status)>=0&&inSeg(e.segment)){acts.push({t:e.org+(e.contact?' · '+e.contact:''),s:'They came back to you'+(e.notes?': '+e.notes:'.')+' Keep the ball moving.',p:e.status,cls:'ok',org:e.org});}});
+  (j.radar||[]).filter(function(r){return inSeg(r.segment);}).slice(0,5).forEach(function(r){
+    var first=r.contact?' '+String(r.contact).split(' ')[0]:'';
+    var bodies={nudge:'Hi'+first+',\n\nJust floating my earlier note back to the top of your inbox. Happy to answer any questions or send more detail whenever suits.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
+      case_study:'Hi'+first+',\n\nThought this might be useful context — we refitted Bayside House in St Kilda with Nest pods and the property lifted revenue about 42%. Guests call out the privacy and the reading lights in reviews. Case study: https://nestaus.com.au/case-study\n\nHappy to talk through what the numbers would look like for your rooms.\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU',
+      yield:'Hi'+first+',\n\nLast note from me — if it helps, we do a free 48-hour yield report: your beds, your rates, and what pod bunks would return per night, week and year. No obligation, no sales call. You can also run rough numbers yourself: https://nestaus.com.au/yield-calculator\n\nWorth 15 minutes?\n\nKind Regards,\nZac\n0439 607 086\nNESTAUS.COM.AU'};
+    var subs={nudge:'Following up - Nest',case_study:'The Bayside House numbers - Nest',yield:'Free 48-hour yield report - Nest'};
+    var labels={nudge:'nudge due',case_study:'case study due',yield:'yield offer due'};
+    var m='';if(r.email){m='mailto:'+r.email+'?subject='+encodeURIComponent(subs[r.touch]||subs.nudge)+'&body='+encodeURIComponent(bodies[r.touch]||bodies.nudge);}
+    var opened=(j.opens||{})[r.org];
+    acts.push({t:r.org+(r.contact?' · '+r.contact:''),s:(opened?'👁 Opened your email '+hmAgo(opened)+' but hasn\'t replied — worth a call. ':'No reply in '+r.days+' days. ')+'Next touch: '+(labels[r.touch]||'nudge')+'. '+nestEsc(r.subject||''),p:r.days+'d · '+(r.touch==='case_study'?'case study':r.touch),cls:r.days>=10?'hot':'',mail:m,org:r.org});});
   var actBlk=acts.length?acts.slice(0,8).map(function(a){
-    return '<div class="nw-card nw-act"><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div>'+(a.mail?'<a class="nw-nudge" href="'+a.mail+'">✉ Draft nudge</a>':'')+'</div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
+    return '<div class="nw-card nw-act"'+(a.org?' style="cursor:pointer" onclick="nestSheet(\''+encodeURIComponent(a.org).replace(/'/g,'%27')+'\')"':'')+'><div class="l"><div class="t">'+nestEsc(a.t)+'</div><div class="s">'+a.s+'</div>'+(a.mail?'<a class="nw-nudge" href="'+a.mail+'" onclick="event.stopPropagation()">✉ Draft '+(a.p.indexOf('case')>=0?'case study':(a.p.indexOf('yield')>=0?'yield offer':'nudge'))+'</a>':'')+'</div><span class="nw-pill '+a.cls+'">'+a.p+'</span></div>';
   }).join(''):'<div class="empty">All clear — nothing waiting on you right now.</div>';
   /* ---- ABSA flagship ---- */
   var absaBlk='';
@@ -2187,10 +2219,36 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
     var r=rep[d[0]]||0;var on=seg===d[0];
     return '<span class="nw-chip'+(on?' on':'')+'" onclick="setNestSeg(\''+d[0]+'\')">'+d[1]+' <b>'+n+'</b>'+(r?' <span class="rr">'+r+'↩</span>':'')+'</span>';
   }).join('')+'</div>';
+  /* ---- ABSA conquest ---- */
+  var conquest='';
+  if((seg==='all'||seg==='school')&&j.schools_total){
+    var cc=j.schools_counts||{};var auS=(j.schools||[]).filter(function(x){return ['NZ','INT'].indexOf(x.state)<0;});
+    var touched=(cc.enquired||0)+(cc.quoted||0)+(cc.won||0);
+    var actRows=(j.schools_active||[]).map(function(x){
+      var col=x.status==='won'?'#4e6e4e':(x.status==='quoted'?'#8b3a3a':'#b8a183');
+      return '<div class="trrow"><span class="trk2" style="min-width:0;flex:1">'+nestEsc(x.name)+' <span class="labsub">'+x.state+'</span></span><span class="trt" style="color:'+col+';font-weight:700">'+x.status+'</span></div>'+(x.notes?'<div class="labsub" style="margin:-2px 0 6px 2px">'+nestEsc(x.notes)+'</div>':'');
+    }).join('');
+    var byState={};auS.concat((j.schools||[]).filter(function(x){return ['NZ','INT'].indexOf(x.state)>=0;})).forEach(function(x){(byState[x.state]=byState[x.state]||[]).push(x);});
+    var allList=Object.keys(byState).map(function(st){
+      return '<div class="labsub" style="font-weight:700;letter-spacing:.1em;margin:8px 0 3px">'+st+' ('+byState[st].length+')</div>'+byState[st].map(function(x){
+        return '<span style="display:inline-block;font-size:11px;background:'+(x.status!=='none'?'rgba(139,58,58,.14)':'#fffdf8')+';border:1px solid #e2d7c4;border-radius:8px;padding:2px 8px;margin:0 4px 4px 0">'+nestEsc(x.name)+(x.status!=='none'?' <b style="color:#8b3a3a">'+x.status+'</b>':'')+'</span>';
+      }).join('');
+    }).join('');
+    conquest='<div class="nw-kick">ABSA conquest — '+auS.length+' Australian schools</div>'
+      +'<div class="nw-card"><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline">'
+      +'<span><b style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px">'+touched+'</b> <span class="labsub">in play</span></span>'
+      +'<span><b>'+(cc.enquired||0)+'</b> <span class="labsub">enquired</span></span>'
+      +'<span><b>'+(cc.quoted||0)+'</b> <span class="labsub">quoted</span></span>'
+      +'<span><b style="color:#4e6e4e">'+(cc.won||0)+'</b> <span class="labsub">won</span></span>'
+      +(cc.lost?'<span><b style="opacity:.5">'+cc.lost+'</b> <span class="labsub">lost</span></span>':'')+'</div>'
+      +'<div style="height:7px;border-radius:5px;background:#e8ddd0;margin-top:9px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.max(1,Math.round(touched/Math.max(1,auS.length)*100))+'%;background:linear-gradient(90deg,#8b3a3a,#b8a183)"></span></div></div>'
+      +actRows
+      +'<details class="nw-more"><summary><span>All schools by state</span><span class="x">＋</span></summary><div class="bd">'+allList+'</div></details>';
+  }
   /* ---- people ---- */
   var ppl=(seg==='all')?P:P.filter(function(p){return seg==='school'?p===absa:false;});
   var pplBlk=!ppl.length?'':'<div class="nw-kick">Your people</div>'+ppl.map(function(p){
-    return '<div class="nw-card nw-person"><span class="nw-av">'+nestInit(p.name)+'</span><div class="l"><div class="t">'+nestEsc(p.name)+' <span class="o">'+nestEsc(p.org||'')+'</span></div><div class="s">'+nestEsc(p.stage||'')+(p.next_action?' · <b>Next:</b> '+nestEsc(p.next_action)+(p.next_date?' by '+nestDate(p.next_date):''):'')+'</div>'
+    return '<div class="nw-card nw-person" style="cursor:pointer" onclick="nestSheet(\''+encodeURIComponent(p.name).replace(/'/g,'%27')+'\')"><span class="nw-av">'+nestInit(p.name)+'</span><div class="l"><div class="t">'+nestEsc(p.name)+' <span class="o">'+nestEsc(p.org||'')+'</span></div><div class="s">'+nestEsc(p.stage||'')+(p.next_action?' · <b>Next:</b> '+nestEsc(p.next_action)+(p.next_date?' by '+nestDate(p.next_date):''):'')+'</div>'
       +((p.email||p.phone)?'<div class="o" style="margin-top:2px">'+nestEsc(p.email||'')+(p.email&&p.phone?' · ':'')+nestEsc(p.phone||'')+'</div>':'')
       +'</div><span class="d">'+(p.stage_date?nestDate(p.stage_date):'')+'</span></div>';
   }).join('');
@@ -2199,7 +2257,8 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   var mailBlk=ELF.slice(0,30).map(function(e){
     var good=['replied','meeting','won'].indexOf(e.status)>=0;
     var st=good?'<span style="color:#4e6e4e;font-weight:700">'+e.status+'</span>':(e.status==='declined'?'<span style="color:#8b3a3a;font-weight:700">declined</span>':'<span style="color:#9b8d7a">'+e.status.replace('_',' ')+'</span>');
-    return '<div class="trrow"><span class="trk2" style="min-width:0;flex:1">'+nestEsc(e.org)+(e.contact?' <span class="labsub">'+nestEsc(e.contact)+'</span>':'')+'</span><span class="trt" style="min-width:0">'+st+' · '+nestDate(e.sent_at)+'</span></div>'
+    var eye=(j.opens||{})[e.org]?' <span title="opened">👁</span>':'';
+    return '<div class="trrow" style="cursor:pointer" onclick="nestSheet(\''+encodeURIComponent(e.org).replace(/'/g,'%27')+'\')"><span class="trk2" style="min-width:0;flex:1">'+nestEsc(e.org)+eye+(e.contact?' <span class="labsub">'+nestEsc(e.contact)+'</span>':'')+'</span><span class="trt" style="min-width:0">'+st+' · '+nestDate(e.sent_at)+'</span></div>'
       +'<div class="labsub" style="margin:-2px 0 7px 2px">'+nestEsc(e.subject||'')+(e.notes?' — '+nestEsc(e.notes):'')+'</div>';
   }).join('');
   var wonBlk='';
@@ -2233,7 +2292,7 @@ function renderNest(){var el=document.getElementById("nestpanel");var j=window._
   }
   el.innerHTML=head+wonBlk
     +'<div class="nw-kick">Do this now</div>'+actBlk
-    +absaBlk+chips+digestBlk+pplBlk+mailWrap+hostelWrap
+    +absaBlk+conquest+chips+digestBlk+pplBlk+mailWrap+hostelWrap
     +'<div class="playsdis" style="margin-top:10px">Live from the hello@nestaus.com.au mailbox (daily sync) + Nest research. Business-public contact info only. Not advice.</div>';
 }
 function abCosts(){try{return parseFloat(localStorage.getItem("ab_costs_monthly")||"0")||0;}catch(e){return 0;}}
@@ -2253,13 +2312,13 @@ function setAbPeriod(p){window._abPeriod=p;renderAirbnb();}
 function abFmtD(s){if(!s)return "—";var d=new Date(s+"T00:00:00");return d.toLocaleDateString("en-AU",{day:"numeric",month:"short"});}
 function abSince(ym){if(!ym)return "—";var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"});}
 function abMonths(ym){if(!ym)return 1;var p=String(ym).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);var n=new Date();return Math.max(1,(n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+1);}
-function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;try{setTimeout(renderHome,60);}catch(e){}
+function loadAirbnb(){fetch(AIRBNB_URL).then(function(r){return r.json();}).then(function(j){window._AB=j;try{localStorage.setItem('jv_ab_cache',JSON.stringify(j));}catch(e){}try{setTimeout(renderHome,60);}catch(e){}
     var days={};var ups=((j.stats&&j.stats.upcoming)||[]).slice();if(j.stats&&j.stats.in_house)ups.push(j.stats.in_house);
     ups.forEach(function(b){try{var d=new Date(b.checkin+"T00:00:00"),end=new Date(b.checkout+"T00:00:00");for(;d<end;d.setDate(d.getDate()+1))days[d.toLocaleDateString("en-CA")]=1;}catch(e){}});
     window._ABDAYS=days;
     var el=document.getElementById("airbnbhub");if(el)renderAirbnb();
     try{if(document.getElementById("calbox")&&window.calCursor)drawCal();}catch(e){}
-  }).catch(function(){var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
+  }).catch(function(){try{var c=JSON.parse(localStorage.getItem('jv_ab_cache'));if(c){c._cached=1;window._AB=c;var el2=document.getElementById("airbnbhub");if(el2)renderAirbnb();try{renderHome();}catch(e2){}return;}}catch(e3){}var e=document.getElementById("airbnbhub");if(e)e.innerHTML='<div class="empty" style="animation:none">Airbnb hub unavailable right now.</div>';});}
 function abPayRows(list,cls,stays){list=list||[];if(!list.length)return '<div class="labsub">None yet.</div>';stays=stays||[];var mx=1;for(var i=0;i<list.length;i++){if(list[i].amount>mx)mx=list[i].amount;}var out="";for(var k=0;k<list.length;k++){var x=list[k];var pct=Math.max(5,Math.round(x.amount/mx*100));var sub="";for(var q=0;q<stays.length;q++){if(stays[q].checkin===x.date){sub='<span class="paystay">'+abFmtD(stays[q].checkin)+'–'+abFmtD(stays[q].checkout)+'</span>';break;}}out+='<div class="payrow '+(cls||"")+'"><span class="payd">'+abFmtD(x.date)+sub+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(x.amount)+'</span></div>';}return out;}
 function abMonLbl(k){var p=String(k).split("-");var d=new Date(+p[0],(+p[1]||1)-1,1);return d.toLocaleDateString("en-AU",{month:"short"})+" '"+String(p[0]).slice(2);}
 function abMonthBars(monthly,upList,maxN){monthly=monthly||{};upList=upList||[];var m={};Object.keys(monthly).forEach(function(k){m[k]=(m[k]||0)+(Number(monthly[k])||0);});upList.forEach(function(x){var k=(x.date||"").slice(0,7);if(k)m[k]=(m[k]||0)+(Number(x.amount)||0);});var keys=Object.keys(m).sort();if(!keys.length)return '<div class="labsub">No monthly data yet.</div>';keys=keys.slice(-(maxN||8));var mx=1;keys.forEach(function(k){if(m[k]>mx)mx=m[k];});var out="";keys.forEach(function(k){var t=m[k];var pct=Math.max(5,Math.round(t/mx*100));out+='<div class="payrow mo"><span class="payd">'+abMonLbl(k)+'</span><span class="paybar"><span class="payfill" style="width:'+pct+'%"></span></span><span class="payv">'+money(t)+'</span></div>';});return out;}
@@ -2791,7 +2850,7 @@ function loadExtras(){ loadHeadlines(); loadCrypto(); loadCommodities(); loadPro
 function fetchData(){
   return fetch(LIVE_URL,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{ if(d&&d.portfolio&&d.portfolio.holdings){ render(d); } else throw 0; })
-    .catch(()=>fetch("data.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(render).catch(()=>{ if(FALLBACK) render(FALLBACK); }));
+    .catch(()=>fetch("data.json",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(render).catch(()=>{ try{var c=JSON.parse(localStorage.getItem('jv_dash_cache'));if(c){c._cached=1;return render(c);}}catch(e){} if(FALLBACK) render(FALLBACK); }));
 }
 function refreshPortfolio(){ var pin=null; try{pin=sessionStorage.getItem('jv_pin');}catch(e){} if(!pin)return;
   fetch(SESSION_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pin:pin})}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(j){ if(j&&j.owner)render(j.data); else if(j)renderGuest(j.data); }).catch(function(){}); }
