@@ -1115,17 +1115,18 @@
 
 <script>
 const FALLBACK = {
-  "generated_at": "2026-06-29T09:42:00+10:00",
+  "generated_at": "2026-08-27T09:00:00+10:00",
   "as_of_date": "2026-06-29",
   "tz": "Australia/Melbourne",
+  "prices_note": "Holdings/watchlist updated 2026-08-27 (V500 sold, AdraCard added). Prices are last-known from 2026-06-29; next morning briefing refreshes them.",
   "fx": {
     "audusd": 0.6899
   },
   "portfolio": {
-    "total_value_aud": 37782.27,
-    "total_cost_aud": 40835.56,
-    "total_pl_aud": -3053.29,
-    "total_pl_pct": -7.48,
+    "total_value_aud": 32528.7,
+    "total_cost_aud": 35899.95,
+    "total_pl_aud": -3371.25,
+    "total_pl_pct": -9.39,
     "holdings": [
       {
         "ticker": "WTC.AX",
@@ -1137,7 +1138,7 @@ const FALLBACK = {
         "value_aud": 22038.1,
         "pl_aud": -3956.75,
         "pl_pct": -15.22,
-        "buy_below": 30.0,
+        "buy_below": 30,
         "estimate": false,
         "note": "",
         "series": [
@@ -1170,7 +1171,7 @@ const FALLBACK = {
         "value_aud": 10490.6,
         "pl_aud": 585.5,
         "pl_pct": 5.91,
-        "buy_below": 90.0,
+        "buy_below": 90,
         "estimate": false,
         "note": "USD holding",
         "series": [
@@ -1197,27 +1198,6 @@ const FALLBACK = {
             "u": "https://www.barrons.com/articles/servicenow-applovin-software-chips-on-semiconductor-4496e4be"
           }
         ]
-      },
-      {
-        "ticker": "V500",
-        "name": "Vanguard S&P 500",
-        "units": 93,
-        "avg_cost": 53.07,
-        "ccy": "AUD",
-        "price": 56.49,
-        "value_aud": 5253.57,
-        "pl_aud": 317.96,
-        "pl_pct": 6.44,
-        "buy_below": null,
-        "estimate": false,
-        "note": "Vanguard app: +13.3% all-time (incl. $8.59 income)",
-        "series": [
-          52.42,
-          54.7,
-          56.49
-        ],
-        "blurb": "Dollar-cost average ~A$1,000/month into the US S&P 500. Tracks the index daily move; long-term core.",
-        "news": []
       }
     ]
   },
@@ -1228,10 +1208,10 @@ const FALLBACK = {
       "price": 114.87,
       "pct": -2.36,
       "spotlight": true,
-      "buy_below": 110.0,
+      "buy_below": 110,
       "note": "",
       "series": [
-        100.0,
+        100,
         115.27,
         114.87
       ],
@@ -1255,7 +1235,7 @@ const FALLBACK = {
       "price": 15.33,
       "pct": -2.23,
       "spotlight": false,
-      "buy_below": 14.0,
+      "buy_below": 14,
       "note": "",
       "series": [
         13.65,
@@ -1282,7 +1262,7 @@ const FALLBACK = {
       "price": 27.65,
       "pct": 0.8,
       "spotlight": false,
-      "buy_below": 26.0,
+      "buy_below": 26,
       "note": "",
       "series": [
         28.24,
@@ -1314,18 +1294,15 @@ const FALLBACK = {
       "news": []
     },
     {
-      "ticker": "V500",
-      "name": "Vanguard S&P 500 (VOO)",
-      "price": 670.26,
-      "pct": -0.82,
+      "ticker": "ADRACARD",
+      "name": "AdraCard (private SAFE)",
+      "price": null,
+      "pct": null,
       "spotlight": false,
       "buy_below": null,
-      "note": "USD",
-      "series": [
-        675.71,
-        670.26
-      ],
-      "blurb": "US-listed VOO, the S&P 500 tracker behind your V500 position.",
+      "note": "Invested A$12,500 · SAFE, A$17m cap, 20% discount",
+      "series": [],
+      "blurb": "Early-stage medtech: credit card-sized, needle-free nasal adrenaline spray for anaphylaxis. Founders ex-Optinose. Raising A$3m; next value inflection is the First-in-Human trial targeted Q1 2027. Private/illiquid — no market price; tracked here for news only.",
       "news": []
     },
     {
@@ -1379,7 +1356,7 @@ const FALLBACK = {
         {
           "ticker": "SPCE",
           "name": "Virgin Galactic",
-          "pct": 18.0
+          "pct": 18
         }
       ],
       "losers": [
@@ -1448,7 +1425,7 @@ const FALLBACK = {
     "audio": "briefing.mp3",
     "voice": "Alistair",
     "focus": "Push the Nomad hostel proposal forward — the single item that genuinely moves the business.",
-    "text": "Morning, Zac. Calendar's clear today, so it's yours to shape. Nothing urgent in the inbox — mostly noise, though Supabase has flagged that idle day-sheets project for pausing, so take a quick look if you still want it. On Nest, there's just the one open job: the Nomad hostel proposal, still sitting in to-do with no date on it — that's the one to move. Your portfolio's around thirty-six and a half thousand, down about three thousand two hundred overall. WiseTech's the drag, off roughly fifteen percent against your cost, but ServiceNow's up near six, and your Vanguard five hundred is nicely in the green. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Across Wall Street it was a mixed close — consumer cyclicals and healthcare led, energy lagged, and Microsoft was the standout. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
+    "text": "Morning, Zac. Quick portfolio housekeeping: your Vanguard five hundred is sold and out of the book, and you've put twelve and a half thousand into AdraCard on the SAFE note — that one's private and illiquid, so it sits on the watchlist for news rather than a live price. What's left in the market is WiseTech and ServiceNow, worth about thirty-two and a half thousand together, down roughly three thousand four hundred overall. WiseTech's still the drag, off about fifteen percent against your cost, while ServiceNow's up near six. On the watchlist, Bapcor's the mover, down sharply, while CSL and Telix each slipped a couple of percent and Woodside ticked up. Prices here are last-known from late June — the next full briefing will refresh them. If you do one thing today, push the Nomad proposal forward. It's the single thing that actually moves the business."
   }
 };
 const AUDIO_SRC = "briefing.mp3";
